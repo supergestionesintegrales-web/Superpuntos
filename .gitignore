@@ -6,3 +6,17 @@ coverage/
 *.log
 .env*
 !.env.example
+bun.lock
+
+# Firebase
+firebase-debug.log
+.firebase/
+
+# Local development
+.vscode/
+.idea/
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
