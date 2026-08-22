@@ -115,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       case 'admin_allies':
         return { title: 'Red de Aliados Comerciales', desc: 'Gestión de fidelización y bonificaciones manuales' };
       case 'admin_deliveries':
-        return { title: 'Despachos & Auditoría Excel', desc: 'Guías de transporte y consolidación contable' };
+        return { title: 'Despachos & Auditoría', desc: 'Guías de transporte y consolidación contable' };
       default:
         return { title: 'Portal de Canjes', desc: 'Supergestiones Integrales' };
     }

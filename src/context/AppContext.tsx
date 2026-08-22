@@ -67,7 +67,7 @@ interface AppContextType {
   accessLogs: AccessLog[];
   logAccessEvent: (eventType: AccessLog['eventType'], details?: string, targetUser?: User) => void;
 
-  // Google Sheets Integration
+  // la base de datos Integration
   isGoogleConnected: boolean;
   googleUserEmail: string | null;
   spreadsheetId: string;
@@ -213,7 +213,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_ACCESS_LOGS;
   });
 
-  // Google Sheets integration state
+  // la base de datos integration state
   const [spreadsheetId, setSpreadsheetIdState] = useState<string>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}spreadsheetId`);
     return saved || DEFAULT_SPREADSHEET_ID;
@@ -234,7 +234,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsGoogleConnected(true);
         setGoogleUserEmail(user.email || null);
         
-        // Auto-calibrate and auto-fetch users from Google Sheets on start
+        // Auto-calibrate and auto-fetch users from la base de datos on start
         getAccessToken().then(async (token) => {
           if (token) {
             try {
@@ -252,7 +252,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 });
               }
 
-              // 3. Fetch products dynamically from Google Sheets (Articulos and Bonos)
+              // 3. Fetch products dynamically from la base de datos (Articulos and Bonos)
               const sheetProducts = await fetchProductsFromGoogleSheets(token, spreadsheetId);
               if (sheetProducts.length > 0) {
                 setProducts(prev => {
@@ -263,13 +263,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 });
               }
 
-              // 4. Fetch promotional campaigns from Google Sheets (Promocionales)
+              // 4. Fetch promotional campaigns from la base de datos (Promocionales)
               const sheetCampaigns = await fetchCampaignsFromGoogleSheets(token, spreadsheetId);
               if (sheetCampaigns.length > 0) {
                 setCampaigns(sheetCampaigns);
               }
             } catch (err) {
-              console.warn('Auto calibración inicial Google Sheets:', err);
+              console.warn('Auto calibración inicial la base de datos:', err);
             }
           }
         });
@@ -362,7 +362,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setAccessLogs(prev => [newLog, ...prev]);
 
-    // Live push to Google Sheets if token is present
+    // Live push to la base de datos if token is present
     getAccessToken().then(token => {
       if (token) {
         appendRowToGoogleSheets(
@@ -385,7 +385,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   }, [currentUser, spreadsheetId]);
 
-  // Google Sheets Connect / Disconnect
+  // la base de datos Connect / Disconnect
   const connectGoogleSheets = async (): Promise<boolean> => {
     try {
       const result = await googleSignIn();
@@ -408,7 +408,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setGoogleUserEmail(null);
   };
 
-  // Full sync of current in-memory state to Google Sheets
+  // Full sync of current in-memory state to la base de datos
   const syncToGoogleSheets = async (customId?: string): Promise<{ success: boolean; message: string }> => {
     const targetSheetId = (customId || spreadsheetId || DEFAULT_SPREADSHEET_ID).trim();
     const token = await getAccessToken();
@@ -452,18 +452,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         status: 'success',
         lastSyncAt: now,
         spreadsheetId: targetSheetId,
-        message: 'Sincronización exitosa con todas las pestañas de Google Sheets'
+        message: 'Sincronización exitosa con todas las pestañas de la base de datos'
       });
 
-      return { success: true, message: '¡Datos sincronizados exitosamente con Google Sheets!' };
+      return { success: true, message: '¡Datos sincronizados exitosamente con la base de datos!' };
     } catch (err: any) {
       setSheetsSyncStatus({
         status: 'error',
         lastSyncAt: sheetsSyncStatus.lastSyncAt,
         spreadsheetId: targetSheetId,
-        message: err.message || 'Error al sincronizar con Google Sheets'
+        message: err.message || 'Error al sincronizar con la base de datos'
       });
-      return { success: false, message: err.message || 'Error al sincronizar con Google Sheets' };
+      return { success: false, message: err.message || 'Error al sincronizar con la base de datos' };
     }
   };
 
@@ -481,7 +481,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const token = await getAccessToken();
       if (!token) {
-        return { success: false, count: 0, message: 'Google Sheets no conectado' };
+        return { success: false, count: 0, message: 'la base de datos no conectado' };
       }
       const sheetUsers = await fetchUsersFromGoogleSheets(token, spreadsheetId);
       if (sheetUsers.length > 0) {
@@ -497,9 +497,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           message: `Se sincronizaron ${sheetUsers.length} usuarios desde la hoja de cálculo.` 
         };
       }
-      return { success: true, count: 0, message: 'No se encontraron usuarios adicionales en Sheets.' };
+      return { success: true, count: 0, message: 'No se encontraron usuarios adicionales en la base de datos.' };
     } catch (err: any) {
-      return { success: false, count: 0, message: err.message || 'Error consultando Google Sheets' };
+      return { success: false, count: 0, message: err.message || 'Error consultando la base de datos' };
     }
   };
 
@@ -507,7 +507,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const token = await getAccessToken();
       if (!token) {
-        return { success: false, message: 'Google Sheets no está conectado.', tabsCalibrated: [] };
+        return { success: false, message: 'la base de datos no está conectado.', tabsCalibrated: [] };
       }
       const res = await autoCalibrateSpreadsheet(token, spreadsheetId);
       // After calibrating, re-fetch users
@@ -532,7 +532,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       return res;
     } catch (err: any) {
-      return { success: false, message: err.message || 'Error al calibrar Google Sheets', tabsCalibrated: [] };
+      return { success: false, message: err.message || 'Error al calibrar la base de datos', tabsCalibrated: [] };
     }
   };
 
@@ -548,7 +548,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
     if (localFound) return { exists: true, user: localFound };
 
-    // 2. Try fetching from Google Sheets if connected
+    // 2. Try fetching from la base de datos if connected
     try {
       const token = await getAccessToken();
       if (token) {
@@ -587,7 +587,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       )
     );
 
-    // 2. If not found locally, try live checking Google Sheets
+    // 2. If not found locally, try live checking la base de datos
     if (!found) {
       try {
         const token = await getAccessToken();
@@ -617,7 +617,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return { 
             success: false, 
             notRegistered: false, 
-            message: 'Contraseña incorrecta. Por favor ingresa la contraseña correspondiente a tu cuenta registrada en Excel.' 
+            message: 'Contraseña incorrecta. Por favor ingresa la contraseña correspondiente a tu cuenta registrada.' 
           };
         }
       }
@@ -632,7 +632,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { 
       success: false, 
       notRegistered: true, 
-      message: 'Usuario no registrado. La cédula o documento ingresado no se encuentra en la base de datos de usuarios de Superpuntos en Excel. Por favor regístrate como nuevo Aliado Comercial.' 
+      message: 'Usuario no registrado. La cédula o documento ingresado no se encuentra en la base de datos de usuarios de Superpuntos. Por favor regístrate como nuevo Aliado Comercial.' 
     };
   };
 
@@ -707,7 +707,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     logAccessEvent('register', `Registro de nuevo Aliado: ${newUser.name} (${newUser.businessName || 'Punto de Venta'})`, newUser);
 
-    // Push to Google Sheets in background if connected
+    // Push to la base de datos in background if connected
     getAccessToken().then(token => {
       if (token) {
         appendRowToGoogleSheets(
@@ -820,7 +820,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setCampaigns(prev => [newCampaign, ...prev]);
 
-    // Persist to Google Sheets in background
+    // Persist to la base de datos in background
     getAccessToken().then(token => {
       if (token) {
         appendRowToGoogleSheets(
@@ -928,7 +928,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     logAccessEvent('report_gestion', `Reporte de gestión SOAT #${newGestion.referenceNumber} (${newGestion.licensePlate || 'Sin placa'}) por ${expectedPoints} pts`);
 
-    // Append to Google Sheets
+    // Append to la base de datos
     getAccessToken().then(token => {
       if (token) {
         appendRowToGoogleSheets(
@@ -1024,7 +1024,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     logAccessEvent('approval', `Aprobación de gestión #${gestion.referenceNumber} otorgando ${points} pts`);
 
-    // Sync to Google Sheets in background
+    // Sync to la base de datos in background
     getAccessToken().then(token => {
       if (token && targetUser) {
         // 1. Update user points row in Usuarios tab
@@ -1351,7 +1351,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     logAccessEvent('redemption', `Canje de premios por ${cartPointsTotal} pts (Comprobante: ${voucherCode})`);
 
-    // Append to Google Sheets in background
+    // Append to la base de datos in background
     getAccessToken().then(token => {
       if (token) {
         // 1. Append Order
