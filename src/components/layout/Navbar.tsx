@@ -36,7 +36,7 @@ interface NavbarProps {
   onOpenProfileSwitcher: () => void;
   onOpenRegisterModal: () => void;
   onOpenReportGestionModal: () => void;
-  onOpenSheetsSyncModal?: () => void;
+
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -46,7 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenProfileSwitcher,
   onOpenRegisterModal,
   onOpenReportGestionModal,
-  onOpenSheetsSyncModal
+
 }) => {
   const { 
     currentUser, 
@@ -56,9 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     orders, 
     notifications, 
     markNotificationAsRead, 
-    markAllNotificationsAsRead,
-    isGoogleConnected,
-    spreadsheetId
+    markAllNotificationsAsRead
   } = useApp();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -346,16 +344,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Admin: Quick Shortcuts */}
             {currentUser.role === 'admin' && (
               <div className="flex items-center gap-2">
-                {onOpenSheetsSyncModal && (
-                  <button
-                    onClick={onOpenSheetsSyncModal}
-                    className="hidden sm:flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 transition-colors cursor-pointer"
-                    title={`Sincronizar con Google Sheets (Hoja: ${spreadsheetId})`}
-                  >
-                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-                    <span>Sheets {isGoogleConnected ? '✓' : '⚙'}</span>
-                  </button>
-                )}
 
                 <button
                   onClick={() => setActiveTab('admin_approvals')}

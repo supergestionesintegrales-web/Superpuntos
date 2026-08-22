@@ -31,7 +31,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
     loginAsAdmin, 
     registerAlly, 
     triggerConfetti,
-    syncUsersFromGoogleSheets,
     isGoogleConnected
   } = useApp();
 
@@ -66,7 +65,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
   const [isAdminLoggingIn, setIsAdminLoggingIn] = useState(false);
 
   // Sync state
-  const [isSyncingSheets, setIsSyncingSheets] = useState(false);
+
 
   // Handle Ally Login Submit
   const handleAllySubmit = async (e: React.FormEvent) => {
@@ -187,14 +186,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
     }, 300);
   };
 
-  const handleManualSyncSheets = async () => {
-    setIsSyncingSheets(true);
-    try {
-      await syncUsersFromGoogleSheets();
-    } finally {
-      setIsSyncingSheets(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col justify-between selection:bg-amber-500 selection:text-slate-900 font-sans text-slate-100 relative overflow-hidden">
@@ -228,20 +219,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          {isGoogleConnected ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
-              <Database className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="hidden md:inline">Base de Datos Excel Conectada</span>
-              <button
-                onClick={handleManualSyncSheets}
-                disabled={isSyncingSheets}
-                title="Sincronizar base de datos de usuarios desde Excel"
-                className="text-slate-400 hover:text-white transition-colors cursor-pointer"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingSheets ? 'animate-spin text-amber-400' : ''}`} />
-              </button>
-            </div>
-          ) : null}
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 shadow-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -259,7 +236,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
             Acceso al Portal de Recompensas
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
-            El sistema valida tus credenciales directamente en la base de datos de usuarios de Excel.
+            El sistema valida tus credenciales de forma segura.
           </p>
         </div>
 
@@ -324,7 +301,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                   Iniciar Sesión como Aliado Comercial
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
-                  Ingresa tu cédula y contraseña registrada en la base de datos de Excel.
+                  Ingresa tu cédula y contraseña registrada en el sistema.
                 </p>
               </div>
 
@@ -424,6 +401,19 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
 
               </form>
 
+              {/* Forgot Password Link */}
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    alert('Para recuperar tu contraseña, contacta al administrador del sistema:\n\nEmail: admin@supergiros.com\nTeléfono: 300 987 6543');
+                  }}
+                  className="text-xs text-slate-400 hover:text-amber-400 hover:underline transition-colors cursor-pointer"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+
               {/* Bottom Registration CTA */}
               <div className="pt-4 border-t border-slate-800 text-center">
                 <span className="text-xs text-slate-400">
@@ -454,7 +444,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                   Registro de Nuevo Aliado Comercial
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
-                  Diligencia tus datos. Al registrarte quedarás guardado en la base de datos de Excel.
+                  Diligencia tus datos. Al registrarte quedarás guardado en la base de datos del sistema.
                 </p>
               </div>
 
@@ -624,7 +614,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
 
               <div className="pt-4 border-t border-slate-800 text-center">
                 <span className="text-xs text-slate-400">
-                  ¿Ya tienes cuenta registrada en la base de datos?{' '}
+                  ¿Ya tienes cuenta registrada en el sistema?{' '}
                 </span>
                 <button
                   type="button"
@@ -648,7 +638,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                   Acceso Administrativo SuperGIROS
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
-                  Panel de control de inventarios, auditoría de SOATs y sincronización con Google Sheets.
+                  Panel de control de inventarios y auditoría de SOATs.
                 </p>
               </div>
 
@@ -717,6 +707,19 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 </button>
 
               </form>
+
+              {/* Admin Forgot Password Link */}
+              <div className="text-center mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    alert('Credenciales de administrador:\n\nSi olvidaste tu contraseña, contacta al equipo de sistemas o revisa el archivo CREDENCIALES_ADMIN.md en el proyecto.');
+                  }}
+                  className="text-xs text-slate-400 hover:text-amber-400 hover:underline transition-colors cursor-pointer"
+                >
+                  ¿Olvidaste tu contraseña de administrador?
+                </button>
+              </div>
 
             </div>
           )}

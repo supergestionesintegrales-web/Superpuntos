@@ -2,21 +2,55 @@ import { User, Product, CommercialCampaign, ReportedGestion, RedemptionOrder, Po
 
 export const INITIAL_USERS: User[] = [
   {
-    id: 'usr_admin',
-    name: 'Administrador General',
+    id: 'usr_admin_principal',
+    name: 'Administrador Principal',
     documentId: '900850320',
-    email: 'admin@superpuntos.com',
+    email: 'admin@supergiros.com',
     phone: '3009876543',
     role: 'admin',
-    password: 'admin',
+    password: 'SuperGiros2026!',
     zone: 'Dirección Nacional',
     pointsBalance: 0,
     totalPointsEarned: 0,
     totalPointsRedeemed: 0,
-    avatarUrl: 'https://ui-avatars.com/api/?name=Admin+General&background=0f172a&color=fff&bold=true',
+    avatarUrl: 'https://ui-avatars.com/api/?name=Admin+Principal&background=0f172a&color=fff&bold=true',
     status: 'active',
     createdAt: '2025-01-01T08:00:00Z',
-    businessName: 'Superpuntos Central'
+    businessName: 'SuperGIROS Central'
+  },
+  {
+    id: 'usr_admin_sistemas',
+    name: 'Administrador Sistemas',
+    documentId: '900850321',
+    email: 'sistemas@supergiros.com',
+    phone: '3009876544',
+    role: 'admin',
+    password: 'Sistemas2026!',
+    zone: 'Tecnología',
+    pointsBalance: 0,
+    totalPointsEarned: 0,
+    totalPointsRedeemed: 0,
+    avatarUrl: 'https://ui-avatars.com/api/?name=Admin+Sistemas&background=0f172a&color=fff&bold=true',
+    status: 'active',
+    createdAt: '2025-01-01T08:00:00Z',
+    businessName: 'SuperGIROS Sistemas'
+  },
+  {
+    id: 'usr_admin_operaciones',
+    name: 'Administrador Operaciones',
+    documentId: '900850322',
+    email: 'operaciones@supergiros.com',
+    phone: '3009876545',
+    role: 'admin',
+    password: 'Operaciones2026!',
+    zone: 'Operaciones',
+    pointsBalance: 0,
+    totalPointsEarned: 0,
+    totalPointsRedeemed: 0,
+    avatarUrl: 'https://ui-avatars.com/api/?name=Admin+Operaciones&background=0f172a&color=fff&bold=true',
+    status: 'active',
+    createdAt: '2025-01-01T08:00:00Z',
+    businessName: 'SuperGIROS Operaciones'
   }
 ];
 
@@ -169,12 +203,12 @@ export const INITIAL_ACCESS_LOGS: AccessLog[] = [
   {
     id: 'log_init_1',
     timestamp: new Date().toISOString(),
-    userId: 'usr_admin',
-    userName: 'Administrador SuperGIROS',
-    documentId: '900123456',
+    userId: 'usr_admin_principal',
+    userName: 'Administrador Principal',
+    documentId: '900850320',
     role: 'admin',
     eventType: 'login',
     details: 'Inicio de sesión administrativo inicial en el portal',
-    ipOrDevice: 'Portal Web Superpuntos'
+    ipOrDevice: 'Portal Web SuperGIROS'
   }
 ];

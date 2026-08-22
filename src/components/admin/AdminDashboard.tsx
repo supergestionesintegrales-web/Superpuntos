@@ -25,7 +25,6 @@ interface AdminDashboardProps {
   onOpenNewProductModal: () => void;
   onOpenNewCampaignModal: () => void;
   onOpenManualPointsModal: () => void;
-  onOpenSheetsSyncModal?: () => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -33,7 +32,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onOpenNewProductModal,
   onOpenNewCampaignModal,
   onOpenManualPointsModal,
-  onOpenSheetsSyncModal
 }) => {
   const { 
     users, 
@@ -76,15 +74,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {onOpenSheetsSyncModal && (
-              <button
-                onClick={onOpenSheetsSyncModal}
-                className="px-4 py-2.5 rounded-lg font-bold text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
-              >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-100" />
-                <span>Google Sheets ({isGoogleConnected ? 'Conectado' : 'Sincronizar'})</span>
-              </button>
-            )}
 
             <button
               onClick={() => setActiveTab('admin_approvals')}
@@ -104,60 +93,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Google Sheets Live Integration Widget */}
-      <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-start sm:items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-            <FileSpreadsheet className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-extrabold text-emerald-950">
-                Sincronización en Vivo con Google Sheets
-              </h3>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                isGoogleConnected 
-                  ? 'bg-emerald-200/80 text-emerald-800' 
-                  : 'bg-amber-200/80 text-amber-900'
-              }`}>
-                {isGoogleConnected ? '● Activo' : 'Pendiente Conexión'}
-              </span>
-            </div>
-            <p className="text-xs text-emerald-800 mt-0.5">
-              Hoja configurada: <span className="font-mono font-semibold">{spreadsheetId}</span>
-              {sheetsSyncStatus.lastSyncAt && (
-                <span className="ml-2 text-emerald-700">
-                  (Última sinc: {new Date(sheetsSyncStatus.lastSyncAt).toLocaleTimeString('es-CO')})
-                </span>
-              )}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <a
-            href={`https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-3 py-2 rounded-xl text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition-colors flex items-center gap-1.5 cursor-pointer"
-          >
-            <span>Abrir Hoja</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </a>
-
-          {onOpenSheetsSyncModal && (
-            <button
-              onClick={onOpenSheetsSyncModal}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>Gestionar Sincronización</span>
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
@@ -318,7 +253,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             className="p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition-all group cursor-pointer"
           >
             <FileSpreadsheet className="w-5 h-5 text-slate-700 group-hover:scale-110 transition-transform mb-2" />
-            <p className="font-bold text-xs text-slate-900">Exportar Excel</p>
+            <p className="font-bold text-xs text-slate-900">Exportar Datos</p>
             <span className="text-[10px] text-slate-500">Auditoría y canjes</span>
           </button>
         </div>

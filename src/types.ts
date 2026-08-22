@@ -181,10 +181,5 @@ export interface AccessLog {
   ipOrDevice?: string;
 }
 
-export interface SheetsSyncStatus {
-  lastSyncAt: string | null;
-  status: 'idle' | 'syncing' | 'success' | 'error';
-  message?: string;
-  spreadsheetId: string;
-  connectedAccountEmail?: string;
-}
+
+export interface SheetsSyncStatus { lastSyncAt: string | null; status: 'idle' | 'syncing' | 'success' | 'error'; spreadsheetId: string; message?: string; }

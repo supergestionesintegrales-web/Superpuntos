@@ -81,7 +81,7 @@ export const DeliveryAuditManager: React.FC = () => {
             Logística y Auditoría de Redenciones
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
-            Despachos, Entregas y Reporte Excel
+            Despachos, Entregas y Reportes
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             Supervisa el despacho de premios a nivel nacional, asigna números de guía y descarga reportes contables.
@@ -93,7 +93,7 @@ export const DeliveryAuditManager: React.FC = () => {
           className="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md shadow-emerald-600/25 flex items-center gap-2 transition-all hover:scale-102 cursor-pointer"
         >
           <FileSpreadsheet className="w-4 h-4" />
-          <span>Exportar Reporte a Excel (.CSV)</span>
+          <span>Exportar Reporte (.CSV)</span>
         </button>
       </div>
 

@@ -16,7 +16,6 @@ import { CampaignsManager } from './components/admin/CampaignsManager';
 import { AlliesManager } from './components/admin/AlliesManager';
 import { DeliveryAuditManager } from './components/admin/DeliveryAuditManager';
 import { ManualPointsModal } from './components/admin/ManualPointsModal';
-import { GoogleSheetsSyncModal } from './components/admin/GoogleSheetsSyncModal';
 
 import { RegisterAllyModal } from './components/auth/RegisterAllyModal';
 import { LoginSwitchModal } from './components/auth/LoginSwitchModal';
@@ -41,7 +40,6 @@ export function AppContent() {
   const [isManualPointsModalOpen, setIsManualPointsModalOpen] = useState(false);
   const [isNewProductModalOpen, setIsNewProductModalOpen] = useState(false);
   const [isNewCampaignModalOpen, setIsNewCampaignModalOpen] = useState(false);
-  const [isSheetsSyncModalOpen, setIsSheetsSyncModalOpen] = useState(false);
 
   // Synchronize default tab when role changes
   React.useEffect(() => {
@@ -86,7 +84,6 @@ export function AppContent() {
         onOpenProfileSwitcher={() => setIsLoginSwitchOpen(true)}
         onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
         onOpenReportGestionModal={() => setIsReportModalOpen(true)}
-        onOpenSheetsSyncModal={() => setIsSheetsSyncModalOpen(true)}
       />
 
       {/* Main Content Area (Offset by sidebar on Desktop) */}
@@ -127,7 +124,6 @@ export function AppContent() {
                   onOpenNewProductModal={() => setIsNewProductModalOpen(true)}
                   onOpenNewCampaignModal={() => setIsNewCampaignModalOpen(true)}
                   onOpenManualPointsModal={() => setIsManualPointsModalOpen(true)}
-                  onOpenSheetsSyncModal={() => setIsSheetsSyncModalOpen(true)}
                 />
               )}
 
@@ -228,11 +224,6 @@ export function AppContent() {
       <ManualPointsModal
         isOpen={isManualPointsModalOpen}
         onClose={() => setIsManualPointsModalOpen(false)}
-      />
-
-      <GoogleSheetsSyncModal
-        isOpen={isSheetsSyncModalOpen}
-        onClose={() => setIsSheetsSyncModalOpen(false)}
       />
 
     </div>

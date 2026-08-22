@@ -175,13 +175,13 @@ export const getAllyTier = (totalEarned: number): {
   };
 };
 
-// Export to Excel / CSV utility
-export const exportToExcel = (data: Record<string, any>[], fileName: string, sheetTitle = 'Datos') => {
+// Export to CSV utility
+export const exportToCSV = (data: Record<string, any>[], fileName: string, sheetTitle = 'Datos') => {
   if (!data || data.length === 0) return;
 
   const headers = Object.keys(data[0]);
   
-  // Format CSV with BOM for UTF-8 Excel support
+  // Format CSV with BOM for UTF-8 support
   const csvContent = [
     headers.join(';'),
     ...data.map(row => 
@@ -227,6 +227,6 @@ export const exportOrdersToCSV = (orders: any[]) => {
     'PIN Digital': order.digitalVoucherPin || 'N/A'
   }));
 
-  exportToExcel(formattedData, 'Superpuntos_Reporte_Canjes_Auditoria');
+  exportToCSV(formattedData, 'Superpuntos_Reporte_Canjes_Auditoria');
 };
 
