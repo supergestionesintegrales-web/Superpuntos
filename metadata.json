@@ -1,0 +1,8 @@
+{
+  "name": "Remix Superpuntos - Portal de Canjes",
+  "description": "Sistema integral de recompensas y fidelización para aliados comerciales con catálogo interactivo, gestión de inventario, aprobación de gestiones y control de puntos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

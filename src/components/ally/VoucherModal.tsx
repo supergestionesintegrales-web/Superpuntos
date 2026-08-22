@@ -1,0 +1,208 @@
+import React from 'react';
+import { 
+  X, 
+  Printer, 
+  Download, 
+  Coins, 
+  CheckCircle2, 
+  Sparkles, 
+  QrCode, 
+  Zap, 
+  Truck, 
+  Building,
+  ShieldCheck
+} from 'lucide-react';
+import { RedemptionOrder } from '../../types';
+import { formatPoints, formatDate } from '../../utils/helpers';
+
+interface VoucherModalProps {
+  order: RedemptionOrder | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClose }) => {
+  if (!isOpen || !order) return null;
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div 
+        className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative my-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Top Bar */}
+        <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
+            <Sparkles className="w-4 h-4" />
+            <span>Comprobante de Canje Generado</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrint}
+              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Imprimir comprobante"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Imprimir</span>
+            </button>
+            
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Printable Voucher Section */}
+        <div id="printable-voucher" className="p-6 sm:p-8 space-y-6 bg-white">
+          
+          {/* Brand Header */}
+          <div className="text-center pb-4 border-b border-slate-200 space-y-1">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-md mb-1">
+              <Coins className="w-7 h-7" />
+            </div>
+            <h1 className="font-heading font-black text-2xl tracking-tight text-slate-900">
+              SUPER<span className="text-amber-500">PUNTOS</span>
+            </h1>
+            <p className="text-xs font-bold text-slate-500 tracking-wider uppercase">
+              Comprobante Oficial de Redención de Premios
+            </p>
+          </div>
+
+          {/* Voucher Code Badge & Status */}
+          <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800">
+                Código de Comprobante / Voucher
+              </span>
+              <div className="font-mono text-2xl font-black text-slate-900 tracking-wider">
+                {order.voucherCode}
+              </div>
+              <span className="text-[11px] text-slate-500">
+                Fecha de Emisión: {formatDate(order.createdAt)}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1.5 rounded-xl text-xs font-bold">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>Canje Autorizado</span>
+            </div>
+          </div>
+
+          {/* Digital Pin Highlight if Digital */}
+          {order.digitalVoucherPin && (
+            <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 text-center space-y-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-900">
+                PIN de Activación Inmediata:
+              </span>
+              <div className="font-mono text-xl font-black text-indigo-700 tracking-widest">
+                {order.digitalVoucherPin}
+              </div>
+              <p className="text-[10px] text-indigo-600">
+                Presenta este código o canjéalo directamente en la plataforma del aliado.
+              </p>
+            </div>
+          )}
+
+          {/* Ally Information */}
+          <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div>
+              <span className="text-slate-500 block">Aliado Titular:</span>
+              <strong className="text-slate-900 font-bold">{order.allyName}</strong>
+              <p className="text-[11px] text-slate-600 mt-0.5">C.C. {order.allyDocument}</p>
+            </div>
+
+            <div>
+              <span className="text-slate-500 block">Zona & Contacto:</span>
+              <strong className="text-slate-900 font-bold">{order.allyZone}</strong>
+              <p className="text-[11px] text-slate-600 mt-0.5">Tel: {order.allyPhone}</p>
+            </div>
+          </div>
+
+          {/* Items Redeemed Table */}
+          <div className="space-y-2">
+            <h4 className="text-xs font-bold uppercase text-slate-700 tracking-wide">
+              Detalle de Recompensas Canjeadas:
+            </h4>
+            <div className="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100 text-xs">
+              {order.items.map((item, idx) => (
+                <div key={idx} className="p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.productName}
+                      className="w-10 h-10 rounded-lg object-cover border border-slate-200"
+                    />
+                    <div>
+                      <p className="font-bold text-slate-900">{item.productName}</p>
+                      <span className="text-[11px] text-slate-500">
+                        Cantidad: {item.quantity} un.
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right font-bold text-amber-600">
+                    {formatPoints(item.pointsCost * item.quantity)} pts
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Delivery Details */}
+          {order.deliveryType === 'shipping' && order.shippingAddress && (
+            <div className="text-xs bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1">
+              <span className="font-bold text-slate-800 flex items-center gap-1">
+                <Truck className="w-3.5 h-3.5 text-amber-500" />
+                <span>Dirección de Despacho Logístico:</span>
+              </span>
+              <p className="text-slate-600">
+                {order.shippingAddress}, {order.shippingCity} ({order.shippingDepartment || 'Colombia'})
+              </p>
+              <p className="text-slate-500 text-[11px]">
+                Receptor: {order.recipientName} - Tel: {order.recipientPhone}
+              </p>
+            </div>
+          )}
+
+          {/* Points Total Summary */}
+          <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+            <span className="font-bold text-sm text-slate-800">Total Puntos Deducidos:</span>
+            <div className="flex items-center gap-1.5 font-black text-xl text-amber-600">
+              <Coins className="w-5 h-5 text-amber-500" />
+              <span>{formatPoints(order.totalPoints)}</span>
+              <span className="text-xs font-bold text-slate-700">pts</span>
+            </div>
+          </div>
+
+          {/* Security stamp & barcode representation */}
+          <div className="pt-4 border-t border-dashed border-slate-200 flex items-center justify-between text-[10px] text-slate-400">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>Transacción cifrada y validada por Superpuntos S.A.S.</span>
+            </div>
+            <span className="font-mono">{order.id}</span>
+          </div>
+
+        </div>
+
+        {/* Modal Bottom Action */}
+        <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-white transition-colors cursor-pointer"
+          >
+            Cerrar Comprobante
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
+};
