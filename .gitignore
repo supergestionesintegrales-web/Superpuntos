@@ -6,6 +6,8 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Excluir bun.lock específicamente
 bun.lock
 
 # Firebase
@@ -16,7 +18,6 @@ firebase-debug.log
 .vscode/
 .idea/
 
-# Package manager
-package-lock.json
+# Otros lockfiles (mantener solo package-lock.json)
 yarn.lock
 pnpm-lock.yaml
