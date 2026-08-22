@@ -1,11 +1,11 @@
 {
-  "projectId": "superpuntos",
-  "appId": "PENDIENTE_OBTENER_DE_FIREBASE_CONSOLE",
-  "apiKey": "PENDIENTE_OBTENER_DE_FIREBASE_CONSOLE",
-  "authDomain": "superpuntos.firebaseapp.com",
-  "storageBucket": "superpuntos.firebasestorage.app",
-  "messagingSenderId": "PENDIENTE_OBTENER_DE_FIREBASE_CONSOLE",
-  "measurementId": "",
-  "oAuthClientId": "PENDIENTE_OBTENER_DE_FIREBASE_CONSOLE",
+  "projectId": "superpuntos-9d0b8",
+  "appId": "1:796906386673:web:e2dddf65234af9543ae550",
+  "apiKey": "AIzaSyDdN47TiPQN-ousMqsj9KkSwNBEffFGjNA",
+  "authDomain": "superpuntos-9d0b8.firebaseapp.com",
+  "storageBucket": "superpuntos-9d0b8.firebasestorage.app",
+  "messagingSenderId": "796906386673",
+  "measurementId": "G-SRG9NDSZKV",
+  "oAuthClientId": "",
   "recaptchaSiteKey": ""
 }
