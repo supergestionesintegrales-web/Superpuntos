@@ -15,7 +15,10 @@ import {
   ShieldAlert,
   UserCheck,
   Crown,
-  Info
+  Info,
+  Trash2,
+  AlertTriangle,
+  RefreshCw
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { User } from '../../types';
@@ -29,7 +32,7 @@ interface AlliesManagerProps {
 }
 
 export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints, onOpenRegisterAlly }) => {
-  const { users, switchUser, currentUser } = useApp();
+  const { users, switchUser, currentUser, deleteUser } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedZone, setSelectedZone] = useState('all');
@@ -37,6 +40,8 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
   const [isPointsModalOpen, setIsPointsModalOpen] = useState(false);
   const [isTierModalOpen, setIsTierModalOpen] = useState(false);
   const [selectedAllyForTier, setSelectedAllyForTier] = useState<User | undefined>(undefined);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const allies = users.filter(u => u.role === 'ally');
 
@@ -239,19 +244,112 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
                   <span>Simular Sesión</span>
                 </button>
 
-                <button
-                  onClick={() => handleOpenPoints(ally.id)}
-                  className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-white flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
-                >
-                  <Coins className="w-3.5 h-3.5" />
-                  <span>Asignar Puntos</span>
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setUserToDelete(ally)}
+                    className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                    title="Eliminar usuario del sistema y de Firebase"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={() => handleOpenPoints(ally.id)}
+                    className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-white flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                    title="Asignar bonos, ajustes o deducciones a este aliado"
+                  >
+                    <Coins className="w-3.5 h-3.5" />
+                    <span>Ajustar Puntos</span>
+                  </button>
+                </div>
               </div>
 
             </div>
           );
         })}
       </div>
+
+      {/* Delete User Confirmation Modal */}
+      {userToDelete && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div 
+            className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 mx-auto">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+
+            <div className="text-center space-y-1">
+              <h3 className="text-lg font-black text-slate-900">
+                ¿Eliminar este usuario de Firebase y del sistema?
+              </h3>
+              <p className="text-xs text-slate-500">
+                Esta acción es irreversible y removerá el registro de usuario y su acceso permanentemente tanto de la base de datos como de Firebase Firestore.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs space-y-1.5 text-slate-700">
+              <div className="flex justify-between">
+                <span className="text-slate-400 font-medium">Nombre:</span>
+                <span className="font-bold text-slate-900">{userToDelete.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400 font-medium">Cédula / Documento:</span>
+                <span className="font-mono font-bold text-slate-800">{userToDelete.documentId}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400 font-medium">Correo:</span>
+                <span className="text-slate-800">{userToDelete.email}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400 font-medium">Saldo de Puntos:</span>
+                <span className="font-bold text-amber-600">{formatPoints(userToDelete.pointsBalance)} pts</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setUserToDelete(null)}
+                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={async () => {
+                  if (!userToDelete) return;
+                  setIsDeleting(true);
+                  try {
+                    await deleteUser(userToDelete.id);
+                    setUserToDelete(null);
+                  } catch (err) {
+                    console.error(err);
+                  } finally {
+                    setIsDeleting(false);
+                  }
+                }}
+                className="flex-1 py-3 px-4 rounded-xl font-black text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-md shadow-rose-600/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              >
+                {isDeleting ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Eliminando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Sí, Eliminar de Firebase</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Manual Points Modal */}
       <ManualPointsModal

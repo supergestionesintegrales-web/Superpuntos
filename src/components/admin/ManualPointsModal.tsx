@@ -30,38 +30,55 @@ export const ManualPointsModal: React.FC<ManualPointsModalProps> = ({
   const [selectedAllyId, setSelectedAllyId] = useState(preSelectedAllyId || allies[0]?.id || '');
   const [operationType, setOperationType] = useState<'bonus' | 'correction' | 'deduction'>('bonus');
   const [pointsAmount, setPointsAmount] = useState<number>(500);
-  const [reason, setReason] = useState('Bono especial por cumplimiento de metas del mes.');
+  const [reason, setReason] = useState('Bono comercial por cumplimiento de metas.');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (preSelectedAllyId) {
+      setSelectedAllyId(preSelectedAllyId);
+    } else if (!selectedAllyId && allies.length > 0) {
+      setSelectedAllyId(allies[0].id);
+    }
+  }, [preSelectedAllyId, allies, selectedAllyId]);
 
   if (!isOpen) return null;
 
-  const currentSelectedAlly = allies.find(a => a.id === selectedAllyId);
+  const currentSelectedAlly = allies.find(a => a.id === selectedAllyId) || allies[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedAllyId || pointsAmount <= 0) return;
+    const targetId = selectedAllyId || currentSelectedAlly?.id;
+    if (!targetId || pointsAmount <= 0 || isSubmitting) return;
 
+    setIsSubmitting(true);
     const finalAmount = operationType === 'deduction' ? -Math.abs(pointsAmount) : Math.abs(pointsAmount);
     
     const typeLabel = operationType === 'bonus' 
-      ? 'Bono Especial' 
+      ? 'Bono Comercial' 
       : operationType === 'correction' 
-      ? 'Ajuste Contable' 
-      : 'Deducción Manual';
+      ? 'Ajuste Técnico' 
+      : 'Deducción de Puntos';
 
     const fullDescription = `${typeLabel}: ${reason}`;
 
-    adjustUserPoints(selectedAllyId, finalAmount, fullDescription);
+    try {
+      adjustUserPoints(targetId, finalAmount, fullDescription, operationType === 'bonus');
 
-    if (finalAmount > 0) {
-      triggerConfetti();
+      if (finalAmount > 0) {
+        triggerConfetti();
+      }
+
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsSuccess(false);
+        setIsSubmitting(false);
+        onClose();
+      }, 1400);
+    } catch (err) {
+      console.error('Error al ajustar puntos:', err);
+      setIsSubmitting(false);
     }
-
-    setIsSuccess(true);
-    setTimeout(() => {
-      setIsSuccess(false);
-      onClose();
-    }, 1500);
   };
 
   return (
@@ -193,6 +210,18 @@ export const ManualPointsModal: React.FC<ManualPointsModalProps> = ({
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500"
               />
             </div>
+
+            {/* Projection Summary */}
+            {currentSelectedAlly && (
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
+                <span className="text-slate-500 font-medium">Nuevo saldo proyectado:</span>
+                <span className={`font-black text-sm ${
+                  operationType === 'deduction' ? 'text-rose-600' : 'text-emerald-700'
+                }`}>
+                  {formatPoints(Math.max(0, currentSelectedAlly.pointsBalance + (operationType === 'deduction' ? -pointsAmount : pointsAmount)))} pts
+                </span>
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">

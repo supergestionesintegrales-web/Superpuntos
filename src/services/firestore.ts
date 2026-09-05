@@ -17,6 +17,7 @@ import {
   QueryConstraint
 } from 'firebase/firestore';
 import { app } from './firebaseAuth';
+import firebaseConfig from '../../firebase-applet-config.json';
 import { 
   User, 
   Product, 
@@ -28,8 +29,10 @@ import {
   AccessLog 
 } from '../types';
 
-// Initialize Firestore
-export const db = getFirestore(app);
+// Initialize Firestore with configured databaseId
+export const db = (firebaseConfig as any)?.firestoreDatabaseId && (firebaseConfig as any).firestoreDatabaseId !== '(default)'
+  ? getFirestore(app, (firebaseConfig as any).firestoreDatabaseId)
+  : getFirestore(app);
 
 // Collection names
 export const COLLECTIONS = {
@@ -284,9 +287,9 @@ export const getGestion = async (gestionId: string): Promise<ReportedGestion | n
 export const getAllGestiones = async (): Promise<ReportedGestion[]> => {
   try {
     const gestionesRef = collection(db, COLLECTIONS.GESTIONES);
-    const q = query(gestionesRef, orderBy('reportedAt', 'desc'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data() as ReportedGestion);
+    const querySnapshot = await getDocs(gestionesRef);
+    const gestiones = querySnapshot.docs.map(doc => doc.data() as ReportedGestion);
+    return gestiones.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   } catch (error) {
     console.error('Error getting all gestiones from Firestore:', error);
     return [];
@@ -295,10 +298,8 @@ export const getAllGestiones = async (): Promise<ReportedGestion[]> => {
 
 export const getGestionesByUser = async (userId: string): Promise<ReportedGestion[]> => {
   try {
-    const gestionesRef = collection(db, COLLECTIONS.GESTIONES);
-    const q = query(gestionesRef, where('reportedByUserId', '==', userId), orderBy('reportedAt', 'desc'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data() as ReportedGestion);
+    const all = await getAllGestiones();
+    return all.filter(g => g.allyId === userId);
   } catch (error) {
     console.error('Error getting user gestiones from Firestore:', error);
     return [];
@@ -347,9 +348,9 @@ export const getOrder = async (orderId: string): Promise<RedemptionOrder | null>
 export const getAllOrders = async (): Promise<RedemptionOrder[]> => {
   try {
     const ordersRef = collection(db, COLLECTIONS.ORDERS);
-    const q = query(ordersRef, orderBy('redeemedAt', 'desc'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data() as RedemptionOrder);
+    const querySnapshot = await getDocs(ordersRef);
+    const orders = querySnapshot.docs.map(doc => doc.data() as RedemptionOrder);
+    return orders.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   } catch (error) {
     console.error('Error getting all orders from Firestore:', error);
     return [];
@@ -358,10 +359,8 @@ export const getAllOrders = async (): Promise<RedemptionOrder[]> => {
 
 export const getOrdersByUser = async (userId: string): Promise<RedemptionOrder[]> => {
   try {
-    const ordersRef = collection(db, COLLECTIONS.ORDERS);
-    const q = query(ordersRef, where('userId', '==', userId), orderBy('redeemedAt', 'desc'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data() as RedemptionOrder);
+    const all = await getAllOrders();
+    return all.filter(o => o.allyId === userId);
   } catch (error) {
     console.error('Error getting user orders from Firestore:', error);
     return [];
@@ -396,9 +395,9 @@ export const saveTransaction = async (transaction: PointsTransaction): Promise<v
 export const getTransactionsByUser = async (userId: string): Promise<PointsTransaction[]> => {
   try {
     const transactionsRef = collection(db, COLLECTIONS.TRANSACTIONS);
-    const q = query(transactionsRef, where('userId', '==', userId), orderBy('timestamp', 'desc'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data() as PointsTransaction);
+    const querySnapshot = await getDocs(transactionsRef);
+    const all = querySnapshot.docs.map(doc => doc.data() as PointsTransaction);
+    return all.filter(t => t.allyId === userId).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   } catch (error) {
     console.error('Error getting user transactions from Firestore:', error);
     return [];
@@ -436,6 +435,32 @@ export const updateNotification = async (notificationId: string, data: Partial<A
   } catch (error) {
     console.error('Error updating notification in Firestore:', error);
     throw error;
+  }
+};
+
+export const deleteNotification = async (notificationId: string): Promise<void> => {
+  try {
+    const notificationRef = doc(db, COLLECTIONS.NOTIFICATIONS, notificationId);
+    await deleteDoc(notificationRef);
+  } catch (error) {
+    console.error('Error deleting notification from Firestore:', error);
+  }
+};
+
+export const clearNotificationsByUser = async (userId: string): Promise<void> => {
+  try {
+    const notificationsRef = collection(db, COLLECTIONS.NOTIFICATIONS);
+    const q = userId === 'all_admin' 
+      ? query(notificationsRef) 
+      : query(notificationsRef, where('userId', '==', userId));
+    const querySnapshot = await getDocs(q);
+    const batch = writeBatch(db);
+    querySnapshot.docs.forEach(docSnap => {
+      batch.delete(docSnap.ref);
+    });
+    await batch.commit();
+  } catch (error) {
+    console.error('Error clearing notifications in Firestore:', error);
   }
 };
 
@@ -524,18 +549,25 @@ export const subscribeToCampaigns = (callback: (campaigns: CommercialCampaign[])
 
 export const subscribeToGestiones = (callback: (gestiones: ReportedGestion[]) => void) => {
   const gestionesRef = collection(db, COLLECTIONS.GESTIONES);
-  const q = query(gestionesRef, orderBy('reportedAt', 'desc'));
-  return onSnapshot(q, (snapshot) => {
+  return onSnapshot(gestionesRef, (snapshot) => {
     const gestiones = snapshot.docs.map(doc => doc.data() as ReportedGestion);
-    callback(gestiones);
+    callback(gestiones.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
   });
 };
 
 export const subscribeToOrders = (callback: (orders: RedemptionOrder[]) => void) => {
   const ordersRef = collection(db, COLLECTIONS.ORDERS);
-  const q = query(ordersRef, orderBy('redeemedAt', 'desc'));
-  return onSnapshot(q, (snapshot) => {
+  return onSnapshot(ordersRef, (snapshot) => {
     const orders = snapshot.docs.map(doc => doc.data() as RedemptionOrder);
-    callback(orders);
+    callback(orders.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
   });
 };
+
+export const subscribeToNotifications = (callback: (notifications: AppNotification[]) => void) => {
+  const notifsRef = collection(db, COLLECTIONS.NOTIFICATIONS);
+  return onSnapshot(notifsRef, (snapshot) => {
+    const notifs = snapshot.docs.map(doc => doc.data() as AppNotification);
+    callback(notifs.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
+  });
+};
+

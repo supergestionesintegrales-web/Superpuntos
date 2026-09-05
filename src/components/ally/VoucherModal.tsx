@@ -7,10 +7,11 @@ import {
   CheckCircle2, 
   Sparkles, 
   QrCode, 
-  Zap, 
+  Banknote, 
   Truck, 
   Building,
-  ShieldCheck
+  ShieldCheck,
+  Gift
 } from 'lucide-react';
 import { RedemptionOrder } from '../../types';
 import { formatPoints, formatDate } from '../../utils/helpers';
@@ -135,11 +136,26 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
               {order.items.map((item, idx) => (
                 <div key={idx} className="p-3 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.productName}
-                      className="w-10 h-10 rounded-lg object-cover border border-slate-200"
-                    />
+                    {item.imageUrl ? (
+                      <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.productName}
+                          className="w-full h-full object-contain p-0.5 mix-blend-multiply"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className={`w-10 h-10 rounded-lg border flex items-center justify-center shrink-0 shadow-2xs ${
+                        item.isDigital || item.category === 'Bonos'
+                          ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
+                          : 'bg-amber-100 text-amber-600 border-amber-200'
+                      }`}>
+                        {item.isDigital || item.category === 'Bonos' ? <Banknote className="w-5 h-5" /> : <Gift className="w-5 h-5" />}
+                      </div>
+                    )}
                     <div>
                       <p className="font-bold text-slate-900">{item.productName}</p>
                       <span className="text-[11px] text-slate-500">
@@ -155,19 +171,62 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
             </div>
           </div>
 
-          {/* Delivery Details */}
-          {order.deliveryType === 'shipping' && order.shippingAddress && (
+          {/* Delivery Details - Physical Shipping */}
+          {order.shippingAddress && (
             <div className="text-xs bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1">
-              <span className="font-bold text-slate-800 flex items-center gap-1">
-                <Truck className="w-3.5 h-3.5 text-amber-500" />
-                <span>Dirección de Despacho Logístico:</span>
+              <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                <Truck className="w-4 h-4 text-amber-500" />
+                <span>Despacho de Artículos a Domicilio:</span>
               </span>
-              <p className="text-slate-600">
+              <p className="text-slate-800 font-medium">
                 {order.shippingAddress}, {order.shippingCity} ({order.shippingDepartment || 'Colombia'})
               </p>
               <p className="text-slate-500 text-[11px]">
-                Receptor: {order.recipientName} - Tel: {order.recipientPhone}
+                Receptor: <strong className="text-slate-700">{order.recipientName}</strong> • Tel: <strong className="text-slate-700">{order.recipientPhone}</strong>
               </p>
+            </div>
+          )}
+
+          {/* Delivery Details - Pickup at Main Office SuperGIROS */}
+          {(order.pickupOffice || order.deliveryType === 'branch_pickup') && (
+            <div className="text-xs bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200 space-y-1">
+              <span className="font-bold text-amber-950 flex items-center gap-1.5">
+                <Building className="w-4 h-4 text-amber-600" />
+                <span>Retiro en Oficina Principal SuperGIROS:</span>
+              </span>
+              <p className="text-amber-900 font-medium">
+                Sede: <strong>{order.pickupOffice || 'Oficina Principal SuperGIROS Regional'}</strong>
+              </p>
+              <p className="text-amber-800 text-[11px]">
+                Autorizado para reclamar: <strong>{order.recipientName || order.allyName}</strong> • C.C. <strong>{order.recipientPhone || order.allyDocument}</strong>
+              </p>
+            </div>
+          )}
+
+          {/* Delivery Details - Bonos de Dinero en App SuperGIROS */}
+          {(order.supergirosDocument || order.hasBonos || order.deliveryType === 'digital' || order.items.some(i => i.isDigital || i.category === 'Bonos')) && (
+            <div className="text-xs bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200 space-y-1.5">
+              <span className="font-bold text-emerald-900 flex items-center gap-1.5">
+                <Banknote className="w-4 h-4 text-emerald-600" />
+                <span>Bono Cargado Directamente a App SuperGIROS:</span>
+              </span>
+              <p className="text-emerald-800 text-[11px] leading-relaxed">
+                Este saldo es acreditado de forma digital a la cuenta registrada en la <strong>App SuperGIROS</strong> sin requerir despacho físico.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-emerald-200/60 text-[11px]">
+                <div>
+                  <span className="text-emerald-700 block">Cédula App:</span>
+                  <strong className="text-emerald-950">{order.supergirosDocument || order.allyDocument}</strong>
+                </div>
+                <div>
+                  <span className="text-emerald-700 block">Titular App:</span>
+                  <strong className="text-emerald-950 truncate block">{order.supergirosName || order.allyName}</strong>
+                </div>
+                <div>
+                  <span className="text-emerald-700 block">Celular Registrado:</span>
+                  <strong className="text-emerald-950">{order.supergirosPhone || order.allyPhone}</strong>
+                </div>
+              </div>
             </div>
           )}
 

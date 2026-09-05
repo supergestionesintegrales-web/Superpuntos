@@ -14,7 +14,9 @@ import {
   Plus, 
   CheckCircle2,
   Gift,
-  Award
+  Award,
+  Database,
+  RefreshCw
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { formatPoints, formatDate } from '../../utils/helpers';
@@ -42,8 +44,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     transactions,
     isGoogleConnected,
     sheetsSyncStatus,
-    spreadsheetId
+    spreadsheetId,
+    syncWithFirestore,
+    isFirebaseConnected,
+    firestoreStatus
   } = useApp();
+
+  const [isSyncingFirestore, setIsSyncingFirestore] = React.useState(false);
+
+  const handleManualFirestoreSync = async () => {
+    setIsSyncingFirestore(true);
+    try {
+      await syncWithFirestore();
+    } finally {
+      setIsSyncingFirestore(false);
+    }
+  };
 
   const allies = users.filter(u => u.role === 'ally');
   const pendingGestiones = gestiones.filter(g => g.status === 'pending');
@@ -74,6 +90,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleManualFirestoreSync}
+              disabled={isSyncingFirestore}
+              title={`Estado Firestore: ${firestoreStatus}`}
+              className="px-3.5 py-2.5 rounded-lg font-bold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${isSyncingFirestore ? 'animate-spin' : ''}`} />
+              <span>{isSyncingFirestore ? 'Sincronizando...' : 'Sincronizar Firestore'}</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+            </button>
 
             <button
               onClick={() => setActiveTab('admin_approvals')}
@@ -88,7 +115,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               className="px-4 py-2.5 rounded-lg font-semibold text-xs sm:text-sm bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Coins className="w-4 h-4 text-amber-400" />
-              <span>Asignar Bono / Puntos</span>
+              <span>Ajustar / Asignar Puntos</span>
             </button>
           </div>
         </div>
@@ -235,8 +262,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             className="p-3.5 rounded-xl bg-slate-50 hover:bg-amber-500/10 hover:border-amber-400 border border-slate-200 text-left transition-all group cursor-pointer"
           >
             <Coins className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform mb-2" />
-            <p className="font-bold text-xs text-slate-900">Bono Manual</p>
-            <span className="text-[10px] text-slate-500">Asignar puntos</span>
+            <p className="font-bold text-xs text-slate-900">Ajustar Puntos</p>
+            <span className="text-[10px] text-slate-500">Asignar o deducir</span>
           </button>
 
           <button

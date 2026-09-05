@@ -6,7 +6,7 @@ import {
   CheckCircle2, 
   Clock, 
   Printer, 
-  Zap, 
+  Banknote, 
   Building, 
   ExternalLink, 
   Gift, 
@@ -126,7 +126,16 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ onGoToCatalog }) => {
                       <span className="text-xs text-slate-400">• {formatDate(order.createdAt)}</span>
                     </div>
                     <p className="text-xs text-slate-500">
-                      Modalidad: <strong className="text-slate-700">{order.deliveryType === 'digital' ? 'Bono Digital Instantáneo' : order.deliveryType === 'shipping' ? 'Envío Físico' : 'Retiro en Sede'}</strong>
+                      Modalidad:{' '}
+                      <strong className="text-slate-700">
+                        {order.deliveryType === 'digital'
+                          ? 'Bono Cargado a App SuperGIROS'
+                          : order.deliveryType === 'shipping'
+                          ? 'Envío Físico a Domicilio'
+                          : order.deliveryType === 'branch_pickup'
+                          ? 'Retiro en Oficina Principal SuperGIROS'
+                          : 'Mixto (Despacho + Bono App SuperGIROS)'}
+                      </strong>
                     </p>
                   </div>
 
@@ -145,40 +154,76 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ onGoToCatalog }) => {
 
                 {/* Items in order */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {order.items.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                      <img
-                        src={item.imageUrl}
-                        alt={item.productName}
-                        className="w-12 h-12 rounded-lg object-cover border border-slate-200 shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 truncate">{item.productName}</p>
-                        <p className="text-[10px] text-slate-500">
-                          {item.quantity} un. • {formatPoints(item.pointsCost)} pts c/u
-                        </p>
+                  {order.items.map((item, idx) => {
+                    const isBono = item.isDigital || item.category === 'Bonos';
+                    return (
+                      <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        {item.imageUrl ? (
+                          <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                            <img
+                              src={item.imageUrl}
+                              alt={item.productName}
+                              className="w-full h-full object-contain p-1 mix-blend-multiply"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className={`w-12 h-12 rounded-lg border flex items-center justify-center shrink-0 shadow-2xs ${
+                            isBono 
+                              ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
+                              : 'bg-amber-100 text-amber-600 border-amber-200'
+                          }`}>
+                            {isBono ? <Banknote className="w-5 h-5" /> : <Gift className="w-5 h-5" />}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-900 truncate">{item.productName}</p>
+                          <p className="text-[10px] text-slate-500">
+                            {item.quantity} un. • {formatPoints(item.pointsCost)} pts c/u
+                          </p>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-sm inline-block mt-0.5 ${
+                            isBono ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            {isBono ? 'Bono App SuperGiros' : 'Artículo Despacho'}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
-                {/* Tracking / Digital Voucher details */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs pt-2">
-                  {order.digitalVoucherPin ? (
-                    <div className="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-indigo-600" />
-                      <span>PIN Digital: <strong className="font-mono font-bold">{order.digitalVoucherPin}</strong></span>
-                    </div>
-                  ) : order.trackingNumber ? (
-                    <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 flex items-center gap-2">
-                      <Truck className="w-4 h-4 text-blue-600" />
-                      <span>Guía de Envío: <strong className="font-bold">{order.trackingNumber}</strong> ({order.courierName || 'Transportadora'})</span>
-                    </div>
-                  ) : order.shippingAddress ? (
-                    <div className="text-slate-600 text-xs">
-                      📍 Destino: <strong>{order.shippingAddress}, {order.shippingCity}</strong>
-                    </div>
-                  ) : null}
+                {/* Tracking / Delivery / App SuperGiros details */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs pt-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* App SuperGiros Bono */}
+                    {(order.supergirosDocument || order.hasBonos || order.deliveryType === 'digital') && (
+                      <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center gap-2 text-[11px]">
+                        <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Cargado a App SuperGiros (C.C. <strong>{order.supergirosDocument || order.allyDocument}</strong> • Cel <strong>{order.supergirosPhone || order.allyPhone}</strong>)</span>
+                      </div>
+                    )}
+
+                    {/* Branch Pickup */}
+                    {(order.pickupOffice || order.deliveryType === 'branch_pickup') && (
+                      <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center gap-2 text-[11px]">
+                        <Building className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Retiro: <strong>{order.pickupOffice || 'Oficina Principal SuperGIROS'}</strong></span>
+                      </div>
+                    )}
+
+                    {/* Shipping Address / Courier */}
+                    {order.shippingAddress && (
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 flex items-center gap-2 text-[11px]">
+                        <Truck className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Despacho a: <strong>{order.shippingAddress}, {order.shippingCity}</strong></span>
+                        {order.trackingNumber && (
+                          <span className="font-mono font-bold text-blue-700">({order.courierName}: {order.trackingNumber})</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Total Points */}
                   <div className="font-bold text-slate-900 flex items-center gap-1.5 sm:ml-auto">

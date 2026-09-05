@@ -22,6 +22,7 @@ import {
   ChevronRight,
   HelpCircle,
   Crown,
+  Trash2,
   User as UserIcon
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -56,7 +57,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     orders, 
     notifications, 
     markNotificationAsRead, 
-    markAllNotificationsAsRead
+    markAllNotificationsAsRead,
+    deleteNotification,
+    clearNotifications
   } = useApp();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -66,7 +69,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const pendingGestionesCount = gestiones.filter(g => g.status === 'pending').length;
   const pendingOrdersCount = orders.filter(o => o.status === 'pending' || o.status === 'preparing').length;
-  const unreadNotifications = notifications.filter(n => !n.read);
+
+  const userNotifications = notifications.filter(n => 
+    n.userId === currentUser.id || 
+    n.userId === 'all' || 
+    (currentUser.role === 'admin' && (n.userId === 'usr_admin' || !n.userId))
+  );
+  const unreadNotifications = userNotifications.filter(n => !n.read);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const tierInfo = getAllyTier(currentUser.totalPointsEarned || 0);
@@ -371,7 +380,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Notifications Dropdown */}
               {showNotifications && (
                 <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 py-3 z-50 animate-in fade-in slide-in-from-top-2">
-                  <div className="px-4 pb-2 border-b border-slate-100 flex items-center justify-between">
+                  <div className="px-4 pb-2.5 border-b border-slate-100 flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <Bell className="w-4 h-4 text-amber-500" />
                       <span className="font-bold text-sm text-slate-900">Notificaciones</span>
@@ -381,45 +390,81 @@ export const Navbar: React.FC<NavbarProps> = ({
                         </span>
                       )}
                     </div>
-                    {unreadNotifications.length > 0 && (
-                      <button
-                        onClick={markAllNotificationsAsRead}
-                        className="text-[11px] font-semibold text-amber-600 hover:text-amber-700 cursor-pointer"
-                      >
-                        Marcar leídas
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {unreadNotifications.length > 0 && (
+                        <button
+                          onClick={markAllNotificationsAsRead}
+                          className="text-[11px] font-semibold text-amber-600 hover:text-amber-700 cursor-pointer"
+                          title="Marcar todas como leídas"
+                        >
+                          Marcar leídas
+                        </button>
+                      )}
+                      {userNotifications.length > 0 && (
+                        <button
+                          onClick={() => clearNotifications(currentUser.id)}
+                          className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-md transition-colors"
+                          title="Vaciar bandeja de notificaciones"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>Vaciar</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 px-2">
-                    {notifications.length === 0 ? (
-                      <div className="py-6 text-center text-slate-400 text-xs">
-                        No tienes notificaciones
+                  <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 px-2">
+                    {userNotifications.length === 0 ? (
+                      <div className="py-8 text-center text-slate-400 text-xs space-y-1">
+                        <Bell className="w-6 h-6 mx-auto text-slate-300 stroke-1" />
+                        <p>No tienes notificaciones en tu bandeja</p>
                       </div>
                     ) : (
-                      notifications.slice(0, 8).map(notif => (
+                      userNotifications.slice(0, 15).map(notif => (
                         <div 
                           key={notif.id}
-                          onClick={() => {
-                            markNotificationAsRead(notif.id);
-                            if (notif.targetTab) setActiveTab(notif.targetTab);
-                            setShowNotifications(false);
-                          }}
-                          className={`p-3 rounded-xl transition-colors cursor-pointer ${
-                            notif.read ? 'hover:bg-slate-50 opacity-80' : 'bg-amber-50/50 hover:bg-amber-50'
+                          className={`p-3 rounded-xl transition-colors relative group ${
+                            notif.read ? 'hover:bg-slate-50 opacity-85' : 'bg-amber-50/60 hover:bg-amber-50'
                           }`}
                         >
-                          <div className="flex items-start gap-2">
-                            <div className="flex-1">
-                              <p className="text-xs font-bold text-slate-900">{notif.title}</p>
+                          <div className="flex items-start gap-2.5">
+                            <div 
+                              className="flex-1 cursor-pointer"
+                              onClick={() => {
+                                markNotificationAsRead(notif.id);
+                                if (notif.targetTab) setActiveTab(notif.targetTab);
+                                setShowNotifications(false);
+                              }}
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <p className="text-xs font-bold text-slate-900">{notif.title}</p>
+                                {!notif.read && (
+                                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                                )}
+                              </div>
                               <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">{notif.message}</p>
                               <span className="text-[10px] text-slate-400 mt-1 block">
-                                {new Date(notif.createdAt).toLocaleDateString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                                {new Date(notif.createdAt).toLocaleDateString('es-CO', { 
+                                  day: 'numeric',
+                                  month: 'short',
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
                               </span>
                             </div>
-                            {!notif.read && (
-                              <span className="w-2 h-2 rounded-full bg-amber-500 mt-1 shrink-0"></span>
-                            )}
+
+                            {/* Delete single notification */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteNotification(notif.id);
+                              }}
+                              className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors opacity-60 group-hover:opacity-100 cursor-pointer shrink-0"
+                              title="Eliminar esta notificación"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </div>
                       ))

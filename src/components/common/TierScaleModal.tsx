@@ -1,5 +1,5 @@
 import React from 'react';
-import { Award, CheckCircle2, Crown, Sparkles, X, ShieldCheck, Zap, ChevronRight, Gift } from 'lucide-react';
+import { Award, CheckCircle2, Crown, Sparkles, X, ShieldCheck, ChevronRight, Gift } from 'lucide-react';
 import { TIERS, getAllyTier, formatPoints } from '../../utils/helpers';
 import { User } from '../../types';
 

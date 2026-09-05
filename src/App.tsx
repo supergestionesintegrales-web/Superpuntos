@@ -20,11 +20,19 @@ import { ManualPointsModal } from './components/admin/ManualPointsModal';
 import { RegisterAllyModal } from './components/auth/RegisterAllyModal';
 import { LoginSwitchModal } from './components/auth/LoginSwitchModal';
 import { AuthPortal } from './components/auth/AuthPortal';
+import { DefinitivePasswordModal } from './components/auth/DefinitivePasswordModal';
 import { RedemptionOrder } from './types';
 import { Coins, Sparkles, ShieldCheck, HeartHandshake } from 'lucide-react';
 
 export function AppContent() {
-  const { isAuthenticated, currentUser, currentRole, pendingGestionesCount } = useApp();
+  const { 
+    isAuthenticated, 
+    currentUser, 
+    currentRole, 
+    pendingGestionesCount,
+    mustResetPasswordModalOpen,
+    setMustResetPasswordModalOpen 
+  } = useApp();
 
   const [activeTab, setActiveTab] = useState<string>(
     currentUser.role === 'admin' ? 'admin_dashboard' : 'catalog'
@@ -224,6 +232,11 @@ export function AppContent() {
       <ManualPointsModal
         isOpen={isManualPointsModalOpen}
         onClose={() => setIsManualPointsModalOpen(false)}
+      />
+
+      <DefinitivePasswordModal
+        isOpen={mustResetPasswordModalOpen}
+        onClose={() => setMustResetPasswordModalOpen(false)}
       />
 
     </div>

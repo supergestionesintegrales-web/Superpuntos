@@ -9,7 +9,7 @@ import {
   Download, 
   Search, 
   Printer, 
-  Zap, 
+  Banknote, 
   Building, 
   X, 
   Edit3,
@@ -244,9 +244,9 @@ export const DeliveryAuditManager: React.FC = () => {
                     {/* Delivery Destination */}
                     <td className="p-4">
                       {order.deliveryType === 'digital' ? (
-                        <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200 inline-flex items-center gap-1">
-                          <Zap className="w-3 h-3" />
-                          Bono Digital (PIN)
+                        <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">
+                          <Banknote className="w-3 h-3 text-emerald-600" />
+                          Bono App SuperGiros
                         </span>
                       ) : order.shippingAddress ? (
                         <div>

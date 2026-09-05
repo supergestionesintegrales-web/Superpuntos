@@ -10,6 +10,9 @@ export interface User {
   phone: string;
   role: UserRole;
   password?: string;
+  tempPassword?: string;
+  tempPasswordExpiresAt?: string; // ISO string (5 hours expiration)
+  mustResetPassword?: boolean;
   zone?: string;
   pointsBalance: number;
   totalPointsEarned: number;
@@ -98,7 +101,7 @@ export interface CartItem {
 }
 
 export type OrderStatus = 'pending' | 'preparing' | 'shipped' | 'delivered' | 'cancelled';
-export type DeliveryType = 'shipping' | 'digital' | 'branch_pickup';
+export type DeliveryType = 'shipping' | 'digital' | 'branch_pickup' | 'mixed';
 
 export interface OrderItem {
   productId: string;
@@ -123,11 +126,20 @@ export interface RedemptionOrder {
   totalPoints: number;
   status: OrderStatus;
   deliveryType: DeliveryType;
+  hasPhysicalItems?: boolean;
+  hasBonos?: boolean;
+  // Physical Dispatch (Artículos)
   shippingAddress?: string;
   shippingCity?: string;
   shippingDepartment?: string;
+  pickupOffice?: string; // Oficina Principal SuperGIROS seleccionada
   recipientName?: string;
   recipientPhone?: string;
+  // App SuperGIROS Details (Bonos de dinero)
+  supergirosDocument?: string; // Cédula registrada en App SuperGIROS
+  supergirosName?: string; // Nombre registrado en App SuperGIROS
+  supergirosPhone?: string; // Teléfono registrado en App SuperGIROS
+  // Logistics & Tracking
   digitalVoucherPin?: string;
   trackingNumber?: string;
   courierName?: string;

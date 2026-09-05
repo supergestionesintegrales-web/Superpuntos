@@ -10,9 +10,10 @@ import {
   Sparkles, 
   AlertCircle, 
   CheckCircle2, 
-  Zap, 
-  Truck,
-  ShieldCheck
+  Banknote, 
+  Truck, 
+  ShieldCheck, 
+  Gift 
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { formatPoints } from '../../utils/helpers';
@@ -80,11 +81,26 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onProce
                 <div key={item.product.id} className="pt-3 first:pt-0 flex gap-3 items-center">
                   
                   {/* Product Thumbnail */}
-                  <img
-                    src={item.product.imageUrl}
-                    alt={item.product.name}
-                    className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0"
-                  />
+                  {item.product.imageUrl ? (
+                    <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                      <img
+                        src={item.product.imageUrl}
+                        alt={item.product.name}
+                        className="w-full h-full object-contain p-1.5 mix-blend-multiply"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className={`w-16 h-16 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs ${
+                      item.product.isDigital || item.product.category === 'Bonos'
+                        ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                        : 'bg-amber-100 text-amber-600 border-amber-200'
+                    }`}>
+                      {item.product.isDigital || item.product.category === 'Bonos' ? <Banknote className="w-7 h-7" /> : <Gift className="w-7 h-7" />}
+                    </div>
+                  )}
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
@@ -96,9 +112,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onProce
                       <span className="text-[10px] text-slate-500">
                         {item.product.category}
                       </span>
-                      {item.product.isDigital && (
-                        <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1 py-0.2 rounded-sm">
-                          Digital
+                      {(item.product.isDigital || item.product.category === 'Bonos') && (
+                        <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm flex items-center gap-1">
+                          <Banknote className="w-2.5 h-2.5" />
+                          App SuperGiros
                         </span>
                       )}
                     </div>

@@ -8,7 +8,8 @@ import {
   Store, 
   UserPlus, 
   ArrowRight, 
-  Sparkles 
+  Sparkles,
+  Trash2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { formatPoints, getAllyTier } from '../../utils/helpers';
@@ -24,7 +25,7 @@ export const LoginSwitchModal: React.FC<LoginSwitchModalProps> = ({
   onClose,
   onOpenRegister
 }) => {
-  const { users, currentUser, switchUserById } = useApp();
+  const { users, currentUser, switchUserById, deleteUser } = useApp();
 
   if (!isOpen) return null;
 
@@ -93,7 +94,7 @@ export const LoginSwitchModal: React.FC<LoginSwitchModalProps> = ({
                       <div>
                         <div className="flex items-center gap-2">
                           <strong className="font-bold text-sm text-slate-900">{admin.name}</strong>
-                          <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
                             Super Admin
                           </span>
                         </div>
@@ -163,15 +164,33 @@ export const LoginSwitchModal: React.FC<LoginSwitchModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <div className="font-black text-amber-600 text-xs flex items-center gap-1 justify-end">
-                        <Coins className="w-3.5 h-3.5 text-amber-500" />
-                        <span>{formatPoints(ally.pointsBalance)} pts</span>
+                    <div className="text-right shrink-0 flex items-center gap-2">
+                      <div>
+                        <div className="font-black text-amber-600 text-xs flex items-center gap-1 justify-end">
+                          <Coins className="w-3.5 h-3.5 text-amber-500" />
+                          <span>{formatPoints(ally.pointsBalance)} pts</span>
+                        </div>
+                        {isActive && (
+                          <span className="text-[10px] font-bold text-emerald-600 block mt-0.5">
+                            ✓ Sesión Actual
+                          </span>
+                        )}
                       </div>
-                      {isActive && (
-                        <span className="text-[10px] font-bold text-emerald-600 block mt-0.5">
-                          ✓ Sesión Actual
-                        </span>
+
+                      {currentUser.role === 'admin' && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`¿Seguro que deseas eliminar al usuario "${ally.name}" del sistema y de Firebase?`)) {
+                              deleteUser(ally.id);
+                            }
+                          }}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          title="Eliminar usuario de Firebase"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       )}
                     </div>
                   </div>

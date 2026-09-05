@@ -16,8 +16,7 @@ import {
   Mail, 
   Phone, 
   Store, 
-  ShieldCheck,
-  Zap
+  ShieldCheck
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { formatPoints, getAllyTier, TIERS } from '../../utils/helpers';

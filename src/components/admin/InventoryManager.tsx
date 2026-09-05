@@ -1,29 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Package, 
   Plus, 
   Search, 
+  Coins, 
   Edit, 
   Trash2, 
-  Coins, 
   AlertTriangle, 
   CheckCircle2, 
-  Image as ImageIcon, 
   Sparkles, 
-  Zap, 
-  Filter,
-  X,
-  Layers,
-  Star
+  Tag, 
+  Layers, 
+  Gift, 
+  Banknote, 
+  Check, 
+  X, 
+  Image as ImageIcon,
+  Minus,
+  ExternalLink
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { Product, ProductCategory } from '../../types';
 import { formatPoints } from '../../utils/helpers';
-
-const CATEGORIES: ProductCategory[] = [
-  'Artículos',
-  'Bonos'
-];
 
 interface InventoryManagerProps {
   isModalOpenExternal?: boolean;
@@ -34,115 +32,126 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
   isModalOpenExternal,
   onCloseExternalModal
 }) => {
-  const { products, addProduct, updateProduct, deleteProduct, updateProductStock } = useApp();
+  const { products, addProduct, updateProduct, deleteProduct, updateStock } = useApp();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [isFormModalOpen, setIsFormModalOpen] = useState(isModalOpenExternal || false);
+  const [isModalOpen, setIsModalOpen] = useState(isModalOpenExternal || false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  // Form state
+  // Filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<'Todos' | ProductCategory>('Todos');
+  const [stockStatusFilter, setStockStatusFilter] = useState<'all' | 'low' | 'out' | 'active' | 'inactive'>('all');
+
+  // Form State
   const [formData, setFormData] = useState({
     name: '',
-    category: 'Artículos' as ProductCategory,
-    pointsCost: 25,
-    stock: 10,
-    brand: '',
     description: '',
-    specifications: '',
+    category: 'Artículos' as ProductCategory,
+    pointsCost: 20,
+    stock: 25,
     imageUrl: '',
+    brand: 'SuperGIROS',
+    specificationsText: '',
     isDigital: false,
     isFeatured: false,
     active: true
   });
 
-  const filteredProducts = products.filter(p => {
-    if (selectedCategory !== 'all' && p.category !== selectedCategory) return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      return p.name.toLowerCase().includes(q) || (p.brand && p.brand.toLowerCase().includes(q));
+  // Watch external trigger
+  useEffect(() => {
+    if (isModalOpenExternal) {
+      handleOpenAdd();
     }
-    return true;
-  });
-
-  const lowStockCount = products.filter(p => p.stock < 5).length;
-  const totalStockUnits = products.reduce((acc, p) => acc + p.stock, 0);
+  }, [isModalOpenExternal]);
 
   const handleOpenAdd = () => {
     setEditingProduct(null);
     setFormData({
       name: '',
-      category: 'Artículos',
-      pointsCost: 25,
-      stock: 10,
-      brand: '',
       description: '',
-      specifications: '',
+      category: 'Artículos',
+      pointsCost: 20,
+      stock: 25,
       imageUrl: '',
+      brand: 'SuperGIROS',
+      specificationsText: '',
       isDigital: false,
       isFeatured: false,
       active: true
     });
-    setIsFormModalOpen(true);
+    setIsModalOpen(true);
   };
 
   const handleOpenEdit = (product: Product) => {
     setEditingProduct(product);
     setFormData({
       name: product.name,
+      description: product.description,
       category: product.category,
       pointsCost: product.pointsCost,
       stock: product.stock,
-      brand: product.brand || '',
-      description: product.description,
-      specifications: product.specifications ? product.specifications.join('\n') : '',
-      imageUrl: product.imageUrl,
-      isDigital: product.isDigital,
-      isFeatured: product.isFeatured || false,
+      imageUrl: product.imageUrl || '',
+      brand: product.brand || 'SuperGIROS',
+      specificationsText: Array.isArray(product.specifications) 
+        ? product.specifications.join('\n') 
+        : (product.specifications || ''),
+      isDigital: !!product.isDigital,
+      isFeatured: !!(product.isFeatured || product.featured),
       active: product.active
     });
-    setIsFormModalOpen(true);
+    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
-    setIsFormModalOpen(false);
+    setIsModalOpen(false);
     setEditingProduct(null);
-    if (onCloseExternalModal) onCloseExternalModal();
+    if (onCloseExternalModal) {
+      onCloseExternalModal();
+    }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSaveProduct = (e: React.FormEvent) => {
     e.preventDefault();
-    const specsArray = formData.specifications
+
+    if (!formData.name.trim()) {
+      alert('Por favor ingresa el nombre del premio.');
+      return;
+    }
+
+    const specsArray = formData.specificationsText
       .split('\n')
       .map(s => s.trim())
-      .filter(s => s.length > 0);
+      .filter(Boolean);
 
     if (editingProduct) {
-      updateProduct(editingProduct.id, {
-        name: formData.name,
+      updateProduct({
+        ...editingProduct,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
         category: formData.category,
-        pointsCost: formData.pointsCost,
-        stock: formData.stock,
-        brand: formData.brand || undefined,
-        description: formData.description,
+        pointsCost: Number(formData.pointsCost) || 1,
+        stock: Number(formData.stock) || 0,
+        imageUrl: formData.imageUrl.trim(),
+        brand: formData.brand.trim() || 'SuperGIROS',
         specifications: specsArray,
-        imageUrl: formData.imageUrl,
         isDigital: formData.isDigital,
         isFeatured: formData.isFeatured,
+        featured: formData.isFeatured,
         active: formData.active
       });
     } else {
       addProduct({
-        name: formData.name,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
         category: formData.category,
-        pointsCost: formData.pointsCost,
-        stock: formData.stock,
-        brand: formData.brand || undefined,
-        description: formData.description,
+        pointsCost: Number(formData.pointsCost) || 1,
+        stock: Number(formData.stock) || 0,
+        imageUrl: formData.imageUrl.trim(),
+        brand: formData.brand.trim() || 'SuperGIROS',
         specifications: specsArray,
-        imageUrl: formData.imageUrl,
         isDigital: formData.isDigital,
         isFeatured: formData.isFeatured,
+        featured: formData.isFeatured,
         active: formData.active
       });
     }
@@ -151,89 +160,197 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
   };
 
   const handleDelete = (id: string, name: string) => {
-    if (window.confirm(`¿Estás seguro de eliminar el producto "${name}" del catálogo?`)) {
+    if (window.confirm(`¿Estás seguro de eliminar el premio "${name}" del catálogo?`)) {
       deleteProduct(id);
     }
   };
 
+  // Filtered products
+  const filteredProducts = products.filter(p => {
+    // Category filter
+    if (categoryFilter !== 'Todos' && p.category !== categoryFilter) {
+      return false;
+    }
+
+    // Stock/Status filter
+    if (stockStatusFilter === 'low' && (p.stock >= 5 || p.stock <= 0)) return false;
+    if (stockStatusFilter === 'out' && p.stock > 0) return false;
+    if (stockStatusFilter === 'active' && !p.active) return false;
+    if (stockStatusFilter === 'inactive' && p.active) return false;
+
+    // Search query
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchName = p.name.toLowerCase().includes(q);
+      const matchDesc = p.description.toLowerCase().includes(q);
+      const matchBrand = p.brand ? p.brand.toLowerCase().includes(q) : false;
+      if (!matchName && !matchDesc && !matchBrand) return false;
+    }
+
+    return true;
+  });
+
+  // KPIs
+  const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
+  const lowStockCount = products.filter(p => p.stock > 0 && p.stock < 5 && p.active).length;
+  const outOfStockCount = products.filter(p => p.stock <= 0 && p.active).length;
+  const bonosCount = products.filter(p => p.category === 'Bonos').length;
+  const articulosCount = products.filter(p => p.category === 'Artículos').length;
+
   return (
     <div className="space-y-6 pb-16">
       
-      {/* Header */}
+      {/* Header Banner */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
-            Administración del Catálogo de Premios
+          <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+            Control de Premios y Almacén
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
-            Gestión de Inventario y Recompensas
+            Gestión de Inventario
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Agrega nuevos premios, actualiza costos en puntos, controla existencias y define productos destacados.
+            Administra los premios del catálogo, ajusta existencias y crea nuevos bonos o artículos.
           </p>
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-md shadow-amber-500/25 flex items-center gap-2 transition-all hover:scale-102 cursor-pointer"
+          className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/20 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
         >
-          <Plus className="w-4 h-4" />
-          <span>+ Agregar Nuevo Premio</span>
+          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <span>+ Nuevo Premio</span>
         </button>
       </div>
 
-      {/* KPI mini strip */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] font-bold text-slate-500 block">Total Productos</span>
-          <span className="text-xl font-black text-slate-900">{products.length}</span>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Premios</p>
+          <div className="flex items-baseline justify-between">
+            <span className="text-2xl font-black text-slate-900">{products.length}</span>
+            <span className="text-xs text-slate-500">{articulosCount} art. / {bonosCount} bonos</span>
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] font-bold text-slate-500 block">Unidades en Stock</span>
-          <span className="text-xl font-black text-slate-900">{totalStockUnits} un.</span>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Unidades en Almacén</p>
+          <div className="flex items-baseline justify-between">
+            <span className="text-2xl font-black text-slate-900">{totalStock}</span>
+            <span className="text-xs text-emerald-600 font-semibold">Existencias</span>
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] font-bold text-amber-700 block">Stock Bajo (&lt;5 un.)</span>
-          <span className={`text-xl font-black ${lowStockCount > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
-            {lowStockCount} alertas
-          </span>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Stock Crítico (&lt; 5)</p>
+          <div className="flex items-baseline justify-between">
+            <span className={`text-2xl font-black ${lowStockCount > 0 ? 'text-amber-500' : 'text-slate-900'}`}>
+              {lowStockCount}
+            </span>
+            {lowStockCount > 0 && (
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                Atención
+              </span>
+            )}
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] font-bold text-indigo-700 block">Bonos Digitales</span>
-          <span className="text-xl font-black text-indigo-600">
-            {products.filter(p => p.isDigital).length}
-          </span>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Agotados (0 un.)</p>
+          <div className="flex items-baseline justify-between">
+            <span className={`text-2xl font-black ${outOfStockCount > 0 ? 'text-red-500' : 'text-slate-900'}`}>
+              {outOfStockCount}
+            </span>
+            {outOfStockCount > 0 && (
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-800">
+                Reponer
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Search & Category Filter */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Buscar por nombre o marca de producto..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-slate-50"
-          />
+      {/* Filter and Search Bar */}
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-4">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          
+          {/* Search Box */}
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Buscar premio por nombre, marca o especificación..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 placeholder:text-slate-400"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Stock status filter */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+            <button
+              onClick={() => setStockStatusFilter('all')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                stockStatusFilter === 'all' 
+                  ? 'bg-slate-900 text-white' 
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              Todos ({products.length})
+            </button>
+            <button
+              onClick={() => setStockStatusFilter('low')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                stockStatusFilter === 'low' 
+                  ? 'bg-amber-500 text-slate-950 font-bold' 
+                  : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
+              }`}
+            >
+              Stock Bajo ({lowStockCount})
+            </button>
+            <button
+              onClick={() => setStockStatusFilter('out')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                stockStatusFilter === 'out' 
+                  ? 'bg-red-600 text-white' 
+                  : 'bg-red-50 text-red-700 hover:bg-red-100'
+              }`}
+            >
+              Agotados ({outOfStockCount})
+            </button>
+            <button
+              onClick={() => setStockStatusFilter('active')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                stockStatusFilter === 'active' 
+                  ? 'bg-emerald-600 text-white' 
+                  : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+              }`}
+            >
+              Activos
+            </button>
+          </div>
+
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 shrink-0">
-          <button
-            onClick={() => setSelectedCategory('all')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 cursor-pointer ${
-              selectedCategory === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            Todas ({products.length})
-          </button>
-          {CATEGORIES.map(cat => (
+        {/* Category selector */}
+        <div className="flex items-center gap-2 border-t border-slate-100 pt-3">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Categoría:</span>
+          {(['Todos', 'Artículos', 'Bonos'] as const).map(cat => (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 cursor-pointer ${
-                selectedCategory === cat ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              onClick={() => setCategoryFilter(cat)}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                categoryFilter === cat
+                  ? 'bg-amber-500 text-slate-950 shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               {cat}
@@ -242,343 +359,423 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
         </div>
       </div>
 
-      {/* Products Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="p-4">Producto & Categoría</th>
-                <th className="p-4">Costo en Puntos</th>
-                <th className="p-4 text-center">Stock Actual</th>
-                <th className="p-4 text-center">Tipo / Estado</th>
-                <th className="p-4 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredProducts.map(product => {
-                const isLow = product.stock < 5;
-                const isOut = product.stock <= 0;
-
-                return (
-                  <tr key={product.id} className="hover:bg-slate-50/80 transition-colors">
-                    
-                    {/* Product Name & Img */}
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={product.imageUrl}
-                          alt={product.name}
-                          className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900 text-sm">{product.name}</span>
-                            {product.isFeatured && (
-                              <span className="text-[9px] font-black bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded-sm flex items-center gap-0.5">
-                                <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
-                                Destacado
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5">
-                            <span>{product.category}</span>
-                            {product.brand && <span>• Marca: {product.brand}</span>}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Cost in points */}
-                    <td className="p-4">
-                      <div className="font-black text-amber-600 text-sm flex items-center gap-1">
-                        <Coins className="w-4 h-4 text-amber-500" />
-                        <span>{formatPoints(product.pointsCost)}</span>
-                        <span className="text-[10px] text-slate-500">pts</span>
-                      </div>
-                    </td>
-
-                    {/* Stock Stepper */}
-                    <td className="p-4 text-center">
-                      <div className="inline-flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
-                        <button
-                          onClick={() => updateProductStock(product.id, Math.max(0, product.stock - 1))}
-                          className="w-6 h-6 rounded-lg bg-white hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center transition-colors cursor-pointer"
-                        >
-                          -
-                        </button>
-
-                        <span className={`px-2 font-black text-xs ${
-                          isOut ? 'text-red-600' : isLow ? 'text-amber-600' : 'text-slate-800'
-                        }`}>
-                          {product.stock} un.
-                        </span>
-
-                        <button
-                          onClick={() => updateProductStock(product.id, product.stock + 5)}
-                          className="px-1.5 py-0.5 rounded-lg bg-white hover:bg-emerald-50 text-emerald-700 font-bold text-[10px] flex items-center justify-center transition-colors cursor-pointer border border-slate-200"
-                          title="Sumar +5 unidades"
-                        >
-                          +5
-                        </button>
-                      </div>
-                    </td>
-
-                    {/* Tags */}
-                    <td className="p-4 text-center">
-                      <div className="flex flex-col items-center gap-1">
-                        {product.isDigital ? (
-                          <span className="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-200 flex items-center gap-1">
-                            <Zap className="w-3 h-3" />
-                            Digital
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
-                            Físico
-                          </span>
-                        )}
-
-                        {!product.active && (
-                          <span className="text-[9px] font-bold bg-red-100 text-red-700 px-1.5 py-0.2 rounded-sm">
-                            Inactivo
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Actions */}
-                    <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleOpenEdit(product)}
-                          className="p-2 rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 transition-colors cursor-pointer"
-                          title="Editar producto"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          onClick={() => handleDelete(product.id, product.name)}
-                          className="p-2 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-600 transition-colors cursor-pointer"
-                          title="Eliminar producto"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Add / Edit Product Modal */}
-      {isFormModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div 
-            className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative my-8"
-            onClick={(e) => e.stopPropagation()}
+      {/* Products Grid */}
+      {filteredProducts.length === 0 ? (
+        <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-xs space-y-3">
+          <Package className="w-12 h-12 text-slate-300 mx-auto" />
+          <h3 className="font-bold text-slate-800 text-base">No se encontraron productos</h3>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            Ajusta los filtros de búsqueda o agrega un nuevo premio al catálogo comercial.
+          </p>
+          <button
+            onClick={handleOpenAdd}
+            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-xs cursor-pointer"
           >
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 relative">
-              <button
-                onClick={handleCloseModal}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            + Crear Nuevo Premio
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredProducts.map(product => {
+            const isLowStock = product.stock > 0 && product.stock < 5;
+            const isOutOfStock = product.stock <= 0;
 
+            return (
+              <div 
+                key={product.id}
+                className={`bg-white rounded-3xl border transition-all shadow-xs flex flex-col justify-between overflow-hidden ${
+                  !product.active 
+                    ? 'border-slate-200 opacity-60 bg-slate-50/50' 
+                    : isOutOfStock
+                    ? 'border-red-200 hover:border-red-300'
+                    : isLowStock
+                    ? 'border-amber-200 hover:border-amber-300'
+                    : 'border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <div>
+                  {/* Top Image Preview or Fallback */}
+                  <div className="h-44 bg-slate-100 relative overflow-hidden flex items-center justify-center border-b border-slate-100">
+                    {product.imageUrl ? (
+                      <img 
+                        src={product.imageUrl} 
+                        alt={product.name} 
+                        className="w-full h-full object-contain p-4 mix-blend-multiply"
+                        onError={(e) => {
+                          // Fallback on broken image link
+                          (e.currentTarget as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-bold ${
+                        product.isDigital || product.category === 'Bonos'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-amber-100 text-amber-600'
+                      }`}>
+                        {product.isDigital || product.category === 'Bonos' ? <Banknote className="w-8 h-8" /> : <Gift className="w-8 h-8" />}
+                      </div>
+                    )}
+
+                    {/* Top Badges */}
+                    <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                      <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-slate-900/80 text-white backdrop-blur-xs shadow-xs">
+                        {product.category}
+                      </span>
+                      {(product.isDigital || product.category === 'Bonos') && (
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-1 rounded-full bg-emerald-600 text-white shadow-xs flex items-center gap-1">
+                          <Banknote className="w-3 h-3" />
+                          App SuperGiros
+                        </span>
+                      )}
+                      {(product.isFeatured || product.featured) && (
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-1 rounded-full bg-amber-500 text-slate-950 flex items-center gap-1 shadow-xs">
+                          <Sparkles className="w-3 h-3" /> Destacado
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="absolute top-3 right-3">
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+                        product.active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
+                      }`}>
+                        {product.active ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Body Content */}
+                  <div className="p-5 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
+                          {product.brand || 'SuperGIROS'}
+                        </span>
+                        <h3 className="font-heading font-extrabold text-base text-slate-900 leading-tight">
+                          {product.name}
+                        </h3>
+                      </div>
+                      
+                      <div className="flex items-baseline gap-1 font-black text-lg text-amber-500 shrink-0">
+                        {formatPoints(product.pointsCost)}
+                        <span className="text-[10px] font-bold text-slate-400">PTS</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                      {product.description || 'Sin descripción comercial.'}
+                    </p>
+
+                    {/* Specifications List */}
+                    {product.specifications && product.specifications.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {product.specifications.slice(0, 3).map((spec, i) => (
+                          <span key={i} className="text-[10px] font-medium bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md truncate max-w-full">
+                            • {spec}
+                          </span>
+                        ))}
+                        {product.specifications.length > 3 && (
+                          <span className="text-[10px] font-bold text-slate-400 px-1 py-0.5">
+                            +{product.specifications.length - 3} más
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Footer Controls & Stock Quick-Edit */}
+                <div className="p-5 pt-0 space-y-3">
+                  
+                  {/* Stock Quick Stepper */}
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">Existencias</span>
+                      <span className={`font-black ${
+                        isOutOfStock 
+                          ? 'text-red-600' 
+                          : isLowStock 
+                          ? 'text-amber-600' 
+                          : 'text-slate-800'
+                      }`}>
+                        {product.stock} disponibles
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => updateStock(product.id, Math.max(0, product.stock - 1))}
+                        disabled={product.stock <= 0}
+                        title="Disminuir stock en 1"
+                        className="w-7 h-7 rounded-lg bg-white hover:bg-slate-200 border border-slate-300 disabled:opacity-40 flex items-center justify-center text-slate-700 transition-colors cursor-pointer"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        onClick={() => updateStock(product.id, product.stock + 1)}
+                        title="Aumentar stock en 1"
+                        className="w-7 h-7 rounded-lg bg-white hover:bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-700 transition-colors cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Actions Bar */}
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                    <button
+                      onClick={() => handleOpenEdit(product)}
+                      className="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                      <span>Editar</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(product.id, product.name)}
+                      className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                      title="Eliminar producto"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                </div>
+
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Product Create / Edit Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+            
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-inner">
-                  <Package className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                  <Package className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
-                    {editingProduct ? 'Modificar Premio' : 'Nuevo Registro'}
-                  </span>
-                  <h2 className="text-xl font-bold mt-0.5">
-                    {editingProduct ? `Editar: ${editingProduct.name}` : 'Crear Nuevo Premio en Catálogo'}
-                  </h2>
+                  <h3 className="font-heading font-extrabold text-lg text-slate-900">
+                    {editingProduct ? 'Editar Premio' : 'Nuevo Premio del Catálogo'}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Configura la información del producto y costo en Superpuntos
+                  </p>
                 </div>
               </div>
+
+              <button
+                onClick={handleCloseModal}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            {/* Form */}
-            <form onSubmit={handleSave} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+            {/* Modal Form */}
+            <form onSubmit={handleSaveProduct} className="p-6 overflow-y-auto space-y-4 flex-1 text-xs sm:text-sm">
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Nombre del Premio *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ej: Freidora de Aire Digital 4.5L"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500"
-                  />
-                </div>
+              {/* Product Name */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Nombre del Premio / Bono *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej. Kit Supergiros, Bono $100.000 COP, Freidora de Aire"
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900"
+                />
+              </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Categoría *</label>
+              {/* Two Column: Category & Points Cost */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Categoría *
+                  </label>
                   <select
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value as ProductCategory })}
-                    className="w-full p-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-slate-50"
+                    onChange={e => setFormData({ ...formData, category: e.target.value as ProductCategory })}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900 cursor-pointer"
                   >
-                    {CATEGORIES.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
+                    <option value="Artículos">Artículos (Físico)</option>
+                    <option value="Bonos">Bonos (Digital / Saldo)</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Costo en Puntos *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      placeholder="25"
+                      value={formData.pointsCost}
+                      onChange={e => setFormData({ ...formData, pointsCost: Number(e.target.value) })}
+                      className="w-full pl-3.5 pr-12 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900 font-bold"
+                    />
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-600">
+                      PTS
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Costo en Puntos *</label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    value={formData.pointsCost}
-                    onChange={(e) => setFormData({ ...formData, pointsCost: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-amber-600 focus:outline-hidden focus:border-amber-500"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Stock Inicial *</label>
+              {/* Two Column: Stock & Brand */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Stock Inicial (Unidades) *
+                  </label>
                   <input
                     type="number"
                     required
                     min={0}
+                    placeholder="50"
                     value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500"
+                    onChange={e => setFormData({ ...formData, stock: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900 font-bold"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Marca / Proveedor</label>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Marca / Proveedor
+                  </label>
                   <input
                     type="text"
-                    placeholder="Ej: Philips, Oster, Puma..."
+                    placeholder="SuperGIROS, Oster, Sony, etc."
                     value={formData.brand}
-                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500"
+                    onChange={e => setFormData({ ...formData, brand: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900"
                   />
                 </div>
               </div>
 
               {/* Image URL */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">URL de Imagen del Producto</label>
-                <div className="flex gap-3 items-center">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  URL de Imagen del Producto
+                </label>
+                <div className="relative">
                   <input
                     type="url"
-                    placeholder="https://ejemplo.com/imagen.jpg"
+                    placeholder="https://i.postimg.cc/... o enlace directo a la imagen"
                     value={formData.imageUrl}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500"
+                    onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
+                    className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900"
                   />
                   {formData.imageUrl && (
-                    <div className="w-9 h-9 rounded-lg border border-slate-200 overflow-hidden shrink-0 bg-slate-100 flex items-center justify-center">
-                      <img 
-                        src={formData.imageUrl} 
-                        alt="Preview" 
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLElement).style.display = 'none';
-                        }}
-                      />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md overflow-hidden border border-slate-200">
+                      <img src={formData.imageUrl} alt="preview" className="w-full h-full object-cover" />
                     </div>
                   )}
                 </div>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Recomendado usar enlaces a imágenes directas (Postimages, Imgur, Cloudinary).
+                </p>
               </div>
 
               {/* Description */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Descripción Comercial *</label>
-                <textarea
-                  rows={2}
-                  required
-                  placeholder="Describe las características atractivas del premio..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500"
-                />
-              </div>
-
-              {/* Specifications */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">
-                  Especificaciones Técnicas (Una por línea)
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Descripción Comercial
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="Ej: Capacidad 4.5 Litros&#10;Potencia 1500W&#10;Garantía 1 año"
-                  value={formData.specifications}
-                  onChange={(e) => setFormData({ ...formData, specifications: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 font-mono"
+                  placeholder="Detalles sobre el premio, garantía o condiciones de redención..."
+                  value={formData.description}
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900 resize-none"
                 />
               </div>
 
-              {/* Checkboxes */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+              {/* Specifications (one per line) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Especificaciones / Viñetas (una por línea)
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Capacidad 4 Litros&#10;Garantía de 1 año&#10;Incluye recetario oficial"
+                  value={formData.specificationsText}
+                  onChange={e => setFormData({ ...formData, specificationsText: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900 font-mono text-xs resize-none"
+                />
+              </div>
+
+              {/* Checkboxes / Toggles */}
+              <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
                   <input
                     type="checkbox"
                     checked={formData.isDigital}
-                    onChange={(e) => setFormData({ ...formData, isDigital: e.target.checked })}
-                    className="rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    onChange={e => setFormData({ ...formData, isDigital: e.target.checked })}
+                    className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500"
                   />
-                  <span>Bono / Voucher Digital</span>
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">Es Digital</p>
+                    <span className="text-[10px] text-slate-500">Bono o pin</span>
+                  </div>
                 </label>
 
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                <label className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
                   <input
                     type="checkbox"
                     checked={formData.isFeatured}
-                    onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                    className="rounded-md border-slate-300 text-amber-600 focus:ring-amber-500"
+                    onChange={e => setFormData({ ...formData, isFeatured: e.target.checked })}
+                    className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500"
                   />
-                  <span>Producto Destacado</span>
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">Destacado</p>
+                    <span className="text-[10px] text-slate-500">Prioridad catálogo</span>
+                  </div>
                 </label>
 
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                <label className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
                   <input
                     type="checkbox"
                     checked={formData.active}
-                    onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                    className="rounded-md border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    onChange={e => setFormData({ ...formData, active: e.target.checked })}
+                    className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500"
                   />
-                  <span>Activo en Tienda</span>
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">Disponible</p>
+                    <span className="text-[10px] text-slate-500">Visible a aliados</span>
+                  </div>
                 </label>
               </div>
 
-              {/* Modal Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+              {/* Submit Buttons */}
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
-
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs shadow-md shadow-amber-500/25 flex items-center gap-2 transition-all cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all active:scale-95 cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span>{editingProduct ? 'Guardar Cambios' : 'Publicar en Catálogo'}</span>
+                  {editingProduct ? 'Guardar Cambios' : 'Crear Producto'}
                 </button>
               </div>
 
             </form>
+
           </div>
         </div>
       )}

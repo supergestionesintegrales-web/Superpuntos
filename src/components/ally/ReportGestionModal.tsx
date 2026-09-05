@@ -8,7 +8,10 @@ import {
   Building2,
   CarFront,
   SendHorizontal,
-  FileCheck
+  FileCheck,
+  Plus,
+  Trash2,
+  Coins
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -39,75 +42,167 @@ const VEHICLE_TYPES = [
   'Vehículo de Carga / Camión'
 ];
 
+interface SoatItem {
+  id: string;
+  licensePlate: string;
+  policyNumber: string;
+  insuranceCompany: string;
+  vehicleType: string;
+  transactionValue: string;
+  clientName: string;
+  clientDocument: string;
+}
+
 export const ReportGestionModal: React.FC<ReportGestionModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { campaigns, reportGestion, currentUser } = useApp();
+  const { campaigns, reportGestion, reportMultipleGestiones, currentUser } = useApp();
 
   const activeCampaigns = campaigns.filter(c => c.active);
   const soatCampaign = activeCampaigns.find(c => c.id === 'cmp_soat' || c.serviceType.toLowerCase().includes('soat')) || activeCampaigns[0];
 
-  // SOAT Fields
-  const [licensePlate, setLicensePlate] = useState('');
-  const [policyNumber, setPolicyNumber] = useState('');
-  const [soatQuantity, setSoatQuantity] = useState<number>(1);
-  const [insuranceCompany, setInsuranceCompany] = useState('Seguros Mundial');
-  const [vehicleType, setVehicleType] = useState('Carro / Automóvil Particular');
-  const [transactionValue, setTransactionValue] = useState<string>('685000');
-  const [clientName, setClientName] = useState('');
-  const [clientDocument, setClientDocument] = useState('');
+  // List of SOATs to report together. Starts with 1 by default.
+  const [soatList, setSoatList] = useState<SoatItem[]>([
+    {
+      id: 'soat_init_1',
+      licensePlate: '',
+      policyNumber: '',
+      insuranceCompany: 'Seguros Mundial',
+      vehicleType: 'Carro / Automóvil Particular',
+      transactionValue: '685000',
+      clientName: '',
+      clientDocument: ''
+    }
+  ]);
+
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
+  const [submittedCount, setSubmittedCount] = useState(1);
 
   if (!isOpen) return null;
+
+  // Add another SOAT to the batch
+  const handleAddSoat = () => {
+    setErrorMsg(null);
+    const lastItem = soatList[soatList.length - 1];
+    setSoatList(prev => [
+      ...prev,
+      {
+        id: `soat_${Date.now()}_${prev.length + 1}`,
+        licensePlate: '',
+        policyNumber: '',
+        insuranceCompany: lastItem?.insuranceCompany || 'Seguros Mundial',
+        vehicleType: lastItem?.vehicleType || 'Carro / Automóvil Particular',
+        transactionValue: lastItem?.transactionValue || '685000',
+        clientName: '',
+        clientDocument: ''
+      }
+    ]);
+  };
+
+  // Remove a SOAT from the batch (only allowed if > 1)
+  const handleRemoveSoat = (id: string) => {
+    if (soatList.length <= 1) return;
+    setSoatList(prev => prev.filter(s => s.id !== id));
+  };
+
+  // Update specific field in a SOAT item
+  const handleUpdateField = (id: string, field: keyof SoatItem, value: string) => {
+    setSoatList(prev => prev.map(s => {
+      if (s.id === id) {
+        return { ...s, [field]: value };
+      }
+      return s;
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
-    const cleanPlate = licensePlate.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const cleanPolicy = policyNumber.trim();
+    // Validation
+    const platesSeen = new Set<string>();
+    const policiesSeen = new Set<string>();
 
-    if (!cleanPlate) {
-      setErrorMsg('Por favor ingresa la Placa del vehículo.');
-      return;
-    }
-    if (!cleanPolicy) {
-      setErrorMsg('Por favor ingresa el Número de Póliza SOAT.');
-      return;
-    }
-    if (soatQuantity < 1) {
-      setErrorMsg('La cantidad de SOATs debe ser al menos 1.');
-      return;
+    for (let i = 0; i < soatList.length; i++) {
+      const item = soatList[i];
+      const cleanPlate = item.licensePlate.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const cleanPolicy = item.policyNumber.trim().toUpperCase();
+
+      if (!cleanPlate) {
+        setErrorMsg(`Por favor ingresa la Placa del vehículo en el SOAT #${i + 1}.`);
+        return;
+      }
+      if (!cleanPolicy) {
+        setErrorMsg(`Por favor ingresa el Número de Póliza en el SOAT #${i + 1}.`);
+        return;
+      }
+
+      if (platesSeen.has(cleanPlate)) {
+        setErrorMsg(`La placa ${cleanPlate} está repetida en esta comprobación (SOAT #${i + 1}). Cada SOAT debe ser único.`);
+        return;
+      }
+      platesSeen.add(cleanPlate);
+
+      if (policiesSeen.has(cleanPolicy)) {
+        setErrorMsg(`El número de póliza ${cleanPolicy} está repetido (SOAT #${i + 1}). Cada póliza debe ser única.`);
+        return;
+      }
+      policiesSeen.add(cleanPolicy);
     }
 
     setIsSubmitting(true);
 
     try {
-      reportGestion({
-        campaignId: soatCampaign ? soatCampaign.id : 'cmp_soat',
-        referenceNumber: cleanPolicy,
-        licensePlate: cleanPlate,
-        policyNumber: cleanPolicy,
-        soatQuantity: soatQuantity,
-        insuranceCompany: insuranceCompany,
-        vehicleType: vehicleType,
-        transactionValue: transactionValue ? parseFloat(transactionValue) : undefined,
-        clientName: clientName.trim() || undefined,
-        clientDocument: clientDocument.trim() || undefined
-      });
+      const campaignId = soatCampaign ? soatCampaign.id : 'cmp_soat';
 
+      if (soatList.length === 1) {
+        const item = soatList[0];
+        reportGestion({
+          campaignId,
+          referenceNumber: item.policyNumber.trim(),
+          licensePlate: item.licensePlate.trim().toUpperCase().replace(/[^A-Z0-9]/g, ''),
+          policyNumber: item.policyNumber.trim(),
+          soatQuantity: 1,
+          insuranceCompany: item.insuranceCompany,
+          vehicleType: item.vehicleType,
+          transactionValue: item.transactionValue ? parseFloat(item.transactionValue) : undefined,
+          clientName: item.clientName.trim() || undefined,
+          clientDocument: item.clientDocument.trim() || undefined
+        });
+      } else {
+        const itemsToReport = soatList.map(item => ({
+          campaignId,
+          referenceNumber: item.policyNumber.trim(),
+          licensePlate: item.licensePlate.trim().toUpperCase().replace(/[^A-Z0-9]/g, ''),
+          policyNumber: item.policyNumber.trim(),
+          soatQuantity: 1,
+          insuranceCompany: item.insuranceCompany,
+          vehicleType: item.vehicleType,
+          transactionValue: item.transactionValue ? parseFloat(item.transactionValue) : undefined,
+          clientName: item.clientName.trim() || undefined,
+          clientDocument: item.clientDocument.trim() || undefined
+        }));
+
+        reportMultipleGestiones(itemsToReport);
+      }
+
+      setSubmittedCount(soatList.length);
       setSubmittedSuccess(true);
       setTimeout(() => {
         setSubmittedSuccess(false);
         setIsSubmitting(false);
         onClose();
         if (onSuccess) onSuccess();
-      }, 2200);
+      }, 2300);
     } catch (err) {
-      setErrorMsg('Error al enviar la información de la póliza. Por favor intenta nuevamente.');
+      console.error('Error reporting SOAT(s):', err);
+      setErrorMsg('Error al enviar la comprobación de los SOATs. Por favor intenta de nuevo.');
       setIsSubmitting(false);
     }
   };
+
+  const pointsPerSoat = soatCampaign?.pointsValue || 5;
+  const totalExpectedPoints = soatList.length * pointsPerSoat;
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
@@ -131,7 +226,7 @@ export const ReportGestionModal: React.FC<ReportGestionModalProps> = ({ isOpen, 
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold tracking-wider uppercase bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-                  Promocional SOAT
+                  SOAT Único y Comprobación
                 </span>
                 <span className="text-xs text-slate-300">Aliado: {currentUser.name}</span>
               </div>
@@ -151,15 +246,17 @@ export const ReportGestionModal: React.FC<ReportGestionModalProps> = ({ isOpen, 
             <div className="space-y-2">
               <h3 className="text-2xl font-black text-slate-900">¡Enviado a Comprobar! 🎉</h3>
               <p className="text-sm text-slate-600 max-w-md mx-auto">
-                Tu registro de SOAT {licensePlate ? `(Placa ${licensePlate.toUpperCase()})` : ''} ha sido enviado al Administrador con estado <strong className="text-amber-600">"Pendiente de Validación"</strong>.
+                {submittedCount === 1 
+                  ? 'Tu SOAT ha sido enviado al Administrador con estado "Pendiente de Validación".' 
+                  : `Tus ${submittedCount} SOATs únicos han sido registrados con éxito en una sola comprobación.`}
               </p>
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 max-w-sm mx-auto text-xs text-slate-700 font-medium">
-                Una vez el Administrador verifique y confirme la póliza en RUNT, los Superpuntos se acreditarán automáticamente en tu cuenta.
+              <div className="p-3.5 bg-amber-50/80 rounded-2xl border border-amber-200/80 max-w-sm mx-auto text-xs text-amber-900 font-medium">
+                Al ser aprobados por la administración, se acreditarán automáticamente <strong className="text-amber-800 font-black">+{totalExpectedPoints} Superpuntos</strong> a tu saldo.
               </div>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[82vh] overflow-y-auto">
             
             {errorMsg && (
               <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
@@ -173,142 +270,186 @@ export const ReportGestionModal: React.FC<ReportGestionModalProps> = ({ isOpen, 
               <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold shrink-0">
                 <FileCheck className="w-4 h-4" />
               </div>
-              <p className="text-xs text-slate-700">
-                Ingresa los datos exactos de la póliza emitida. Toda la información será verificada con las aseguradoras y el RUNT antes de la aprobación.
-              </p>
+              <div className="text-xs text-slate-700 leading-relaxed">
+                Cada SOAT es único con su propia placa y número de póliza oficial. Si tienes más pólizas para registrar en esta misma comprobación, haz clic en <strong className="text-amber-900 font-bold">"+ Agregar otro SOAT"</strong>.
+              </div>
             </div>
 
-            {/* Datos del Vehículo y Póliza */}
-            <div className="space-y-4 pt-1">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <label className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-                  Datos del Vehículo y Póliza *
-                </label>
-                <span className="text-[11px] text-slate-500">Requerido para comprobación</span>
-              </div>
+            {/* Dynamic List of Unique SOATs */}
+            <div className="space-y-4">
+              {soatList.map((item, index) => (
+                <div 
+                  key={item.id} 
+                  className="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3.5 relative transition-all"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-amber-500 text-slate-950 font-black text-xs flex items-center justify-center">
+                        {index + 1}
+                      </span>
+                      <h4 className="text-xs font-black text-slate-900 uppercase tracking-wide">
+                        SOAT #{index + 1} (Único)
+                      </h4>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                        +{pointsPerSoat} pts
+                      </span>
+                    </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* License Plate */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <CarFront className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Placa del Vehículo *</span>
-                  </label>
-                  <div className="relative">
+                    {soatList.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSoat(item.id)}
+                        className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
+                        title="Quitar este SOAT"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Quitar</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {/* License Plate */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <CarFront className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Placa del Vehículo *</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          maxLength={7}
+                          placeholder="Ej: BGL412 o NVK88F"
+                          value={item.licensePlate}
+                          onChange={(e) => handleUpdateField(item.id, 'licensePlate', e.target.value.toUpperCase())}
+                          className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-mono font-bold text-sm tracking-wider text-slate-900 bg-white focus:outline-hidden focus:border-amber-500 uppercase"
+                        />
+                        <span className="absolute right-2.5 top-2 text-[9px] font-black text-slate-400 bg-slate-100 px-1 py-0.5 rounded">
+                          COLOMBIA
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Policy Number */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Número de Póliza SOAT Digital *</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ej: POL-SOAT-8829104"
+                        value={item.policyNumber}
+                        onChange={(e) => handleUpdateField(item.id, 'policyNumber', e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold focus:outline-hidden focus:border-amber-500 bg-white font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* Insurance Company */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                        <Building2 className="w-3 h-3 text-slate-500" />
+                        <span>Aseguradora</span>
+                      </label>
+                      <select
+                        value={item.insuranceCompany}
+                        onChange={(e) => handleUpdateField(item.id, 'insuranceCompany', e.target.value)}
+                        className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-hidden focus:border-amber-500 bg-white"
+                      >
+                        {INSURANCE_COMPANIES.map(company => (
+                          <option key={company} value={company}>{company}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Vehicle Type */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">
+                        Tipo de Vehículo
+                      </label>
+                      <select
+                        value={item.vehicleType}
+                        onChange={(e) => handleUpdateField(item.id, 'vehicleType', e.target.value)}
+                        className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-hidden focus:border-amber-500 bg-white"
+                      >
+                        {VEHICLE_TYPES.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Commercial Value */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-700">
+                        Valor Póliza ($ COP)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="Ej: 685000"
+                        value={item.transactionValue}
+                        onChange={(e) => handleUpdateField(item.id, 'transactionValue', e.target.value)}
+                        className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-hidden focus:border-amber-500 bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Client name optional */}
+                  <div className="pt-0.5">
+                    <label className="text-[11px] font-medium text-slate-500 block mb-1">
+                      Tomador / Propietario (Opcional):
+                    </label>
                     <input
                       type="text"
-                      required
-                      maxLength={7}
-                      placeholder="Ej: BGL412 o NVK88F"
-                      value={licensePlate}
-                      onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono font-bold text-sm tracking-wider text-slate-900 bg-amber-50/20 focus:outline-hidden focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 uppercase"
+                      placeholder="Ej: Alejandro Morales"
+                      value={item.clientName}
+                      onChange={(e) => handleUpdateField(item.id, 'clientName', e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-hidden focus:border-amber-500"
                     />
-                    <span className="absolute right-3 top-2.5 text-[10px] font-black text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md">
-                      COLOMBIA
-                    </span>
                   </div>
                 </div>
+              ))}
+            </div>
 
-                {/* Policy Number */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Número de Póliza Digital *</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ej: POL-SOAT-8829104"
-                    value={policyNumber}
-                    onChange={(e) => setPolicyNumber(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold focus:outline-hidden focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
-                  />
+            {/* Button: Add More SOATs */}
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={handleAddSoat}
+                className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50/50 hover:bg-amber-100/60 text-amber-900 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs hover:border-amber-400"
+              >
+                <Plus className="w-4 h-4 text-amber-600" />
+                <span>+ Agregar otro SOAT a esta comprobación</span>
+              </button>
+            </div>
+
+            {/* Summary Banner */}
+            <div className="p-3.5 bg-slate-900 text-white rounded-2xl flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold">
+                  <Coins className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-xs text-slate-300 block">Total a Comprobar:</span>
+                  <span className="text-sm font-black text-white">
+                    {soatList.length} SOAT{soatList.length > 1 ? 's únicos' : ' único'}
+                  </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Insurance Company */}
-                <div className="space-y-1.5 sm:col-span-1">
-                  <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Aseguradora</span>
-                  </label>
-                  <select
-                    value={insuranceCompany}
-                    onChange={(e) => setInsuranceCompany(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-hidden focus:border-amber-500 bg-white"
-                  >
-                    {INSURANCE_COMPANIES.map(company => (
-                      <option key={company} value={company}>{company}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Vehicle Type */}
-                <div className="space-y-1.5 sm:col-span-1">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Tipo de Vehículo
-                  </label>
-                  <select
-                    value={vehicleType}
-                    onChange={(e) => setVehicleType(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-hidden focus:border-amber-500 bg-white"
-                  >
-                    {VEHICLE_TYPES.map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Quantity of SOATs */}
-                <div className="space-y-1.5 sm:col-span-1">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Cantidad de SOATs
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={100}
-                    value={soatQuantity}
-                    onChange={(e) => setSoatQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-black text-slate-900 text-center focus:outline-hidden focus:border-amber-500"
-                  />
-                </div>
-              </div>
-
-              {/* Commercial Value & Client details */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Valor Pagado de la Póliza ($ COP)
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="Ej: 685000"
-                    value={transactionValue}
-                    onChange={(e) => setTransactionValue(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-hidden focus:border-amber-500"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Nombre del Tomador / Propietario (Opcional)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ej: Alejandro Morales"
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-hidden focus:border-amber-500"
-                  />
-                </div>
+              <div className="text-right">
+                <span className="text-[11px] text-amber-300 block font-medium">Recompensa estimada:</span>
+                <span className="text-base font-black text-amber-400">
+                  +{totalExpectedPoints} pts
+                </span>
               </div>
             </div>
 
             {/* Modal Buttons */}
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={onClose}
@@ -323,7 +464,11 @@ export const ReportGestionModal: React.FC<ReportGestionModalProps> = ({ isOpen, 
                 className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-md shadow-amber-500/30 flex items-center gap-2 transition-all hover:scale-102 cursor-pointer disabled:opacity-50"
               >
                 <SendHorizontal className="w-4 h-4" />
-                <span>{isSubmitting ? 'Enviando...' : 'Enviar a Comprobar'}</span>
+                <span>
+                  {isSubmitting 
+                    ? 'Enviando comprobación...' 
+                    : `Enviar ${soatList.length} SOAT${soatList.length > 1 ? 's' : ''} a Comprobar`}
+                </span>
               </button>
             </div>
 
