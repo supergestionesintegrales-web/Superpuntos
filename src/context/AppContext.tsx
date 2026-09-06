@@ -1197,20 +1197,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         : `¡Bienvenido al portal de Superpuntos, ${matched.name}!`;
       return { success: true, message: welcomeMsg, user: matched };
     } catch (err: any) {
+      const isPopupClosed = err?.code === 'auth/popup-closed-by-user' || err?.message?.includes('popup-closed-by-user') || err?.code === 'auth/cancelled-popup-request';
+      const isPopupBlocked = err?.code === 'auth/popup-blocked' || err?.message?.includes('popup-blocked');
       const isUnauthorizedDomain = err?.code === 'auth/unauthorized-domain' || err?.message?.includes('unauthorized-domain');
       const domain = typeof window !== 'undefined' ? window.location.hostname : '';
+
+      if (isPopupClosed) {
+        console.info('[Firebase Auth] Inicio de sesión con Google cancelado por el usuario.');
+        return { 
+          success: false, 
+          message: 'Inicio de sesión con Google cancelado.', 
+          code: 'auth/popup-closed-by-user' 
+        };
+      }
+
+      if (isPopupBlocked) {
+        console.warn('[Firebase Auth] Ventana emergente bloqueada por el navegador.');
+        return { 
+          success: false, 
+          message: 'El navegador bloqueó la ventana emergente de Google. Por favor autoriza las ventanas emergentes en tu navegador para continuar.', 
+          code: 'auth/popup-blocked' 
+        };
+      }
+
       if (isUnauthorizedDomain) {
         console.warn(`[Firebase Auth] El dominio actual (${domain}) no está autorizado en Firebase Authentication. Requiere agregarse en Firebase Console > Authentication > Settings > Authorized domains.`);
-      } else {
-        console.error('Error en loginWithGoogle:', err);
+        return { 
+          success: false, 
+          message: `El dominio actual (${domain}) no está autorizado en Firebase Authentication. Debes agregarlo en Firebase Console > Authentication > Settings > Authorized domains.`, 
+          code: 'auth/unauthorized-domain',
+          domain 
+        };
       }
-      const message = isUnauthorizedDomain
-        ? `El dominio actual (${domain}) no está autorizado en Firebase Authentication. Debes agregarlo en Firebase Console > Authentication > Settings > Authorized domains.`
-        : (err?.message || 'Error al iniciar sesión con Google');
+
+      console.error('Error en loginWithGoogle:', err);
+      const message = err?.message || 'Error al iniciar sesión con Google';
       return { 
         success: false, 
         message, 
-        code: isUnauthorizedDomain ? 'auth/unauthorized-domain' : err?.code,
+        code: err?.code,
         domain 
       };
     }

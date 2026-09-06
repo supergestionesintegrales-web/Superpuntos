@@ -100,7 +100,12 @@ export const googleSignIn = async (): Promise<{ user: FirebaseUser; accessToken:
     }
     return { user: result.user, accessToken: cachedAccessToken || '' };
   } catch (error: any) {
-    if (error?.code === 'auth/unauthorized-domain' || error?.message?.includes('unauthorized-domain')) {
+    if (error?.code === 'auth/popup-closed-by-user' || error?.code === 'auth/cancelled-popup-request') {
+      // User closed the popup or dismissed the auth window - normal user action, avoid loud console.error
+      console.info('[Firebase Auth] Ventana de autenticación con Google cerrada por el usuario.');
+    } else if (error?.code === 'auth/popup-blocked') {
+      console.warn('[Firebase Auth] Ventana emergente bloqueada por el navegador.');
+    } else if (error?.code === 'auth/unauthorized-domain' || error?.message?.includes('unauthorized-domain')) {
       console.warn('[Firebase Auth] Dominio pendiente de autorizar en Firebase Console:', typeof window !== 'undefined' ? window.location.hostname : '');
     } else {
       console.error('Error al iniciar sesión con Google:', error);
@@ -123,7 +128,10 @@ export const googleSignInForSheets = async (): Promise<string | null> => {
     }
     return null;
   } catch (error: any) {
-    if (error?.code === 'auth/unauthorized-domain' || error?.message?.includes('unauthorized-domain')) {
+    if (error?.code === 'auth/popup-closed-by-user' || error?.code === 'auth/cancelled-popup-request') {
+      console.info('[Firebase Auth Sheets] Ventana de conexión cerrada por el usuario.');
+      return null;
+    } else if (error?.code === 'auth/unauthorized-domain' || error?.message?.includes('unauthorized-domain')) {
       console.warn('[Firebase Auth] Dominio pendiente de autorizar en Firebase Console para Google Sheets');
     } else {
       console.error('Error al conectar Google Sheets:', error);

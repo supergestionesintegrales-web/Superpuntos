@@ -146,6 +146,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
       const preferredRole = activeTab === 'admin_login' ? 'admin' : 'ally';
       const res = await loginWithGoogle(undefined, undefined, preferredRole);
       if (!res.success) {
+        if (res.code === 'auth/popup-closed-by-user') {
+          // El usuario cerró la ventana de Google voluntariamente, no mostrar error ruidoso
+          return;
+        }
         if (res.code === 'auth/unauthorized-domain' || res.message?.includes('unauthorized-domain')) {
           setUnauthorizedDomain(res.domain || (typeof window !== 'undefined' ? window.location.hostname : ''));
         } else {
@@ -159,6 +163,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
         triggerConfetti();
       }
     } catch (err: any) {
+      if (err?.code === 'auth/popup-closed-by-user' || err?.message?.includes('popup-closed-by-user') || err?.code === 'auth/cancelled-popup-request') {
+        // Usuario cerró o canceló la ventana emergente
+        return;
+      }
       if (err?.code === 'auth/unauthorized-domain' || err?.message?.includes('unauthorized-domain')) {
         setUnauthorizedDomain(typeof window !== 'undefined' ? window.location.hostname : '');
       } else {
