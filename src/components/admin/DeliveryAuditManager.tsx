@@ -5,7 +5,6 @@ import {
   Package, 
   Clock, 
   CheckCircle2, 
-  Coins, 
   Download, 
   Search, 
   Printer, 
@@ -16,6 +15,7 @@ import {
   ShieldCheck,
   Sparkles
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 import { RedemptionOrder, OrderStatus } from '../../types';
 import { formatPoints, formatDate, exportOrdersToCSV } from '../../utils/helpers';
@@ -234,8 +234,8 @@ export const DeliveryAuditManager: React.FC = () => {
 
                     {/* Points */}
                     <td className="p-4">
-                      <div className="font-black text-blue-900 flex items-center gap-1">
-                        <Coins className="w-3.5 h-3.5 text-blue-700" />
+                      <div className="font-black text-blue-900 flex items-center gap-1.5">
+                        <CoinIcon className="w-3.5 h-3.5" />
                         <span>{formatPoints(order.totalPoints)}</span>
                         <span className="text-[10px] text-slate-500">pts</span>
                       </div>

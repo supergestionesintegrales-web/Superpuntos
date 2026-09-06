@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
   Layers, 
-  Coins, 
   CheckSquare, 
   Package, 
   Users, 
@@ -21,6 +20,7 @@ import {
   Trash2,
   X
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 import { formatPoints, formatDate } from '../../utils/helpers';
 import { CampaignIcon } from '../common/CampaignIcon';
@@ -130,12 +130,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               type="button"
               onClick={handleManualFirestoreSync}
               disabled={isSyncingFirestore}
-              title={`Estado Firestore: ${firestoreStatus}`}
+              title={firestoreStatus === 'connected' ? 'Firestore conectado y sincronizado' : firestoreStatus === 'connecting' ? 'Conectando con Firestore...' : 'Operando con almacenamiento local (Cloud Firestore pendiente de activación)'}
               className="px-3.5 py-2.5 rounded-lg font-bold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${isSyncingFirestore ? 'animate-spin' : ''}`} />
               <span>{isSyncingFirestore ? 'Sincronizando...' : 'Sincronizar Firestore'}</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span className={`w-2 h-2 rounded-full ${
+                firestoreStatus === 'connected' 
+                  ? 'bg-emerald-400' 
+                  : firestoreStatus === 'connecting' 
+                  ? 'bg-amber-400 animate-pulse' 
+                  : 'bg-amber-500'
+              }`}></span>
             </button>
 
             <button
@@ -150,7 +156,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               onClick={onOpenManualPointsModal}
               className="px-4 py-2.5 rounded-lg font-semibold text-xs sm:text-sm bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <Coins className="w-4 h-4 text-blue-400" />
+              <CoinIcon className="w-4 h-4" />
               <span>Ajustar / Asignar Puntos</span>
             </button>
 
@@ -175,8 +181,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               Puntos en Circulación
             </span>
-            <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-900 flex items-center justify-center font-bold">
-              <Coins className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
+              <CoinIcon className="w-6 h-6" />
             </div>
           </div>
           <div>
@@ -307,7 +313,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             onClick={onOpenManualPointsModal}
             className="p-3.5 rounded-xl bg-slate-50 hover:bg-blue-500/10 hover:border-blue-400 border border-slate-200 text-left transition-all group cursor-pointer"
           >
-            <Coins className="w-5 h-5 text-blue-900 group-hover:scale-110 transition-transform mb-2" />
+            <div className="mb-2">
+              <CoinIcon className="w-5 h-5" />
+            </div>
             <p className="font-bold text-xs text-slate-900">Ajustar Puntos</p>
             <span className="text-[10px] text-slate-500">Asignar o deducir</span>
           </button>

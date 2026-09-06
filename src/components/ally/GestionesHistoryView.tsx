@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   FileText, 
-  Coins, 
   Clock, 
   CheckCircle2, 
   XCircle, 
@@ -17,6 +16,7 @@ import {
   Award,
   Crown
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 import { ReportedGestion, GestionStatus, PointsTransaction } from '../../types';
 import { formatPoints, formatDate, formatCurrency, getAllyTier } from '../../utils/helpers';
@@ -134,7 +134,7 @@ export const GestionesHistoryView: React.FC<GestionesHistoryViewProps> = ({ onOp
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
-          <Coins className="w-4 h-4" />
+          <CoinIcon className="w-4 h-4" />
           <span>Extracto de Movimientos</span>
           <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
             activeSubTab === 'transactions' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'

@@ -6,7 +6,6 @@ import {
   XCircle, 
   Search, 
   Filter, 
-  Coins, 
   FileText, 
   User, 
   ExternalLink, 
@@ -17,6 +16,7 @@ import {
   ChevronDown,
   Check
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 import { ReportedGestion, GestionStatus } from '../../types';
 import { formatPoints, formatDate, formatCurrency } from '../../utils/helpers';
@@ -346,8 +346,8 @@ export const ApprovalsManager: React.FC = () => {
 
                   {/* Status and Points Badge */}
                   <div className="flex items-center gap-3 self-end sm:self-center">
-                    <div className="flex items-center gap-1 text-sm font-black text-blue-900 bg-blue-50 px-2.5 py-1 rounded-xl border border-blue-200">
-                      <Coins className="w-4 h-4 text-blue-900" />
+                    <div className="flex items-center gap-1.5 text-sm font-black text-blue-900 bg-blue-50 px-2.5 py-1 rounded-xl border border-blue-200">
+                      <CoinIcon className="w-4 h-4" />
                       <span>+{formatPoints(gestion.pointsAwarded || gestion.pointsExpected)}</span>
                       <span className="text-[10px] font-bold text-blue-800">pts</span>
                     </div>
@@ -531,7 +531,9 @@ export const ApprovalsManager: React.FC = () => {
                   Superpuntos a Acreditar en Billetera *
                 </label>
                 <div className="relative">
-                  <Coins className="w-5 h-5 text-blue-800 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <CoinIcon className="w-5 h-5" />
+                  </div>
                   <input
                     type="number"
                     required

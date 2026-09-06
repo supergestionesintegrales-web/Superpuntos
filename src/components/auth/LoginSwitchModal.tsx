@@ -4,13 +4,13 @@ import {
   X, 
   ShieldCheck, 
   UserCheck, 
-  Coins, 
   Store, 
   UserPlus, 
   ArrowRight, 
   Sparkles,
   Trash2
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 import { formatPoints, getAllyTier } from '../../utils/helpers';
 
@@ -167,7 +167,7 @@ export const LoginSwitchModal: React.FC<LoginSwitchModalProps> = ({
                     <div className="text-right shrink-0 flex items-center gap-2">
                       <div>
                         <div className="font-black text-blue-900 text-xs flex items-center gap-1 justify-end">
-                          <Coins className="w-3.5 h-3.5 text-blue-700" />
+                          <CoinIcon className="w-3.5 h-3.5" />
                           <span>{formatPoints(ally.pointsBalance)} pts</span>
                         </div>
                         {isActive && (

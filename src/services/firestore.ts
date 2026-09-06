@@ -1,5 +1,6 @@
 import { 
   getFirestore, 
+  setLogLevel,
   collection, 
   doc, 
   getDoc, 
@@ -10,13 +11,14 @@ import {
   query, 
   where, 
   orderBy, 
-  limit,
-  Timestamp,
-  writeBatch,
-  onSnapshot,
-  QueryConstraint
+  limit, 
+  Timestamp, 
+  writeBatch, 
+  onSnapshot, 
+  QueryConstraint,
+  getDocFromServer
 } from 'firebase/firestore';
-import { app } from './firebaseAuth';
+import { app, auth } from './firebaseAuth';
 import firebaseConfig from '../../firebase-applet-config.json';
 import { 
   User, 
@@ -29,10 +31,15 @@ import {
   AccessLog 
 } from '../types';
 
+// Silence verbose internal Firestore SDK transport warnings when Cloud Firestore API is offline or not yet enabled
+try {
+  setLogLevel('silent');
+} catch {
+  // Ignored
+}
+
 // Initialize Firestore with configured databaseId
-export const db = (firebaseConfig as any)?.firestoreDatabaseId && (firebaseConfig as any).firestoreDatabaseId !== '(default)'
-  ? getFirestore(app, (firebaseConfig as any).firestoreDatabaseId)
-  : getFirestore(app);
+export const db = getFirestore(app, (firebaseConfig as any)?.firestoreDatabaseId || '(default)');
 
 // Collection names
 export const COLLECTIONS = {
@@ -45,6 +52,65 @@ export const COLLECTIONS = {
   NOTIFICATIONS: 'notifications',
   ACCESS_LOGS: 'accessLogs'
 };
+
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  };
+}
+
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth?.currentUser?.uid,
+      email: auth?.currentUser?.email,
+      emailVerified: auth?.currentUser?.emailVerified,
+      isAnonymous: auth?.currentUser?.isAnonymous,
+      tenantId: auth?.currentUser?.tenantId,
+      providerInfo: auth?.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
+/**
+ * Validates connection to Firestore on startup as mandated by the Firebase skill.
+ */
+export async function testConnection(): Promise<boolean> {
+  try {
+    await withTimeout(getDocFromServer(doc(db, 'test', 'connection')), 1500);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Executes a Promise with a timeout limit so hanging Firebase network calls
@@ -91,23 +157,28 @@ export const withTimeout = <T>(promise: Promise<T>, ms: number = 2500, fallbackV
 export const saveUser = async (user: User): Promise<void> => {
   try {
     const userRef = doc(db, COLLECTIONS.USERS, user.id);
-    await setDoc(userRef, {
+    await withTimeout(setDoc(userRef, {
       ...user,
       updatedAt: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Error saving user to Firestore:', error);
-    throw error;
+    }), 2500);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.WRITE, `${COLLECTIONS.USERS}/${user.id}`);
+    }
+    console.warn('Notice saving user to Firestore (persisted locally):', error?.message || error);
   }
 };
 
 export const getUser = async (userId: string): Promise<User | null> => {
   try {
     const userRef = doc(db, COLLECTIONS.USERS, userId);
-    const userSnap = await getDoc(userRef);
-    return userSnap.exists() ? (userSnap.data() as User) : null;
-  } catch (error) {
-    console.error('Error getting user from Firestore:', error);
+    const userSnap = await withTimeout(getDoc(userRef), 2000, null as any);
+    return userSnap && userSnap.exists() ? (userSnap.data() as User) : null;
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.GET, `${COLLECTIONS.USERS}/${userId}`);
+    }
+    console.warn('Notice getting user from Firestore:', error?.message || error);
     return null;
   }
 };
@@ -116,14 +187,17 @@ export const getUserByDocument = async (documentId: string): Promise<User | null
   try {
     const usersRef = collection(db, COLLECTIONS.USERS);
     const q = query(usersRef, where('documentId', '==', documentId.trim()), limit(1));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await withTimeout(getDocs(q), 2000, { empty: true, docs: [] } as any);
     
-    if (!querySnapshot.empty) {
+    if (!querySnapshot.empty && querySnapshot.docs.length > 0) {
       return querySnapshot.docs[0].data() as User;
     }
     return null;
-  } catch (error) {
-    console.error('Error getting user by document from Firestore:', error);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.LIST, COLLECTIONS.USERS);
+    }
+    console.warn('Notice getting user by document from Firestore:', error?.message || error);
     return null;
   }
 };
@@ -132,14 +206,44 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
   try {
     const usersRef = collection(db, COLLECTIONS.USERS);
     const q = query(usersRef, where('email', '==', email.toLowerCase().trim()), limit(1));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await withTimeout(getDocs(q), 2000, { empty: true, docs: [] } as any);
     
-    if (!querySnapshot.empty) {
+    if (!querySnapshot.empty && querySnapshot.docs.length > 0) {
       return querySnapshot.docs[0].data() as User;
     }
     return null;
-  } catch (error) {
-    console.error('Error getting user by email from Firestore:', error);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.LIST, COLLECTIONS.USERS);
+    }
+    console.warn('Notice getting user by email from Firestore:', error?.message || error);
+    return null;
+  }
+};
+
+export const getUserByPhone = async (phone: string): Promise<User | null> => {
+  try {
+    const rawClean = phone.replace(/\D/g, '');
+    const usersRef = collection(db, COLLECTIONS.USERS);
+    
+    // Direct match
+    const q1 = query(usersRef, where('phone', '==', phone), limit(1));
+    const snap1 = await withTimeout(getDocs(q1), 2000, { empty: true, docs: [] } as any);
+    if (!snap1.empty && snap1.docs.length > 0) {
+      return snap1.docs[0].data() as User;
+    }
+
+    // In memory match from all users if formatting differs (+57 vs without +57)
+    const all = await getAllUsers();
+    return all.find(u => {
+      const uDigits = (u.phone || '').replace(/\D/g, '');
+      return uDigits === rawClean || (rawClean.length >= 10 && uDigits.endsWith(rawClean.slice(-10)));
+    }) || null;
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.LIST, COLLECTIONS.USERS);
+    }
+    console.warn('Notice getting user by phone from Firestore:', error?.message || error);
     return null;
   }
 };
@@ -193,13 +297,15 @@ export const getAllUsers = async (): Promise<User[]> => {
 export const updateUser = async (userId: string, data: Partial<User>): Promise<void> => {
   try {
     const userRef = doc(db, COLLECTIONS.USERS, userId);
-    await updateDoc(userRef, {
+    await withTimeout(updateDoc(userRef, {
       ...data,
       updatedAt: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Error updating user in Firestore:', error);
-    throw error;
+    }), 2500);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.UPDATE, `${COLLECTIONS.USERS}/${userId}`);
+    }
+    console.warn('Notice updating user in Firestore:', error?.message || error);
   }
 };
 
@@ -208,6 +314,9 @@ export const deleteUser = async (userId: string): Promise<void> => {
     const userRef = doc(db, COLLECTIONS.USERS, userId);
     await withTimeout(deleteDoc(userRef), 2000);
   } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.DELETE, `${COLLECTIONS.USERS}/${userId}`);
+    }
     console.warn('[Firestore] Aviso al eliminar usuario de Firestore (timeout o red):', error?.message || error);
   }
 
@@ -227,23 +336,28 @@ export const deleteUser = async (userId: string): Promise<void> => {
 export const saveProduct = async (product: Product): Promise<void> => {
   try {
     const productRef = doc(db, COLLECTIONS.PRODUCTS, product.id);
-    await setDoc(productRef, {
+    await withTimeout(setDoc(productRef, {
       ...product,
       updatedAt: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Error saving product to Firestore:', error);
-    throw error;
+    }), 2500);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.WRITE, `${COLLECTIONS.PRODUCTS}/${product.id}`);
+    }
+    console.warn('Notice saving product to Firestore:', error?.message || error);
   }
 };
 
 export const getProduct = async (productId: string): Promise<Product | null> => {
   try {
     const productRef = doc(db, COLLECTIONS.PRODUCTS, productId);
-    const productSnap = await getDoc(productRef);
-    return productSnap.exists() ? (productSnap.data() as Product) : null;
-  } catch (error) {
-    console.error('Error getting product from Firestore:', error);
+    const productSnap = await withTimeout(getDoc(productRef), 2000, null as any);
+    return productSnap && productSnap.exists() ? (productSnap.data() as Product) : null;
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.GET, `${COLLECTIONS.PRODUCTS}/${productId}`);
+    }
+    console.warn('Notice getting product from Firestore:', error?.message || error);
     return null;
   }
 };
@@ -253,8 +367,11 @@ export const getAllProducts = async (): Promise<Product[]> => {
     const productsRef = collection(db, COLLECTIONS.PRODUCTS);
     const querySnapshot = await withTimeout(getDocs(productsRef), 2500, { docs: [] } as any);
     return querySnapshot.docs.map(doc => doc.data() as Product);
-  } catch (error) {
-    console.warn('Error getting all products from Firestore:', error);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.LIST, COLLECTIONS.PRODUCTS);
+    }
+    console.warn('Error getting all products from Firestore:', error?.message || error);
     return [];
   }
 };
@@ -262,13 +379,15 @@ export const getAllProducts = async (): Promise<Product[]> => {
 export const updateProduct = async (productId: string, data: Partial<Product>): Promise<void> => {
   try {
     const productRef = doc(db, COLLECTIONS.PRODUCTS, productId);
-    await updateDoc(productRef, {
+    await withTimeout(updateDoc(productRef, {
       ...data,
       updatedAt: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Error updating product in Firestore:', error);
-    throw error;
+    }), 2500);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.UPDATE, `${COLLECTIONS.PRODUCTS}/${productId}`);
+    }
+    console.warn('Error updating product in Firestore:', error?.message || error);
   }
 };
 
@@ -277,6 +396,9 @@ export const deleteProduct = async (productId: string): Promise<void> => {
     const productRef = doc(db, COLLECTIONS.PRODUCTS, productId);
     await withTimeout(deleteDoc(productRef), 2000);
   } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.DELETE, `${COLLECTIONS.PRODUCTS}/${productId}`);
+    }
     console.warn('[Firestore] Aviso al eliminar producto en Firestore:', error?.message || error);
   }
 };
@@ -286,23 +408,28 @@ export const deleteProduct = async (productId: string): Promise<void> => {
 export const saveCampaign = async (campaign: CommercialCampaign): Promise<void> => {
   try {
     const campaignRef = doc(db, COLLECTIONS.CAMPAIGNS, campaign.id);
-    await setDoc(campaignRef, {
+    await withTimeout(setDoc(campaignRef, {
       ...campaign,
       updatedAt: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Error saving campaign to Firestore:', error);
-    throw error;
+    }), 2500);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.WRITE, `${COLLECTIONS.CAMPAIGNS}/${campaign.id}`);
+    }
+    console.warn('Notice saving campaign to Firestore:', error?.message || error);
   }
 };
 
 export const getCampaign = async (campaignId: string): Promise<CommercialCampaign | null> => {
   try {
     const campaignRef = doc(db, COLLECTIONS.CAMPAIGNS, campaignId);
-    const campaignSnap = await getDoc(campaignRef);
-    return campaignSnap.exists() ? (campaignSnap.data() as CommercialCampaign) : null;
-  } catch (error) {
-    console.error('Error getting campaign from Firestore:', error);
+    const campaignSnap = await withTimeout(getDoc(campaignRef), 2000, null as any);
+    return campaignSnap && campaignSnap.exists() ? (campaignSnap.data() as CommercialCampaign) : null;
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.GET, `${COLLECTIONS.CAMPAIGNS}/${campaignId}`);
+    }
+    console.warn('Notice getting campaign from Firestore:', error?.message || error);
     return null;
   }
 };
@@ -312,8 +439,11 @@ export const getAllCampaigns = async (): Promise<CommercialCampaign[]> => {
     const campaignsRef = collection(db, COLLECTIONS.CAMPAIGNS);
     const querySnapshot = await withTimeout(getDocs(campaignsRef), 2500, { docs: [] } as any);
     return querySnapshot.docs.map(doc => doc.data() as CommercialCampaign);
-  } catch (error) {
-    console.warn('Error getting all campaigns from Firestore:', error);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.LIST, COLLECTIONS.CAMPAIGNS);
+    }
+    console.warn('Error getting all campaigns from Firestore:', error?.message || error);
     return [];
   }
 };
@@ -321,13 +451,15 @@ export const getAllCampaigns = async (): Promise<CommercialCampaign[]> => {
 export const updateCampaign = async (campaignId: string, data: Partial<CommercialCampaign>): Promise<void> => {
   try {
     const campaignRef = doc(db, COLLECTIONS.CAMPAIGNS, campaignId);
-    await updateDoc(campaignRef, {
+    await withTimeout(updateDoc(campaignRef, {
       ...data,
       updatedAt: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Error updating campaign in Firestore:', error);
-    throw error;
+    }), 2500);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.UPDATE, `${COLLECTIONS.CAMPAIGNS}/${campaignId}`);
+    }
+    console.warn('Error updating campaign in Firestore:', error?.message || error);
   }
 };
 
@@ -336,6 +468,9 @@ export const deleteCampaign = async (campaignId: string): Promise<void> => {
     const campaignRef = doc(db, COLLECTIONS.CAMPAIGNS, campaignId);
     await withTimeout(deleteDoc(campaignRef), 2000);
   } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.DELETE, `${COLLECTIONS.CAMPAIGNS}/${campaignId}`);
+    }
     console.warn('[Firestore] Aviso al eliminar campaña en Firestore:', error?.message || error);
   }
 };
@@ -345,23 +480,28 @@ export const deleteCampaign = async (campaignId: string): Promise<void> => {
 export const saveGestion = async (gestion: ReportedGestion): Promise<void> => {
   try {
     const gestionRef = doc(db, COLLECTIONS.GESTIONES, gestion.id);
-    await setDoc(gestionRef, {
+    await withTimeout(setDoc(gestionRef, {
       ...gestion,
       updatedAt: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Error saving gestion to Firestore:', error);
-    throw error;
+    }), 2500);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.WRITE, `${COLLECTIONS.GESTIONES}/${gestion.id}`);
+    }
+    console.warn('Notice saving gestion to Firestore:', error?.message || error);
   }
 };
 
 export const getGestion = async (gestionId: string): Promise<ReportedGestion | null> => {
   try {
     const gestionRef = doc(db, COLLECTIONS.GESTIONES, gestionId);
-    const gestionSnap = await getDoc(gestionRef);
-    return gestionSnap.exists() ? (gestionSnap.data() as ReportedGestion) : null;
-  } catch (error) {
-    console.error('Error getting gestion from Firestore:', error);
+    const gestionSnap = await withTimeout(getDoc(gestionRef), 2000, null as any);
+    return gestionSnap && gestionSnap.exists() ? (gestionSnap.data() as ReportedGestion) : null;
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.GET, `${COLLECTIONS.GESTIONES}/${gestionId}`);
+    }
+    console.warn('Notice getting gestion from Firestore:', error?.message || error);
     return null;
   }
 };
@@ -372,8 +512,11 @@ export const getAllGestiones = async (): Promise<ReportedGestion[]> => {
     const querySnapshot = await withTimeout(getDocs(gestionesRef), 2500, { docs: [] } as any);
     const gestiones = querySnapshot.docs.map(doc => doc.data() as ReportedGestion);
     return gestiones.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-  } catch (error) {
-    console.warn('Error getting all gestiones from Firestore:', error);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.LIST, COLLECTIONS.GESTIONES);
+    }
+    console.warn('Error getting all gestiones from Firestore:', error?.message || error);
     return [];
   }
 };
@@ -383,7 +526,7 @@ export const getGestionesByUser = async (userId: string): Promise<ReportedGestio
     const all = await getAllGestiones();
     return all.filter(g => g.allyId === userId);
   } catch (error) {
-    console.error('Error getting user gestiones from Firestore:', error);
+    console.warn('Error getting user gestiones from Firestore:', error);
     return [];
   }
 };
@@ -391,13 +534,15 @@ export const getGestionesByUser = async (userId: string): Promise<ReportedGestio
 export const updateGestion = async (gestionId: string, data: Partial<ReportedGestion>): Promise<void> => {
   try {
     const gestionRef = doc(db, COLLECTIONS.GESTIONES, gestionId);
-    await updateDoc(gestionRef, {
+    await withTimeout(updateDoc(gestionRef, {
       ...data,
       updatedAt: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Error updating gestion in Firestore:', error);
-    throw error;
+    }), 2500);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.UPDATE, `${COLLECTIONS.GESTIONES}/${gestionId}`);
+    }
+    console.warn('Error updating gestion in Firestore:', error?.message || error);
   }
 };
 
@@ -406,23 +551,28 @@ export const updateGestion = async (gestionId: string, data: Partial<ReportedGes
 export const saveOrder = async (order: RedemptionOrder): Promise<void> => {
   try {
     const orderRef = doc(db, COLLECTIONS.ORDERS, order.id);
-    await setDoc(orderRef, {
+    await withTimeout(setDoc(orderRef, {
       ...order,
       updatedAt: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Error saving order to Firestore:', error);
-    throw error;
+    }), 2500);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.WRITE, `${COLLECTIONS.ORDERS}/${order.id}`);
+    }
+    console.warn('Notice saving order to Firestore:', error?.message || error);
   }
 };
 
 export const getOrder = async (orderId: string): Promise<RedemptionOrder | null> => {
   try {
     const orderRef = doc(db, COLLECTIONS.ORDERS, orderId);
-    const orderSnap = await getDoc(orderRef);
-    return orderSnap.exists() ? (orderSnap.data() as RedemptionOrder) : null;
-  } catch (error) {
-    console.error('Error getting order from Firestore:', error);
+    const orderSnap = await withTimeout(getDoc(orderRef), 2000, null as any);
+    return orderSnap && orderSnap.exists() ? (orderSnap.data() as RedemptionOrder) : null;
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.GET, `${COLLECTIONS.ORDERS}/${orderId}`);
+    }
+    console.warn('Notice getting order from Firestore:', error?.message || error);
     return null;
   }
 };
@@ -433,8 +583,11 @@ export const getAllOrders = async (): Promise<RedemptionOrder[]> => {
     const querySnapshot = await withTimeout(getDocs(ordersRef), 2500, { docs: [] } as any);
     const orders = querySnapshot.docs.map(doc => doc.data() as RedemptionOrder);
     return orders.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-  } catch (error) {
-    console.warn('Error getting all orders from Firestore:', error);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.LIST, COLLECTIONS.ORDERS);
+    }
+    console.warn('Error getting all orders from Firestore:', error?.message || error);
     return [];
   }
 };
@@ -444,7 +597,7 @@ export const getOrdersByUser = async (userId: string): Promise<RedemptionOrder[]
     const all = await getAllOrders();
     return all.filter(o => o.allyId === userId);
   } catch (error) {
-    console.error('Error getting user orders from Firestore:', error);
+    console.warn('Error getting user orders from Firestore:', error);
     return [];
   }
 };
@@ -452,13 +605,15 @@ export const getOrdersByUser = async (userId: string): Promise<RedemptionOrder[]
 export const updateOrder = async (orderId: string, data: Partial<RedemptionOrder>): Promise<void> => {
   try {
     const orderRef = doc(db, COLLECTIONS.ORDERS, orderId);
-    await updateDoc(orderRef, {
+    await withTimeout(updateDoc(orderRef, {
       ...data,
       updatedAt: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Error updating order in Firestore:', error);
-    throw error;
+    }), 2500);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.UPDATE, `${COLLECTIONS.ORDERS}/${orderId}`);
+    }
+    console.warn('Error updating order in Firestore:', error?.message || error);
   }
 };
 
@@ -467,21 +622,26 @@ export const updateOrder = async (orderId: string, data: Partial<RedemptionOrder
 export const saveTransaction = async (transaction: PointsTransaction): Promise<void> => {
   try {
     const transactionRef = doc(db, COLLECTIONS.TRANSACTIONS, transaction.id);
-    await setDoc(transactionRef, transaction);
-  } catch (error) {
-    console.error('Error saving transaction to Firestore:', error);
-    throw error;
+    await withTimeout(setDoc(transactionRef, transaction), 2500);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.WRITE, `${COLLECTIONS.TRANSACTIONS}/${transaction.id}`);
+    }
+    console.warn('Notice saving transaction to Firestore:', error?.message || error);
   }
 };
 
 export const getTransactionsByUser = async (userId: string): Promise<PointsTransaction[]> => {
   try {
     const transactionsRef = collection(db, COLLECTIONS.TRANSACTIONS);
-    const querySnapshot = await getDocs(transactionsRef);
+    const querySnapshot = await withTimeout(getDocs(transactionsRef), 2000, { docs: [] } as any);
     const all = querySnapshot.docs.map(doc => doc.data() as PointsTransaction);
     return all.filter(t => t.allyId === userId).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-  } catch (error) {
-    console.error('Error getting user transactions from Firestore:', error);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.LIST, COLLECTIONS.TRANSACTIONS);
+    }
+    console.warn('Error getting user transactions from Firestore:', error?.message || error);
     return [];
   }
 };
@@ -491,10 +651,12 @@ export const getTransactionsByUser = async (userId: string): Promise<PointsTrans
 export const saveNotification = async (notification: AppNotification): Promise<void> => {
   try {
     const notificationRef = doc(db, COLLECTIONS.NOTIFICATIONS, notification.id);
-    await setDoc(notificationRef, notification);
-  } catch (error) {
-    console.error('Error saving notification to Firestore:', error);
-    throw error;
+    await withTimeout(setDoc(notificationRef, notification), 2500);
+  } catch (error: any) {
+    if (error?.code === 'permission-denied') {
+      handleFirestoreError(error, OperationType.WRITE, `${COLLECTIONS.NOTIFICATIONS}/${notification.id}`);
+    }
+    console.warn('Notice saving notification to Firestore:', error?.message || error);
   }
 };
 
@@ -688,7 +850,7 @@ export const purgeAllTestDataFromFirestore = async (
 
 // ==================== REAL-TIME LISTENERS ====================
 
-export const subscribeToUsers = (callback: (users: User[]) => void) => {
+export const subscribeToUsers = (callback: (users: User[]) => void, onError?: (error: any) => void) => {
   const usersRef = collection(db, COLLECTIONS.USERS);
   return onSnapshot(
     usersRef, 
@@ -697,12 +859,12 @@ export const subscribeToUsers = (callback: (users: User[]) => void) => {
       callback(users);
     },
     (error) => {
-      console.warn('Firestore subscribeToUsers notice:', error?.message || error);
+      if (onError) onError(error);
     }
   );
 };
 
-export const subscribeToProducts = (callback: (products: Product[]) => void) => {
+export const subscribeToProducts = (callback: (products: Product[]) => void, onError?: (error: any) => void) => {
   const productsRef = collection(db, COLLECTIONS.PRODUCTS);
   return onSnapshot(
     productsRef, 
@@ -711,12 +873,12 @@ export const subscribeToProducts = (callback: (products: Product[]) => void) => 
       callback(products);
     },
     (error) => {
-      console.warn('Firestore subscribeToProducts notice:', error?.message || error);
+      if (onError) onError(error);
     }
   );
 };
 
-export const subscribeToCampaigns = (callback: (campaigns: CommercialCampaign[]) => void) => {
+export const subscribeToCampaigns = (callback: (campaigns: CommercialCampaign[]) => void, onError?: (error: any) => void) => {
   const campaignsRef = collection(db, COLLECTIONS.CAMPAIGNS);
   return onSnapshot(
     campaignsRef, 
@@ -725,12 +887,12 @@ export const subscribeToCampaigns = (callback: (campaigns: CommercialCampaign[])
       callback(campaigns);
     },
     (error) => {
-      console.warn('Firestore subscribeToCampaigns notice:', error?.message || error);
+      if (onError) onError(error);
     }
   );
 };
 
-export const subscribeToGestiones = (callback: (gestiones: ReportedGestion[]) => void) => {
+export const subscribeToGestiones = (callback: (gestiones: ReportedGestion[]) => void, onError?: (error: any) => void) => {
   const gestionesRef = collection(db, COLLECTIONS.GESTIONES);
   return onSnapshot(
     gestionesRef, 
@@ -739,12 +901,12 @@ export const subscribeToGestiones = (callback: (gestiones: ReportedGestion[]) =>
       callback(gestiones.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
     },
     (error) => {
-      console.warn('Firestore subscribeToGestiones notice:', error?.message || error);
+      if (onError) onError(error);
     }
   );
 };
 
-export const subscribeToOrders = (callback: (orders: RedemptionOrder[]) => void) => {
+export const subscribeToOrders = (callback: (orders: RedemptionOrder[]) => void, onError?: (error: any) => void) => {
   const ordersRef = collection(db, COLLECTIONS.ORDERS);
   return onSnapshot(
     ordersRef, 
@@ -753,12 +915,12 @@ export const subscribeToOrders = (callback: (orders: RedemptionOrder[]) => void)
       callback(orders.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
     },
     (error) => {
-      console.warn('Firestore subscribeToOrders notice:', error?.message || error);
+      if (onError) onError(error);
     }
   );
 };
 
-export const subscribeToNotifications = (callback: (notifications: AppNotification[]) => void) => {
+export const subscribeToNotifications = (callback: (notifications: AppNotification[]) => void, onError?: (error: any) => void) => {
   const notifsRef = collection(db, COLLECTIONS.NOTIFICATIONS);
   return onSnapshot(
     notifsRef, 
@@ -767,21 +929,21 @@ export const subscribeToNotifications = (callback: (notifications: AppNotificati
       callback(notifs.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
     },
     (error) => {
-      console.warn('Firestore subscribeToNotifications notice:', error?.message || error);
+      if (onError) onError(error);
     }
   );
 };
 
-export const subscribeToAccessLogs = (callback: (logs: AccessLog[]) => void) => {
+export const subscribeToAccessLogs = (callback: (logs: AccessLog[]) => void, onError?: (error: any) => void) => {
   const logsRef = collection(db, COLLECTIONS.ACCESS_LOGS);
   return onSnapshot(
-    logsRef,
+    logsRef, 
     (snapshot) => {
       const logs = snapshot.docs.map(doc => doc.data() as AccessLog);
       callback(logs.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || '')));
     },
     (error) => {
-      console.warn('Firestore subscribeToAccessLogs notice:', error?.message || error);
+      if (onError) onError(error);
     }
   );
 };

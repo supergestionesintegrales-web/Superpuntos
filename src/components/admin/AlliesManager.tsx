@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { 
   Users, 
   Search, 
-  Coins, 
   Award, 
   Phone, 
   Mail, 
@@ -23,6 +22,7 @@ import {
   X,
   Pencil
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 import { User } from '../../types';
 import { formatPoints, getAllyTier, formatDate } from '../../utils/helpers';
@@ -189,7 +189,7 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
             }}
             className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-blue-900 hover:bg-blue-800 text-white shadow-md shadow-blue-950/25 flex items-center gap-2 transition-all hover:scale-102 cursor-pointer"
           >
-            <Coins className="w-4 h-4" />
+            <CoinIcon className="w-4 h-4" />
             <span>+ Asignar Puntos / Bono</span>
           </button>
         </div>
@@ -362,8 +362,8 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-200/70">
                       <span className="text-[10px] font-bold text-blue-900 uppercase block">Saldo Disponible</span>
-                      <span className="text-base font-black text-blue-900 flex items-center gap-1">
-                        <Coins className="w-3.5 h-3.5 text-blue-900" />
+                      <span className="text-base font-black text-blue-900 flex items-center gap-1.5">
+                        <CoinIcon className="w-3.5 h-3.5" />
                         {formatPoints(ally.pointsBalance)} pts
                       </span>
                     </div>
@@ -403,7 +403,7 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
                       className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-blue-900 hover:bg-blue-800 text-white flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
                       title="Asignar bonos, ajustes o deducciones a este aliado"
                     >
-                      <Coins className="w-3.5 h-3.5" />
+                      <CoinIcon className="w-3.5 h-3.5" />
                       <span>Ajustar Puntos</span>
                     </button>
                   </div>

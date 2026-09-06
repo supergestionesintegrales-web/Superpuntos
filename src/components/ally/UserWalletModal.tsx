@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   X, 
-  Coins, 
   Award, 
   Crown, 
   Sparkles, 
@@ -20,6 +19,7 @@ import {
   Pencil,
   Check
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 import { formatPoints, getAllyTier, TIERS } from '../../utils/helpers';
 import { TierScaleModal } from '../common/TierScaleModal';
@@ -195,8 +195,8 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                 {/* Board Top: Title & Level Badge */}
                 <div className="flex items-center justify-between pb-3 border-b border-slate-700/80">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
-                      <Coins className="w-4 h-4" />
+                    <div className="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                      <CoinIcon className="w-4 h-4" />
                     </div>
                     <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
                       Tu Billetera de Puntos
@@ -234,8 +234,8 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                     </p>
                   </div>
 
-                  <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-inner">
-                    <Coins className="w-8 h-8 stroke-[2.5]" />
+                  <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center shadow-inner">
+                    <CoinIcon className="w-10 h-10" />
                   </div>
                 </div>
 

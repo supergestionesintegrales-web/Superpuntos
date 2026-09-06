@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  Coins, 
   X, 
   Sparkles, 
   User, 
@@ -9,6 +8,7 @@ import {
   CheckCircle2, 
   AlertCircle 
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 import { formatPoints } from '../../utils/helpers';
 
@@ -98,7 +98,7 @@ export const ManualPointsModal: React.FC<ManualPointsModalProps> = ({
 
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-white/20 border border-white/30 text-white flex items-center justify-center shadow-inner">
-              <Coins className="w-6 h-6" />
+              <CoinIcon className="w-8 h-8" />
             </div>
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
@@ -186,7 +186,9 @@ export const ManualPointsModal: React.FC<ManualPointsModalProps> = ({
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-700">Cantidad de Superpuntos *</label>
               <div className="relative">
-                <Coins className="w-5 h-5 text-blue-900 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <CoinIcon className="w-5 h-5" />
+                </div>
                 <input
                   type="number"
                   required

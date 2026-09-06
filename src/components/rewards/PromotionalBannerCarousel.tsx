@@ -13,9 +13,9 @@ import {
   ArrowRight,
   Info,
   X,
-  PhoneCall,
-  Coins
+  PhoneCall
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface PromotionalBannerCarouselProps {
@@ -75,9 +75,113 @@ export const PromotionalBannerCarousel: React.FC<PromotionalBannerCarouselProps>
         <div className="relative min-h-[460px] sm:min-h-[400px] md:min-h-[380px] lg:min-h-[360px] flex items-stretch">
           <AnimatePresence mode="wait">
             {currentSlide === 0 ? (
-              /* SLIDE 1: REDIMIR ES MUY FÁCIL */
+              /* SLIDE 1: SuperSOAT + Póliza */
               <motion.div
-                key="slide-1"
+                key="slide-soat"
+                initial={{ opacity: 0, x: 25 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -25 }}
+                transition={{ duration: 0.45, ease: 'easeInOut' }}
+                className="w-full h-full relative flex flex-col md:flex-row items-center justify-between p-6 sm:p-8 md:p-10 bg-gradient-to-br from-[#03102c] via-[#06245e] to-[#0284c7] text-white overflow-hidden"
+              >
+                {/* Diagonal Chevron Tech Background Overlay */}
+                <div 
+                  className="absolute inset-0 opacity-15 pointer-events-none" 
+                  style={{
+                    backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(56, 189, 248, 0.4) 35px, rgba(56, 189, 248, 0.4) 70px)`
+                  }}
+                />
+
+                {/* Left Side: Watermark & Title */}
+                <div className="relative z-10 w-full md:w-3/5 space-y-4">
+                  {/* SuperGIROS Branding Header */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-blue-600 border-2 border-blue-300 flex items-center justify-center shadow-lg text-white font-black text-xs">
+                      SG
+                    </div>
+                    <div>
+                      <div className="text-sm sm:text-base font-black tracking-wider text-white">
+                        SuperGIROS<sup className="text-[10px]">®</sup>
+                      </div>
+                      <div className="text-[10px] text-blue-300 font-bold uppercase tracking-wider">
+                        Campaña Oficial de Fidelización
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Huge 3D SuperSOAT Title */}
+                  <div className="py-2">
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-black italic tracking-tight text-white leading-none">
+                      <span className="block text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-amber-400 to-orange-500 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]">
+                        SuperSOAT
+                      </span>
+                      <span className="inline-block text-2xl sm:text-3xl md:text-4xl font-black italic text-orange-400 drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] -mt-1 ml-1">
+                        +Póliza*
+                      </span>
+                    </h1>
+                  </div>
+
+                  {/* Value Proposition */}
+                  <div className="space-y-1 max-w-lg">
+                    <p className="text-xs sm:text-sm font-bold text-blue-100">
+                      Protege tu vehículo y gana Superpuntos en cada compra y emisión.
+                    </p>
+                    <p className="text-[11px] sm:text-xs text-blue-200/80">
+                      Cobertura integral para motos y carros, asistencia médica inmediata y acumulación preferencial de puntos para canje en el catálogo.
+                    </p>
+                  </div>
+
+                  {/* Action Pill Button */}
+                  <div className="pt-2 flex flex-wrap items-center gap-3">
+                    <button
+                      onClick={() => setIsModalOpen(true)}
+                      className="px-5 py-2.5 rounded-full font-bold text-xs bg-sky-500/25 hover:bg-sky-500/40 text-white border border-sky-300/40 flex items-center gap-2 backdrop-blur-xs transition-all shadow-md cursor-pointer hover:border-sky-300"
+                    >
+                      <Info className="w-4 h-4 text-sky-300" />
+                      <span>Ver Más Detalles</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-sky-200" />
+                    </button>
+
+                    <button
+                      onClick={handleActionClick}
+                      className="px-4 py-2.5 rounded-full font-bold text-xs bg-amber-400 hover:bg-amber-300 text-slate-950 flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
+                    >
+                      <Gift className="w-3.5 h-3.5" />
+                      <span>Ir al Catálogo</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right Side: Visual Shield & Security Highlights */}
+                <div className="relative z-10 w-full md:w-2/5 mt-6 md:mt-0 flex flex-col items-center justify-center">
+                  <div className="relative p-6 rounded-3xl bg-slate-900/60 border border-sky-400/30 backdrop-blur-md shadow-2xl text-center max-w-xs w-full space-y-4">
+                    <div className="w-16 h-16 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center mx-auto text-sky-300 shadow-inner">
+                      <ShieldCheck className="w-9 h-9 stroke-[1.8]" />
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-xs font-black uppercase tracking-wider text-sky-300">
+                        Cobertura Certificada
+                      </div>
+                      <h4 className="text-sm font-extrabold text-white">
+                        SOAT + Póliza Todo Riesgo
+                      </h4>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        Emisión digital inmediata en puntos autorizados SuperGIROS a nivel nacional.
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-white/10 flex items-center justify-center gap-2 text-[11px] text-amber-300 font-bold">
+                      <CoinIcon className="w-4 h-4" />
+                      <span>Acumula Puntos Dobles</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              /* SLIDE 2: REDIMIR ES MUY FÁCIL */
+              <motion.div
+                key="slide-redimir"
                 initial={{ opacity: 0, x: 25 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -25 }}
@@ -207,117 +311,13 @@ export const PromotionalBannerCarousel: React.FC<PromotionalBannerCarouselProps>
                         <span className="text-[9px] font-bold text-slate-300 mt-1">Premios</span>
                       </div>
                       <div className="flex flex-col items-center p-2 rounded-xl bg-slate-900/60 border border-slate-700/60">
-                        <Coins className="w-5 h-5 text-emerald-400" />
+                        <CoinIcon className="w-5 h-5" />
                         <span className="text-[9px] font-bold text-slate-300 mt-1">Puntos</span>
                       </div>
                     </div>
 
                     <div className="mt-3 text-[10px] text-slate-300 font-medium">
                       Acumula puntos y redime electrodomésticos, bonos y tecnología
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              /* SLIDE 2: SuperSOAT + Póliza */
-              <motion.div
-                key="slide-2"
-                initial={{ opacity: 0, x: 25 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -25 }}
-                transition={{ duration: 0.45, ease: 'easeInOut' }}
-                className="w-full h-full relative flex flex-col md:flex-row items-center justify-between p-6 sm:p-8 md:p-10 bg-gradient-to-br from-[#03102c] via-[#06245e] to-[#0284c7] text-white overflow-hidden"
-              >
-                {/* Diagonal Chevron Tech Background Overlay */}
-                <div 
-                  className="absolute inset-0 opacity-15 pointer-events-none" 
-                  style={{
-                    backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(56, 189, 248, 0.4) 35px, rgba(56, 189, 248, 0.4) 70px)`
-                  }}
-                />
-
-                {/* Left Side: Watermark & Title */}
-                <div className="relative z-10 w-full md:w-3/5 space-y-4">
-                  {/* SuperGIROS Branding Header */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-blue-600 border-2 border-blue-300 flex items-center justify-center shadow-lg text-white font-black text-xs">
-                      SG
-                    </div>
-                    <div>
-                      <div className="text-sm sm:text-base font-black tracking-wider text-white">
-                        SuperGIROS<sup className="text-[10px]">®</sup>
-                      </div>
-                      <div className="text-[10px] text-blue-300 font-bold uppercase tracking-wider">
-                        Campaña Oficial de Fidelización
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Huge 3D SuperSOAT Title */}
-                  <div className="py-2">
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-black italic tracking-tight text-white leading-none">
-                      <span className="block text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-amber-400 to-orange-500 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]">
-                        SuperSOAT
-                      </span>
-                      <span className="inline-block text-2xl sm:text-3xl md:text-4xl font-black italic text-orange-400 drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] -mt-1 ml-1">
-                        +Póliza*
-                      </span>
-                    </h1>
-                  </div>
-
-                  {/* Value Proposition */}
-                  <div className="space-y-1 max-w-lg">
-                    <p className="text-xs sm:text-sm font-bold text-blue-100">
-                      Protege tu vehículo y gana Superpuntos en cada compra y emisión.
-                    </p>
-                    <p className="text-[11px] sm:text-xs text-blue-200/80">
-                      Cobertura integral para motos y carros, asistencia médica inmediata y acumulación preferencial de puntos para canje en el catálogo.
-                    </p>
-                  </div>
-
-                  {/* Action Pill Button */}
-                  <div className="pt-2 flex flex-wrap items-center gap-3">
-                    <button
-                      onClick={() => setIsModalOpen(true)}
-                      className="px-5 py-2.5 rounded-full font-bold text-xs bg-sky-500/25 hover:bg-sky-500/40 text-white border border-sky-300/40 flex items-center gap-2 backdrop-blur-xs transition-all shadow-md cursor-pointer hover:border-sky-300"
-                    >
-                      <Info className="w-4 h-4 text-sky-300" />
-                      <span>Ver Más Detalles</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-sky-200" />
-                    </button>
-
-                    <button
-                      onClick={handleActionClick}
-                      className="px-4 py-2.5 rounded-full font-bold text-xs bg-amber-400 hover:bg-amber-300 text-slate-950 flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
-                    >
-                      <Gift className="w-3.5 h-3.5" />
-                      <span>Ir al Catálogo</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Right Side: Visual Shield & Security Highlights */}
-                <div className="relative z-10 w-full md:w-2/5 mt-6 md:mt-0 flex flex-col items-center justify-center">
-                  <div className="relative p-6 rounded-3xl bg-slate-900/60 border border-sky-400/30 backdrop-blur-md shadow-2xl text-center max-w-xs w-full space-y-4">
-                    <div className="w-16 h-16 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center mx-auto text-sky-300 shadow-inner">
-                      <ShieldCheck className="w-9 h-9 stroke-[1.8]" />
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="text-xs font-black uppercase tracking-wider text-sky-300">
-                        Cobertura Certificada
-                      </div>
-                      <h4 className="text-sm font-extrabold text-white">
-                        SOAT + Póliza Todo Riesgo
-                      </h4>
-                      <p className="text-[11px] text-slate-300 leading-relaxed">
-                        Emisión digital inmediata en puntos autorizados SuperGIROS a nivel nacional.
-                      </p>
-                    </div>
-
-                    <div className="pt-2 border-t border-white/10 flex items-center justify-center gap-3 text-[11px] text-amber-300 font-bold">
-                      <Coins className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Acumula Puntos Dobles</span>
                     </div>
                   </div>
                 </div>

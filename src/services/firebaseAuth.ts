@@ -10,7 +10,10 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
-  updateProfile
+  updateProfile,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  ConfirmationResult
 } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
@@ -22,13 +25,21 @@ try {
   config = {};
 }
 
+const getEnv = (key: string): string | undefined => {
+  try {
+    return typeof import.meta !== 'undefined' && import.meta.env ? (import.meta.env as any)[key] : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 const activeFirebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || config.apiKey,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || config.authDomain,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || config.projectId,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || config.storageBucket,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || config.messagingSenderId,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || config.appId,
+  apiKey: getEnv('VITE_FIREBASE_API_KEY') || config.apiKey,
+  authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN') || config.authDomain,
+  projectId: getEnv('VITE_FIREBASE_PROJECT_ID') || config.projectId,
+  storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET') || config.storageBucket,
+  messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID') || config.messagingSenderId,
+  appId: getEnv('VITE_FIREBASE_APP_ID') || config.appId,
   measurementId: config.measurementId
 };
 
@@ -196,4 +207,125 @@ export const googleSignOut = async () => {
   await signOut(auth);
   cachedAccessToken = null;
 };
+
+// ==========================================
+// FIREBASE PHONE AUTHENTICATION (SMS)
+// ==========================================
+
+export type { ConfirmationResult };
+
+/**
+ * Normaliza un número telefónico a formato internacional E.164.
+ * Para Colombia (+57), si ingresa 10 dígitos (ej. 3001234567) antepone +57.
+ */
+export const normalizePhoneNumber = (rawPhone: string): string => {
+  const trimmed = (rawPhone || '').trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('+')) {
+    return '+' + trimmed.replace(/\D/g, '');
+  }
+  const digitsOnly = trimmed.replace(/\D/g, '');
+  if (digitsOnly.length === 10) {
+    return `+57${digitsOnly}`;
+  }
+  if (digitsOnly.length === 12 && digitsOnly.startsWith('57')) {
+    return `+${digitsOnly}`;
+  }
+  return `+57${digitsOnly}`;
+};
+
+let recaptchaVerifierInstance: RecaptchaVerifier | null = null;
+
+export const clearRecaptchaVerifier = () => {
+  if (recaptchaVerifierInstance) {
+    try {
+      recaptchaVerifierInstance.clear();
+    } catch {}
+    recaptchaVerifierInstance = null;
+  }
+};
+
+/**
+ * Inicializa o reutiliza el RecaptchaVerifier de Firebase Auth.
+ */
+export const setupRecaptchaVerifier = (
+  containerId: string = 'recaptcha-container',
+  invisible: boolean = true
+): RecaptchaVerifier => {
+  if (typeof window === 'undefined') {
+    throw new Error('Entorno de ventana no disponible');
+  }
+
+  // Asegurar que el elemento exista en el DOM
+  let container = document.getElementById(containerId);
+  if (!container) {
+    container = document.createElement('div');
+    container.id = containerId;
+    document.body.appendChild(container);
+  }
+
+  if (recaptchaVerifierInstance) {
+    try {
+      recaptchaVerifierInstance.clear();
+    } catch {}
+    recaptchaVerifierInstance = null;
+  }
+
+  recaptchaVerifierInstance = new RecaptchaVerifier(auth, containerId, {
+    size: invisible ? 'invisible' : 'normal',
+    callback: () => {
+      // reCAPTCHA resuelto automáticamente
+    },
+    'expired-callback': () => {
+      console.warn('[Firebase Phone Auth] reCAPTCHA expirado, requiere reintento');
+    }
+  });
+
+  return recaptchaVerifierInstance;
+};
+
+/**
+ * Envía un código SMS de 6 dígitos al número de teléfono mediante Firebase Auth
+ */
+export const firebaseSendPhoneCode = async (
+  rawPhoneNumber: string,
+  containerId: string = 'recaptcha-container'
+): Promise<ConfirmationResult> => {
+  const formattedPhone = normalizePhoneNumber(rawPhoneNumber);
+  if (!formattedPhone || formattedPhone.length < 10) {
+    throw new Error('Por favor ingresa un número de teléfono celular válido (Ejemplo: 300 123 4567).');
+  }
+
+  const verifier = setupRecaptchaVerifier(containerId, true);
+  try {
+    const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, verifier);
+    return confirmationResult;
+  } catch (error: any) {
+    clearRecaptchaVerifier();
+    console.error('Error in firebaseSendPhoneCode:', error);
+    throw error;
+  }
+};
+
+/**
+ * Confirma el código SMS de 6 dígitos ingresado por el usuario
+ */
+export const firebaseVerifyPhoneCode = async (
+  confirmationResult: ConfirmationResult,
+  code: string
+): Promise<FirebaseUser> => {
+  const cleanCode = code.trim().replace(/\D/g, '');
+  if (!cleanCode || cleanCode.length !== 6) {
+    throw new Error('El código de verificación SMS debe contener exactamente 6 dígitos.');
+  }
+
+  try {
+    const userCredential = await confirmationResult.confirm(cleanCode);
+    return userCredential.user;
+  } catch (error: any) {
+    console.error('Error in firebaseVerifyPhoneCode:', error);
+    throw error;
+  }
+};
+
 

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   Package, 
-  Coins, 
   Truck, 
   CheckCircle2, 
   Clock, 
@@ -13,6 +12,7 @@ import {
   ArrowRight,
   ShieldCheck
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 import { RedemptionOrder } from '../../types';
 import { formatPoints, formatDate } from '../../utils/helpers';
@@ -228,7 +228,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ onGoToCatalog }) => {
                   {/* Total Points */}
                   <div className="font-bold text-slate-900 flex items-center gap-1.5 sm:ml-auto">
                     <span className="text-slate-500 font-normal">Puntos redimidos:</span>
-                    <Coins className="w-4 h-4 text-blue-800" />
+                    <CoinIcon className="w-4 h-4" />
                     <span className="text-blue-900 font-black text-sm">{formatPoints(order.totalPoints)} pts</span>
                   </div>
                 </div>

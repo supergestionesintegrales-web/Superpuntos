@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { 
   Sparkles, 
   Plus, 
-  Coins, 
   CheckCircle2, 
   XCircle, 
   Edit, 
@@ -17,6 +16,7 @@ import {
   Smartphone,
   X
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 import { Campaign } from '../../types';
 import { formatPoints, formatCurrency, formatDate } from '../../utils/helpers';
@@ -197,8 +197,8 @@ export const CampaignsManager: React.FC<CampaignsManagerProps> = ({
                   <h3 className="font-heading font-extrabold text-base text-slate-900">
                     {camp.serviceType}
                   </h3>
-                  <div className="flex items-baseline gap-1 mt-1 font-black text-xl text-blue-900">
-                    <Coins className="w-4 h-4 text-blue-900 self-center" />
+                  <div className="flex items-center gap-1.5 mt-1 font-black text-xl text-blue-900">
+                    <CoinIcon className="w-5 h-5 self-center" />
                     <span>+{formatPoints(camp.pointsAwarded)}</span>
                     <span className="text-xs font-bold text-slate-500">
                       {camp.calculationType === 'per_unit' && camp.minAmount

@@ -5,7 +5,6 @@ import {
   Trash2, 
   Plus, 
   Minus, 
-  Coins, 
   ArrowRight, 
   Sparkles, 
   AlertCircle, 
@@ -15,6 +14,7 @@ import {
   ShieldCheck, 
   Gift 
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 import { formatPoints } from '../../utils/helpers';
 
@@ -122,7 +122,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onProce
 
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center gap-1 font-bold text-blue-900 text-xs">
-                        <Coins className="w-3.5 h-3.5 text-blue-800" />
+                        <CoinIcon className="w-3.5 h-3.5" />
                         <span>{formatPoints(itemTotal)} pts</span>
                       </div>
 
@@ -176,7 +176,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onProce
               <div className="flex justify-between text-slate-600">
                 <span>Total costo canje:</span>
                 <span className="font-bold text-blue-900 flex items-center gap-1">
-                  <Coins className="w-3.5 h-3.5 text-blue-800" />
+                  <CoinIcon className="w-3.5 h-3.5" />
                   {formatPoints(cartPointsTotal)} pts
                 </span>
               </div>

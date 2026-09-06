@@ -10,9 +10,9 @@ import {
   SendHorizontal,
   FileCheck,
   Plus,
-  Trash2,
-  Coins
+  Trash2
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 
 interface ReportGestionModalProps {
@@ -430,7 +430,7 @@ export const ReportGestionModal: React.FC<ReportGestionModalProps> = ({ isOpen, 
             <div className="p-3.5 bg-slate-900 text-white rounded-2xl flex items-center justify-between shadow-sm">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-blue-700 text-white flex items-center justify-center font-bold">
-                  <Coins className="w-4 h-4 text-blue-200" />
+                  <CoinIcon className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-xs text-slate-300 block">Total a Comprobar:</span>

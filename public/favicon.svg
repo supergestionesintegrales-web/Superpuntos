@@ -1,64 +1,97 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
-    <!-- Background Gradient: Deep Royal SuperGIROS Blue -->
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1d4ed8" />
-      <stop offset="60%" stop-color="#1e3a8a" />
-      <stop offset="100%" stop-color="#09122c" />
-    </linearGradient>
-
-    <!-- Gold Coin Gradient -->
-    <linearGradient id="goldGrad" x1="15%" y1="10%" x2="85%" y2="90%">
-      <stop offset="0%" stop-color="#fef08a" />
-      <stop offset="35%" stop-color="#f59e0b" />
-      <stop offset="80%" stop-color="#d97706" />
-      <stop offset="100%" stop-color="#b45309" />
-    </linearGradient>
-
-    <!-- Inner Coin Rim Gradient -->
-    <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fef9c3" />
-      <stop offset="100%" stop-color="#78350f" />
-    </linearGradient>
-
-    <!-- Sparkle Glow -->
-    <linearGradient id="sparkleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" />
-      <stop offset="100%" stop-color="#93c5fd" />
-    </linearGradient>
-
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.35" />
+    <!-- Soft realistic cast shadow beneath the physical coin disc -->
+    <filter id="fav-shadow" x="-20%" y="-15%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#020617" flood-opacity="0.4" />
     </filter>
+
+    <!-- Outer Minted Bullion Rim Gradient (24k Gold) -->
+    <linearGradient id="fav-rim-grad" x1="4" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFF2B2" />
+      <stop offset="22%" stop-color="#E5A823" />
+      <stop offset="46%" stop-color="#965604" />
+      <stop offset="68%" stop-color="#F9D468" />
+      <stop offset="86%" stop-color="#B27008" />
+      <stop offset="100%" stop-color="#5E3502" />
+    </linearGradient>
+
+    <!-- Outer Reed Milled Teeth Sheen -->
+    <radialGradient id="fav-reed-sheen" cx="32" cy="32" r="30" gradientUnits="userSpaceOnUse">
+      <stop offset="80%" stop-color="#E5A823" />
+      <stop offset="92%" stop-color="#FFF0B0" />
+      <stop offset="100%" stop-color="#7A4502" />
+    </radialGradient>
+
+    <!-- Realistic Concave Minted Field Gradient -->
+    <radialGradient id="fav-field-disc" cx="22" cy="20" r="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFE885" />
+      <stop offset="30%" stop-color="#F5B82A" />
+      <stop offset="68%" stop-color="#C97F0C" />
+      <stop offset="88%" stop-color="#965604" />
+      <stop offset="100%" stop-color="#663602" />
+    </radialGradient>
+
+    <!-- Raised Inner Rim Bevel -->
+    <linearGradient id="fav-bevel-ring" x1="14" y1="12" x2="50" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85" />
+      <stop offset="35%" stop-color="#F9D468" />
+      <stop offset="70%" stop-color="#7A4502" />
+      <stop offset="100%" stop-color="#2E1700" />
+    </linearGradient>
+
+    <!-- 3D Struck Relief S Emblem Bevel -->
+    <linearGradient id="fav-struck-relief" x1="22" y1="16" x2="42" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="20%" stop-color="#FFF2A1" />
+      <stop offset="60%" stop-color="#E5A31E" />
+      <stop offset="100%" stop-color="#874D02" />
+    </linearGradient>
+
+    <!-- Metallic Surface Specular Light Arc -->
+    <linearGradient id="fav-specular-arc" x1="16" y1="14" x2="40" y2="38" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.45" />
+      <stop offset="50%" stop-color="#FFEBAA" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </linearGradient>
   </defs>
 
-  <!-- Base Badge / Container -->
-  <rect width="64" height="64" rx="15" fill="url(#bgGrad)" />
-  <rect width="62" height="62" x="1" y="1" rx="14" fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-opacity="0.4" />
+  <!-- Main Coin Physical Disc with Depth Shadow -->
+  <circle cx="32" cy="32" r="29" fill="url(#fav-rim-grad)" filter="url(#fav-shadow)" />
 
-  <!-- Outer Glow Ring -->
-  <circle cx="32" cy="32" r="23" fill="none" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.25" />
+  <!-- Milled Reeded Teeth (Realistic Minting Perimeter) -->
+  <circle cx="32" cy="32" r="28" stroke="url(#fav-reed-sheen)" stroke-width="2" stroke-dasharray="1.6 1.6" opacity="0.85" />
 
-  <!-- Golden Coin Body with Shadow -->
-  <circle cx="32" cy="32" r="20" fill="url(#goldGrad)" filter="url(#shadow)" />
+  <!-- Raised Outer Bevel Ring -->
+  <circle cx="32" cy="32" r="26.2" stroke="url(#fav-bevel-ring)" stroke-width="1.6" fill="none" />
 
-  <!-- Coin Inner Border Rim -->
-  <circle cx="32" cy="32" r="17" fill="none" stroke="url(#rimGrad)" stroke-width="1.5" stroke-dasharray="3 1.5" />
+  <!-- Recessed Coin Field (Center Disc) -->
+  <circle cx="32" cy="32" r="24.5" fill="url(#fav-field-disc)" />
 
-  <!-- Coin Core -->
-  <circle cx="32" cy="32" r="14.5" fill="#f59e0b" fill-opacity="0.25" />
+  <!-- Minted Beaded Pearl Ring -->
+  <circle cx="32" cy="32" r="22" stroke="#FFEBAA" stroke-width="1" stroke-dasharray="1.2 2" stroke-linecap="round" opacity="0.75" />
 
-  <!-- Bold Embossed "S" (Superpuntos) -->
-  <path d="M36 22.5 C36 21 34.5 20 32 20 C29 20 27.2 21.2 27 23.2 C26.8 25.2 28.2 26.5 31 27.3 L33 27.9 C36.2 28.9 38 30.7 37.8 33.8 C37.5 37.2 34.6 39 31.5 39 C27.8 39 25.5 37.2 25.2 34.5 L28.2 34.1 C28.4 35.6 29.8 36.6 31.5 36.6 C33.4 36.6 34.8 35.6 35 34 C35.2 32.5 34.2 31.5 31.8 30.8 L29.8 30.2 C26.2 29.1 24.2 27.2 24.5 23.8 C24.8 20.4 27.8 17.6 32 17.6 C36.2 17.6 38.6 19.8 38.8 22.8 Z" 
-        fill="#ffffff" 
-        filter="url(#shadow)" />
+  <!-- Concentric Micro-Engraved Groove -->
+  <circle cx="32" cy="32" r="19.6" stroke="#7A4502" stroke-width="0.6" fill="none" opacity="0.4" />
 
-  <!-- Star Sparkle 1 (Top Right) -->
-  <path d="M49 13 Q49 17 53 17 Q49 17 49 21 Q49 17 45 17 Q49 17 49 13 Z" fill="url(#sparkleGrad)" />
+  <!-- Embossed Struck 3D Relief Emblem ("S" of Superpuntos) -->
+  <!-- 1. Recessed Shadow of Struck Relief -->
+  <path 
+    d="M37 22 C37 20.2 35.3 19 32.2 19 C28.8 19 26.4 20.4 26.1 22.8 C25.8 25.1 27.7 26.5 30.9 27.5 L33 28.1 C36.6 29.2 38.9 31.2 38.6 34.9 C38.2 38.9 34.9 41 31.2 41 C26.8 41 24.3 38.9 23.9 35.7 L27.6 35.2 C27.9 37.1 29.5 38.1 31.5 38.1 C33.6 38.1 35.1 37.1 35.3 35.2 C35.6 33.5 34.4 32.3 31.6 31.5 L29.3 30.8 C25 29.6 22.8 27.3 23.2 23.5 C23.6 19.5 27.2 16.3 32.2 16.3 C37.3 16.3 40.1 18.8 40.4 22.4 Z" 
+    fill="#4A2600"
+    transform="translate(0.8, 1.2)"
+    opacity="0.6"
+  />
+  <!-- 2. Primary 3D Embossed Relief -->
+  <path 
+    d="M37 22 C37 20.2 35.3 19 32.2 19 C28.8 19 26.4 20.4 26.1 22.8 C25.8 25.1 27.7 26.5 30.9 27.5 L33 28.1 C36.6 29.2 38.9 31.2 38.6 34.9 C38.2 38.9 34.9 41 31.2 41 C26.8 41 24.3 38.9 23.9 35.7 L27.6 35.2 C27.9 37.1 29.5 38.1 31.5 38.1 C33.6 38.1 35.1 37.1 35.3 35.2 C35.6 33.5 34.4 32.3 31.6 31.5 L29.3 30.8 C25 29.6 22.8 27.3 23.2 23.5 C23.6 19.5 27.2 16.3 32.2 16.3 C37.3 16.3 40.1 18.8 40.4 22.4 Z" 
+    fill="url(#fav-struck-relief)" 
+    stroke="#FFF8C4"
+    stroke-width="0.5"
+  />
 
-  <!-- Star Sparkle 2 (Bottom Left) -->
-  <path d="M14 46 Q14 49 17 49 Q14 49 14 52 Q14 49 11 49 Q14 49 14 46 Z" fill="url(#sparkleGrad)" opacity="0.9" />
-
-  <!-- Tiny Highlight Dot -->
-  <circle cx="47" cy="27" r="1.2" fill="#ffffff" opacity="0.8" />
+  <!-- Curved Specular Reflection (Physical Metal Light Sheen) -->
+  <path 
+    d="M11 27 C13 17 21 11 32 11 C40 11 47 15 51 20 C43 16 32 17 23 24 C18 28 14 33 11 27 Z" 
+    fill="url(#fav-specular-arc)" 
+  />
 </svg>

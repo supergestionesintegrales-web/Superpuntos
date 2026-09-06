@@ -3,7 +3,6 @@ import {
   X, 
   Printer, 
   Download, 
-  Coins, 
   CheckCircle2, 
   Sparkles, 
   QrCode, 
@@ -13,6 +12,7 @@ import {
   ShieldCheck,
   Gift
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { RedemptionOrder } from '../../types';
 import { formatPoints, formatDate } from '../../utils/helpers';
 
@@ -67,7 +67,7 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
           {/* Brand Header */}
           <div className="text-center pb-4 border-b border-slate-200 space-y-1">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-900 to-indigo-900 text-white shadow-md mb-1">
-              <Coins className="w-7 h-7" />
+              <CoinIcon className="w-8 h-8" />
             </div>
             <h1 className="font-heading font-black text-2xl tracking-tight text-slate-900">
               SUPER<span className="text-blue-900">PUNTOS</span>
@@ -236,8 +236,8 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
           {/* Points Total Summary */}
           <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
             <span className="font-bold text-sm text-slate-800">Total Puntos Deducidos:</span>
-            <div className="flex items-center gap-1.5 font-black text-xl text-blue-900">
-              <Coins className="w-5 h-5 text-blue-800" />
+            <div className="flex items-center gap-2 font-black text-xl text-blue-900">
+              <CoinIcon className="w-5 h-5" />
               <span>{formatPoints(order.totalPoints)}</span>
               <span className="text-xs font-bold text-slate-700">pts</span>
             </div>

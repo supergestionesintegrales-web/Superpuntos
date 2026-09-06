@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   X, 
-  Coins, 
   Truck, 
   Banknote, 
   MapPin, 
@@ -16,6 +15,7 @@ import {
   Smartphone,
   Info
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 import { DeliveryType, RedemptionOrder } from '../../types';
 import { formatPoints } from '../../utils/helpers';
@@ -184,8 +184,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-blue-900/80 border border-blue-700/50 flex items-center justify-center text-blue-300 shadow-inner">
-              <Coins className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl bg-blue-900/80 border border-blue-700/50 flex items-center justify-center shadow-inner">
+              <CoinIcon className="w-8 h-8" />
             </div>
             <div>
               <span className="text-[10px] font-bold tracking-wider uppercase bg-blue-800/50 text-blue-200 border border-blue-700/50 px-2 py-0.5 rounded-full">
@@ -611,8 +611,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                 Saldo actual: {formatPoints(currentUser.pointsBalance)} pts → Nuevo saldo: {formatPoints(currentUser.pointsBalance - cartPointsTotal)} pts
               </span>
             </div>
-            <div className="text-right font-black text-2xl text-blue-900 flex items-center gap-1.5">
-              <Coins className="w-6 h-6 text-blue-800" />
+            <div className="text-right font-black text-2xl text-blue-900 flex items-center gap-2">
+              <CoinIcon className="w-6 h-6" />
               <span>{formatPoints(cartPointsTotal)}</span>
               <span className="text-xs font-bold text-slate-700">pts</span>
             </div>

@@ -35,7 +35,12 @@ import {
   firebaseSignInWithEmail,
   firebaseSignUpWithEmail,
   subscribeToFirebaseUser,
-  getCurrentFirebaseUser
+  getCurrentFirebaseUser,
+  firebaseSendPhoneCode,
+  firebaseVerifyPhoneCode,
+  normalizePhoneNumber,
+  clearRecaptchaVerifier,
+  ConfirmationResult
 } from '../services/firebaseAuth';
 import type { User as FirebaseUser } from 'firebase/auth';
 import {
@@ -67,12 +72,14 @@ import {
   getUser as getFirestoreUser,
   getUserByEmail as getFirestoreUserByEmail,
   getUserByDocument as getFirestoreUserByDocument,
+  getUserByPhone as getFirestoreUserByPhone,
   getAllUsers as getAllFirestoreUsers,
   getAllProducts as getAllFirestoreProducts,
   getAllCampaigns as getAllFirestoreCampaigns,
   getAllGestiones as getAllFirestoreGestiones,
   getAllOrders as getAllFirestoreOrders,
-  purgeAllTestDataFromFirestore
+  purgeAllTestDataFromFirestore,
+  testConnection
 } from '../services/firestore';
 import { 
   DEFAULT_SPREADSHEET_ID, 
@@ -100,6 +107,17 @@ interface AppContextType {
   loginWithGoogle: (fallbackEmail?: string, fallbackName?: string, preferredRole?: 'admin' | 'ally') => Promise<{ success: boolean; message: string; user?: User; code?: string; domain?: string }>;
   loginWithEmailPassword: (emailOrDoc: string, password: string) => Promise<{ success: boolean; message: string; user?: User }>;
   registerWithEmailPassword: (data: Omit<User, 'id' | 'role' | 'pointsBalance' | 'totalPointsEarned' | 'totalPointsRedeemed' | 'status' | 'createdAt'>) => Promise<{ success: boolean; message: string; user?: User }>;
+  sendPhoneCode: (rawPhoneNumber: string, containerId?: string) => Promise<{ success: boolean; message: string; confirmationResult?: ConfirmationResult }>;
+  verifyPhoneAndLogin: (rawPhoneNumber: string, code: string, confirmationResult: ConfirmationResult) => Promise<{ success: boolean; message: string; isNewUser?: boolean; user?: User }>;
+  registerWithPhone: (data: {
+    name: string;
+    documentId: string;
+    businessName: string;
+    phone: string;
+    email?: string;
+    confirmationResult: ConfirmationResult;
+    code: string;
+  }) => Promise<{ success: boolean; message: string; user?: User }>;
   syncWithFirestore: () => Promise<{ success: boolean; message: string }>;
   isFirebaseConnected: boolean;
   firestoreStatus: 'connected' | 'connecting' | 'error';
@@ -429,6 +447,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let unsubNotifications: (() => void) | undefined;
     let unsubAccessLogs: (() => void) | undefined;
 
+    // Initial connection test
+    testConnection().then((connected) => {
+      setIsFirebaseConnected(connected);
+      setFirestoreStatus(connected ? 'connected' : 'error');
+    }).catch(() => {
+      setIsFirebaseConnected(false);
+      setFirestoreStatus('error');
+    });
+
+    const handleSubError = (_err: any) => {
+      setIsFirebaseConnected(false);
+      setFirestoreStatus('error');
+    };
+
     try {
       unsubUsers = subscribeToUsers((firestoreUsers) => {
         let deletedSet = new Set<string>();
@@ -480,7 +512,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setIsFirebaseConnected(true);
           setFirestoreStatus('connected');
         }
-      });
+      }, handleSubError);
 
       unsubProducts = subscribeToProducts((firestoreProducts) => {
         if (firestoreProducts && firestoreProducts.length > 0) {
@@ -497,7 +529,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } else {
           INITIAL_PRODUCTS.forEach(p => saveFirestoreProduct(p).catch(() => {}));
         }
-      });
+      }, handleSubError);
 
       unsubCampaigns = subscribeToCampaigns((firestoreCampaigns) => {
         if (firestoreCampaigns && firestoreCampaigns.length > 0) {
@@ -505,25 +537,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } else {
           INITIAL_CAMPAIGNS.forEach(c => saveFirestoreCampaign(c).catch(() => {}));
         }
-      });
+      }, handleSubError);
 
       unsubGestiones = subscribeToGestiones((firestoreGestiones) => {
         if (firestoreGestiones && firestoreGestiones.length > 0) {
           setGestiones(firestoreGestiones);
         }
-      });
+      }, handleSubError);
 
       unsubOrders = subscribeToOrders((firestoreOrders) => {
         if (firestoreOrders && firestoreOrders.length > 0) {
           setOrders(firestoreOrders);
         }
-      });
+      }, handleSubError);
 
       unsubNotifications = subscribeToNotifications((firestoreNotifs) => {
         if (firestoreNotifs) {
           setNotifications(firestoreNotifs);
         }
-      });
+      }, handleSubError);
 
       unsubAccessLogs = subscribeToAccessLogs((firestoreLogs) => {
         if (firestoreLogs && firestoreLogs.length > 0) {
@@ -534,7 +566,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             return Array.from(map.values()).sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
           });
         }
-      });
+      }, handleSubError);
 
       // Synchronize both authorized admin users to Firebase Firestore immediately
       INITIAL_USERS.forEach(u => saveFirestoreUser(u).catch(() => {}));
@@ -966,19 +998,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     // 1. Check in local state
+    const cleanDigits = cleanDoc.replace(/\D/g, '');
     let found = users.find(u => 
       u.role === 'ally' && (
         u.documentId.toLowerCase() === cleanDoc || 
         u.id.toLowerCase() === cleanDoc ||
         u.email.toLowerCase() === cleanDoc ||
-        u.name.toLowerCase() === cleanDoc
+        u.name.toLowerCase() === cleanDoc ||
+        (cleanDigits.length >= 7 && (u.phone || '').replace(/\D/g, '').endsWith(cleanDigits.slice(-10)))
       )
     );
 
     // 2. If not found locally, query Firestore
     if (!found) {
       try {
-        const fromFirestore = (await getFirestoreUserByDocument(cleanDoc)) || (await getFirestoreUserByEmail(cleanDoc));
+        const fromFirestore = (await getFirestoreUserByDocument(cleanDoc)) || 
+                             (await getFirestoreUserByEmail(cleanDoc)) ||
+                             (cleanDigits.length >= 7 ? await getFirestoreUserByPhone(cleanDoc) : null);
         if (fromFirestore && fromFirestore.role === 'ally') {
           found = fromFirestore;
           setUsers(prev => [fromFirestore, ...prev.filter(u => u.id !== fromFirestore.id)]);
@@ -1435,6 +1471,126 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: true, message: '¡Registro de Aliado completado exitosamente!', user };
     } catch (err: any) {
       return { success: false, message: err.message || 'Error al registrar aliado' };
+    }
+  };
+
+  const sendPhoneCode = async (
+    rawPhoneNumber: string,
+    containerId: string = 'recaptcha-container'
+  ): Promise<{ success: boolean; message: string; confirmationResult?: ConfirmationResult }> => {
+    try {
+      const formatted = normalizePhoneNumber(rawPhoneNumber);
+      const confirmationResult = await firebaseSendPhoneCode(formatted, containerId);
+      return {
+        success: true,
+        message: `Código de verificación SMS enviado exitosamente al número ${formatted}`,
+        confirmationResult
+      };
+    } catch (error: any) {
+      let msg = error?.message || 'Error al enviar código SMS de verificación';
+      if (error?.code === 'auth/invalid-phone-number') {
+        msg = 'El número de celular ingresado no tiene un formato válido. Debe ser de 10 dígitos (Ej: 300 123 4567).';
+      } else if (error?.code === 'auth/too-many-requests') {
+        msg = 'Has solicitado demasiados códigos SMS recientemente. Por favor espera unos minutos antes de reintentar.';
+      } else if (error?.code === 'auth/quota-exceeded') {
+        msg = 'Cuota de SMS temporalmente alcanzada en el servidor de Firebase. Intenta más tarde.';
+      } else if (error?.code === 'auth/captcha-check-failed') {
+        msg = 'La verificación de seguridad reCAPTCHA no se pudo completar. Intenta nuevamente.';
+      }
+      return { success: false, message: msg };
+    }
+  };
+
+  const verifyPhoneAndLogin = async (
+    rawPhoneNumber: string,
+    code: string,
+    confirmationResult: ConfirmationResult
+  ): Promise<{ success: boolean; message: string; isNewUser?: boolean; user?: User }> => {
+    try {
+      const firebaseUser = await firebaseVerifyPhoneCode(confirmationResult, code);
+      const cleanDigits = (rawPhoneNumber || firebaseUser.phoneNumber || '').replace(/\D/g, '');
+      
+      // Look for existing user in memory
+      let matched = users.find(u => {
+        const uDigits = (u.phone || '').replace(/\D/g, '');
+        return (cleanDigits.length >= 10 && uDigits.endsWith(cleanDigits.slice(-10))) ||
+               (firebaseUser.phoneNumber && u.phone === firebaseUser.phoneNumber);
+      });
+
+      // Search Firestore
+      if (!matched && firebaseUser.phoneNumber) {
+        try {
+          const fromFirestore = await getFirestoreUserByPhone(firebaseUser.phoneNumber);
+          if (fromFirestore) {
+            matched = fromFirestore;
+            setUsers(prev => [fromFirestore, ...prev.filter(u => u.id !== fromFirestore.id)]);
+          }
+        } catch {}
+      }
+
+      if (matched) {
+        setCurrentUserId(matched.id);
+        setIsAuthenticated(true);
+        triggerConfetti();
+        logAccessEvent('login', `Inicio de sesión con número celular SMS: ${matched.name} (${matched.phone})`, matched);
+        return {
+          success: true,
+          message: `¡Bienvenido de nuevo, ${matched.name}!`,
+          user: matched
+        };
+      }
+
+      // User phone verified but not yet registered with name/document/business
+      return {
+        success: true,
+        isNewUser: true,
+        message: 'Número de teléfono verificado con éxito. Por favor completa los datos de tu comercio aliado.'
+      };
+    } catch (error: any) {
+      let msg = error?.message || 'Error al validar el código de verificación';
+      if (error?.code === 'auth/invalid-verification-code') {
+        msg = 'El código SMS ingresado es incorrecto. Por favor verifícalo e intenta nuevamente.';
+      } else if (error?.code === 'auth/code-expired') {
+        msg = 'El código SMS ha expirado. Por favor solicita un nuevo código.';
+      }
+      return { success: false, message: msg };
+    }
+  };
+
+  const registerWithPhone = async (data: {
+    name: string;
+    documentId: string;
+    businessName: string;
+    phone: string;
+    email?: string;
+    confirmationResult: ConfirmationResult;
+    code: string;
+  }): Promise<{ success: boolean; message: string; user?: User }> => {
+    try {
+      await firebaseVerifyPhoneCode(data.confirmationResult, data.code);
+      
+      const newUser = registerAlly({
+        name: data.name.trim(),
+        documentId: data.documentId.trim(),
+        businessName: data.businessName.trim(),
+        email: data.email?.trim() || `${data.documentId.trim()}@superpuntos.online`,
+        phone: normalizePhoneNumber(data.phone) || data.phone.trim()
+      });
+
+      triggerConfetti();
+      return {
+        success: true,
+        message: '¡Registro y verificación telefónica completados exitosamente!',
+        user: newUser
+      };
+    } catch (error: any) {
+      let msg = error?.message || 'Error al verificar el código y registrar el usuario';
+      if (error?.code === 'auth/invalid-verification-code') {
+        msg = 'El código SMS ingresado es incorrecto. Por favor revisa el mensaje de texto e inténtalo de nuevo.';
+      } else if (error?.code === 'auth/code-expired') {
+        msg = 'El código SMS ha expirado. Por favor solicita un nuevo código.';
+      }
+      return { success: false, message: msg };
     }
   };
 
@@ -2696,6 +2852,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       loginWithGoogle,
       loginWithEmailPassword,
       registerWithEmailPassword,
+      sendPhoneCode,
+      verifyPhoneAndLogin,
+      registerWithPhone,
       syncWithFirestore,
       isFirebaseConnected,
       firestoreStatus,

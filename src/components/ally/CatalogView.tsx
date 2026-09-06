@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Search, 
-  Coins, 
   Sparkles, 
   CheckCircle2, 
   ShoppingBag, 
@@ -16,6 +15,7 @@ import {
   Truck,
   Wallet
 } from 'lucide-react';
+import { CoinIcon } from '../common/CoinIcon';
 import { useApp } from '../../context/AppContext';
 import { Product } from '../../types';
 import { formatPoints } from '../../utils/helpers';
@@ -112,8 +112,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
       {/* Compact & Minimalist Banner */}
       <div className="rounded-2xl bg-slate-900 text-white p-4 sm:p-5 border border-slate-800 shadow-sm flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
-            <Coins className="w-6 h-6 stroke-[2.5]" />
+          <div className="w-11 h-11 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center shrink-0">
+            <CoinIcon className="w-7 h-7" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -486,8 +486,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                       <span className="text-[11px] font-bold text-blue-900 uppercase tracking-wide block">
                         Costo de Canje
                       </span>
-                      <div className="flex items-center gap-1.5 text-2xl font-black text-blue-900">
-                        <Coins className="w-6 h-6 text-blue-800" />
+                      <div className="flex items-center gap-2 text-2xl font-black text-blue-900">
+                        <CoinIcon className="w-6 h-6" />
                         <span>{formatPoints(selectedProduct.pointsCost)}</span>
                         <span className="text-xs font-bold text-slate-600">pts</span>
                       </div>
@@ -578,8 +578,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
               <p className="text-xs font-bold text-blue-300">
                 {cart.reduce((sum, item) => sum + item.quantity, 0)} {cart.length === 1 ? 'premio' : 'premios'} en carrito
               </p>
-              <div className="text-sm font-black flex items-center gap-1">
-                <Coins className="w-3.5 h-3.5 text-blue-400" />
+              <div className="text-sm font-black flex items-center gap-1.5">
+                <CoinIcon className="w-4 h-4" />
                 <span>{formatPoints(cart.reduce((sum, i) => sum + (i.product.pointsCost * i.quantity), 0))} pts</span>
               </div>
             </div>
