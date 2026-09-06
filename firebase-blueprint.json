@@ -16,6 +16,7 @@
         "pointsBalance": { "type": "number" },
         "totalPointsEarned": { "type": "number" },
         "totalPointsRedeemed": { "type": "number" },
+        "password": { "type": "string" },
         "tempPassword": { "type": "string" },
         "tempPasswordExpiresAt": { "type": "string" },
         "mustResetPassword": { "type": "boolean" },

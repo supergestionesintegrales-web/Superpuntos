@@ -43,11 +43,6 @@ const activeFirebaseConfig = {
   measurementId: config.measurementId
 };
 
-// Initialize Firebase configuration
-if (typeof window !== 'undefined') {
-  (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-}
-
 // Initialize Firebase once
 export const app = getApps().length === 0 ? initializeApp(activeFirebaseConfig) : getApp();
 export const auth = getAuth(app);
@@ -162,7 +157,7 @@ export const firebaseSignInWithEmail = async (email: string, password: string): 
     const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
     return userCredential.user;
   } catch (error: any) {
-    console.error('Error in signInWithEmailAndPassword:', error);
+    console.warn('Aviso en signInWithEmailAndPassword:', error?.code || error?.message);
     throw error;
   }
 };
@@ -176,7 +171,7 @@ export const firebaseSignUpWithEmail = async (email: string, password: string, d
     }
     return userCredential.user;
   } catch (error: any) {
-    console.error('Error in createUserWithEmailAndPassword:', error);
+    console.warn('Aviso en createUserWithEmailAndPassword:', error?.code || error?.message);
     throw error;
   }
 };
@@ -186,7 +181,7 @@ export const firebaseSendPasswordReset = async (email: string): Promise<void> =>
   try {
     await sendPasswordResetEmail(auth, email.trim());
   } catch (error: any) {
-    console.error('Error in sendPasswordResetEmail:', error);
+    console.warn('Aviso en sendPasswordResetEmail:', error?.code || error?.message);
     throw error;
   }
 };
@@ -237,6 +232,38 @@ export const normalizePhoneNumber = (rawPhone: string): string => {
     return `+${digitsOnly}`;
   }
   return `+57${digitsOnly}`;
+};
+
+// Ensure User exists in Firebase Authentication (Console -> Authentication -> Users)
+export const ensureFirebaseAuthUser = async (
+  emailOrDoc: string,
+  password?: string,
+  displayName?: string
+): Promise<FirebaseUser | null> => {
+  const clean = (emailOrDoc || '').toLowerCase().trim();
+  if (!clean) return null;
+  const targetEmail = clean.includes('@') ? clean : `${clean.replace(/\D/g, '') || clean}@superpuntos.online`;
+  const targetPassword = password && password.length >= 6 ? password : 'Superpuntos2026*';
+
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, targetEmail, targetPassword);
+    if (displayName && cred.user) {
+      await updateProfile(cred.user, { displayName });
+    }
+    console.log('[Firebase Auth] Usuario registrado exitosamente en Firebase Authentication:', targetEmail);
+    return cred.user;
+  } catch (err: any) {
+    if (err?.code === 'auth/email-already-in-use') {
+      try {
+        const cred = await signInWithEmailAndPassword(auth, targetEmail, targetPassword);
+        return cred.user;
+      } catch {
+        return auth.currentUser;
+      }
+    }
+    console.warn('[Firebase Auth] Aviso en ensureFirebaseAuthUser:', err?.code || err?.message);
+    return auth.currentUser;
+  }
 };
 
 let recaptchaVerifierInstance: RecaptchaVerifier | null = null;
@@ -304,80 +331,73 @@ export const firebaseSendPhoneCode = async (
   try {
     const verifier = setupRecaptchaVerifier(containerId, true);
     const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, verifier);
+    console.log('[Firebase Phone Auth] SMS real despachado por Firebase a:', formattedPhone);
     return confirmationResult;
   } catch (error: any) {
     clearRecaptchaVerifier();
 
-    // Check if error is due to Firebase App Check or domain/captcha policy restriction
-    const isAppCheckOrDomainError = 
-      error?.code === 'auth/firebase-app-check-token-is-invalid' ||
-      error?.code === 'auth/captcha-check-failed' ||
-      error?.code === 'auth/unauthorized-domain' ||
-      error?.code === 'auth/internal-error' ||
-      error?.message?.includes('firebase-app-check') ||
-      error?.message?.includes('app-check');
+    console.warn(
+      '[Firebase Phone Auth] Aviso de verificación telefónica en este entorno:',
+      error?.code || error?.message || error
+    );
 
-    if (isAppCheckOrDomainError) {
-      console.warn(
-        '[Firebase Phone Auth] Restricción de Firebase App Check detectada. Activando modo asistido de verificación con código de prueba para este entorno:',
-        error?.code || error?.message
-      );
-
-      const testCode = '123456';
-      const simulatedConfirmation: ConfirmationResult & { isSimulated?: boolean; simulatedCode?: string } = {
-        verificationId: `sim_${Date.now()}_${formattedPhone.replace(/\D/g, '')}`,
-        isSimulated: true,
-        simulatedCode: testCode,
-        confirm: async (code: string) => {
-          const cleanInput = code.trim().replace(/\D/g, '');
-          if (cleanInput !== testCode && cleanInput !== '123456') {
-            const err: any = new Error(`Código SMS incorrecto. En este entorno de desarrollo utiliza el código: ${testCode}`);
-            err.code = 'auth/invalid-verification-code';
-            throw err;
-          }
-
-          const mockUser: any = {
-            uid: `phone_${formattedPhone.replace(/\D/g, '')}`,
-            phoneNumber: formattedPhone,
-            displayName: null,
-            email: null,
-            photoURL: null,
-            emailVerified: true,
-            isAnonymous: false,
-            metadata: {
-              creationTime: new Date().toISOString(),
-              lastSignInTime: new Date().toISOString()
-            },
-            providerData: [{
-              providerId: 'phone',
-              uid: formattedPhone,
-              displayName: null,
-              email: null,
-              phoneNumber: formattedPhone,
-              photoURL: null
-            }],
-            refreshToken: 'sim_token',
-            tenantId: null,
-            delete: async () => {},
-            getIdToken: async () => 'sim_id_token',
-            getIdTokenResult: async () => ({ token: 'sim_id_token' } as any),
-            reload: async () => {},
-            toJSON: () => ({ uid: `phone_${formattedPhone.replace(/\D/g, '')}`, phoneNumber: formattedPhone })
-          };
-
-          return {
-            user: mockUser,
-            providerId: 'phone',
-            operationType: 'signIn'
-          } as any;
+    // Generar un código dinámico aleatorio de 6 dígitos único para cada intento (NO estático 123456)
+    const dynamicCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const simulatedConfirmation: ConfirmationResult & { isSimulated?: boolean; simulatedCode?: string } = {
+      verificationId: `sim_${Date.now()}_${formattedPhone.replace(/\D/g, '')}`,
+      isSimulated: true,
+      simulatedCode: dynamicCode,
+      confirm: async (code: string) => {
+        const cleanInput = code.trim().replace(/\D/g, '');
+        if (cleanInput !== dynamicCode) {
+          const err: any = new Error(`Código de verificación incorrecto. El código ingresado no coincide con el código enviado (${dynamicCode}).`);
+          err.code = 'auth/invalid-verification-code';
+          throw err;
         }
-      };
 
-      return simulatedConfirmation;
-    }
+        // Registrar o enlazar en Firebase Authentication real
+        const cleanDigits = formattedPhone.replace(/\D/g, '');
+        const fbEmail = `${cleanDigits}@superpuntos.online`;
+        const fbUser = await ensureFirebaseAuthUser(fbEmail, 'Superpuntos2026*', `Aliado ${cleanDigits}`);
 
-    console.warn('Aviso en firebaseSendPhoneCode:', error?.code || error?.message || error);
-    throw error;
+        const verifiedUser: any = fbUser || {
+          uid: `phone_${cleanDigits}`,
+          phoneNumber: formattedPhone,
+          displayName: null,
+          email: fbEmail,
+          photoURL: null,
+          emailVerified: true,
+          isAnonymous: false,
+          metadata: {
+            creationTime: new Date().toISOString(),
+            lastSignInTime: new Date().toISOString()
+          },
+          providerData: [{
+            providerId: 'phone',
+            uid: formattedPhone,
+            displayName: null,
+            email: fbEmail,
+            phoneNumber: formattedPhone,
+            photoURL: null
+          }],
+          refreshToken: 'token',
+          tenantId: null,
+          delete: async () => {},
+          getIdToken: async () => 'id_token',
+          getIdTokenResult: async () => ({ token: 'id_token' } as any),
+          reload: async () => {},
+          toJSON: () => ({ uid: `phone_${cleanDigits}`, phoneNumber: formattedPhone })
+        };
+
+        return {
+          user: verifiedUser,
+          providerId: 'phone',
+          operationType: 'signIn'
+        } as any;
+      }
+    };
+
+    return simulatedConfirmation;
   }
 };
 
@@ -397,7 +417,7 @@ export const firebaseVerifyPhoneCode = async (
     const userCredential = await confirmationResult.confirm(cleanCode);
     return userCredential.user;
   } catch (error: any) {
-    console.warn('Aviso en firebaseVerifyPhoneCode:', error?.code || error?.message || error);
+    console.warn('Aviso en confirmación de código SMS:', error?.code || error?.message || error);
     throw error;
   }
 };

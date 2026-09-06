@@ -105,6 +105,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
   const [regSmsCode, setRegSmsCode] = useState('');
   const [isRegSendingSms, setIsRegSendingSms] = useState(false);
   const [regSmsSent, setRegSmsSent] = useState(false);
+  const [regSmsNotification, setRegSmsNotification] = useState<string | null>(null);
   const [regConfirmationResult, setRegConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [isRegVerifyingSms, setIsRegVerifyingSms] = useState(false);
 
@@ -114,6 +115,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
   const [loginSmsCode, setLoginSmsCode] = useState('');
   const [isLoginSendingSms, setIsLoginSendingSms] = useState(false);
   const [loginSmsSent, setLoginSmsSent] = useState(false);
+  const [loginSmsNotification, setLoginSmsNotification] = useState<string | null>(null);
   const [loginConfirmationResult, setLoginConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [isLoginVerifyingSms, setIsLoginVerifyingSms] = useState(false);
 
@@ -126,6 +128,18 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
 
   // Sync state
 
+
+  // Helper to format raw Firebase Auth errors into friendly messages
+  const formatAuthError = (msg?: string) => {
+    if (!msg) return 'Ocurrió un error inesperado al procesar la solicitud.';
+    if (msg.includes('internal-error')) {
+      return 'Restricción temporal del servicio de autenticación de Firebase. Puedes ingresar con tu documento y contraseña.';
+    }
+    if (msg.includes('invalid-verification-code')) {
+      return 'Código SMS de verificación incorrecto. Por favor revísalo e intenta de nuevo.';
+    }
+    return msg;
+  };
 
   // Handle Ally Login Submit
   const handleAllySubmit = async (e: React.FormEvent) => {
@@ -319,6 +333,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
   // Handle Phone Registration: Send SMS Code
   const handleRegSendSms = async () => {
     setRegError(null);
+    setRegSmsNotification(null);
     const cleanDigits = regPhoneSms.replace(/\D/g, '');
     if (!cleanDigits || cleanDigits.length < 10) {
       setRegError('Por favor ingresa un número de celular válido de 10 dígitos (Ej: 300 123 4567).');
@@ -331,14 +346,17 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
       if (res.success && res.confirmationResult) {
         setRegConfirmationResult(res.confirmationResult);
         setRegSmsSent(true);
+        setRegSmsCode(''); // Dejar en blanco para que el usuario escriba el código
         if (res.isSimulated && res.simulatedCode) {
-          setRegSmsCode(res.simulatedCode);
+          setRegSmsNotification(`Código de seguridad generado para tu celular: ${res.simulatedCode}. Ingrésalo a continuación para verificar.`);
+        } else {
+          setRegSmsNotification(`Código de 6 dígitos enviado por SMS por Firebase a tu número. Ingrésalo a continuación.`);
         }
       } else {
-        setRegError(res.message || 'Error al enviar código SMS de verificación.');
+        setRegError(formatAuthError(res.message));
       }
     } catch (err: any) {
-      setRegError(err?.message || 'Error al enviar SMS de verificación telefónica.');
+      setRegError(formatAuthError(err?.message));
     } finally {
       setIsRegSendingSms(false);
     }
@@ -375,6 +393,21 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
       return;
     }
 
+    if (!regPassword) {
+      setRegError('Por favor define tu contraseña de acceso para la cuenta.');
+      return;
+    }
+
+    if (regPassword.length < 6) {
+      setRegError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    if (regPassword !== regConfirmPassword) {
+      setRegError('Las contraseñas no coinciden. Por favor verifícalas.');
+      return;
+    }
+
     const existing = users.find(u => u.documentId.trim().toLowerCase() === regDocument.trim().toLowerCase());
     if (existing) {
       setRegError('Ya existe un usuario registrado con este número de documento.');
@@ -389,6 +422,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
         businessName: regBusinessName.trim(),
         phone: regPhoneSms.trim(),
         email: regEmail.trim() || undefined,
+        password: regPassword,
         confirmationResult: regConfirmationResult,
         code: cleanCode
       });
@@ -397,13 +431,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
         triggerConfetti();
         setRegSuccess(true);
         setTimeout(async () => {
-          await loginAsAlly(regDocument.trim());
+          await loginAsAlly(regDocument.trim(), regPassword);
         }, 1200);
       } else {
-        setRegError(res.message);
+        setRegError(formatAuthError(res.message));
       }
     } catch (err: any) {
-      setRegError(err?.message || 'Error al validar el código SMS o crear la cuenta.');
+      setRegError(formatAuthError(err?.message));
     } finally {
       setIsRegVerifyingSms(false);
     }
@@ -412,6 +446,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
   // Handle Phone Login: Send SMS Code
   const handleLoginSendSms = async () => {
     setAllyError(null);
+    setLoginSmsNotification(null);
     const cleanDigits = loginPhoneSms.replace(/\D/g, '');
     if (!cleanDigits || cleanDigits.length < 10) {
       setAllyError({ message: 'Por favor ingresa un número de celular válido de 10 dígitos (Ej: 300 123 4567).' });
@@ -424,14 +459,17 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
       if (res.success && res.confirmationResult) {
         setLoginConfirmationResult(res.confirmationResult);
         setLoginSmsSent(true);
+        setLoginSmsCode(''); // Dejar en blanco para que el usuario escriba el código
         if (res.isSimulated && res.simulatedCode) {
-          setLoginSmsCode(res.simulatedCode);
+          setLoginSmsNotification(`Código de seguridad generado para tu celular: ${res.simulatedCode}. Ingrésalo para iniciar sesión.`);
+        } else {
+          setLoginSmsNotification(`Código de 6 dígitos enviado por SMS por Firebase a tu celular. Ingrésalo para ingresar.`);
         }
       } else {
-        setAllyError({ message: res.message || 'Error al enviar código SMS de verificación.' });
+        setAllyError({ message: formatAuthError(res.message) });
       }
     } catch (err: any) {
-      setAllyError({ message: err?.message || 'Error al enviar SMS de verificación.' });
+      setAllyError({ message: formatAuthError(err?.message) });
     } finally {
       setIsLoginSendingSms(false);
     }
@@ -467,10 +505,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
           triggerConfetti();
         }
       } else {
-        setAllyError({ message: res.message });
+        setAllyError({ message: formatAuthError(res.message) });
       }
     } catch (err: any) {
-      setAllyError({ message: err?.message || 'Error al verificar el código SMS de acceso.' });
+      setAllyError({ message: formatAuthError(err?.message) });
     } finally {
       setIsLoginVerifyingSms(false);
     }
@@ -895,6 +933,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                         </button>
                       </div>
 
+                      {/* Dynamic Login SMS Notification */}
+                      {loginSmsNotification && (
+                        <div className="p-3 bg-blue-900/40 border border-blue-600/50 rounded-xl text-xs text-blue-200 font-medium">
+                          {loginSmsNotification}
+                        </div>
+                      )}
+
                       {/* Code input */}
                       <div>
                         <label className="block text-xs font-semibold text-slate-200 mb-2">
@@ -907,7 +952,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                           autoFocus
                           value={loginSmsCode}
                           onChange={(e) => setLoginSmsCode(e.target.value.replace(/\D/g, ''))}
-                          placeholder="123456"
+                          placeholder="000000"
                           className="w-full px-4 py-3.5 rounded-xl border border-slate-600 bg-slate-950 text-xl text-center tracking-widest font-black text-white font-mono focus:outline-hidden focus:border-blue-500"
                         />
                       </div>
@@ -1267,6 +1312,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                         </button>
                       </div>
 
+                      {/* Dynamic Reg SMS Notification */}
+                      {regSmsNotification && (
+                        <div className="p-3 bg-blue-900/40 border border-blue-600/50 rounded-xl text-xs text-blue-200 font-medium">
+                          {regSmsNotification}
+                        </div>
+                      )}
+
                       {/* SMS Code */}
                       <div>
                         <label className="block text-xs font-semibold text-slate-200 mb-1.5">
@@ -1279,7 +1331,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                           autoFocus
                           value={regSmsCode}
                           onChange={(e) => setRegSmsCode(e.target.value.replace(/\D/g, ''))}
-                          placeholder="123456"
+                          placeholder="000000"
                           className="w-full px-4 py-3 rounded-xl border border-slate-600 bg-slate-950 text-xl text-center tracking-widest font-black text-white font-mono focus:outline-hidden focus:border-blue-500"
                         />
                       </div>
@@ -1349,6 +1401,56 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                           <Mail className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                         </div>
                       </div>
+
+                      {/* Password and Password Confirmation */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                            Contraseña de Acceso <span className="text-blue-400 font-bold">*</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showRegPassword ? 'text' : 'password'}
+                              required
+                              minLength={6}
+                              value={regPassword}
+                              onChange={(e) => setRegPassword(e.target.value)}
+                              placeholder="Mínimo 6 caracteres"
+                              className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowRegPassword(!showRegPassword)}
+                              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 cursor-pointer"
+                            >
+                              {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                            Confirmar Contraseña <span className="text-blue-400 font-bold">*</span>
+                          </label>
+                          <input
+                            type={showRegPassword ? 'text' : 'password'}
+                            required
+                            value={regConfirmPassword}
+                            onChange={(e) => setRegConfirmPassword(e.target.value)}
+                            placeholder="Repite tu contraseña"
+                            className={`w-full px-4 py-3 rounded-xl border bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden transition-all ${
+                              regConfirmPassword && regPassword !== regConfirmPassword
+                                ? 'border-red-500 focus:border-red-400'
+                                : regConfirmPassword && regPassword === regConfirmPassword
+                                ? 'border-emerald-500 focus:border-emerald-400'
+                                : 'border-slate-700 focus:border-blue-500'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-slate-400">
+                        Esta contraseña estará asociada a tu usuario y cédula para tus próximos inicios de sesión.
+                      </p>
 
                       <button
                         type="submit"

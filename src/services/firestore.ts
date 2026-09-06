@@ -116,7 +116,7 @@ export async function testConnection(): Promise<boolean> {
  * Executes a Promise with a timeout limit so hanging Firebase network calls
  * do not freeze the UI or block asynchronous operations.
  */
-export const withTimeout = <T>(promise: Promise<T>, ms: number = 2500, fallbackVal?: T): Promise<T> => {
+export const withTimeout = <T>(promise: Promise<T>, ms: number = 10000, fallbackVal?: T): Promise<T> => {
   return new Promise<T>((resolve, reject) => {
     let settled = false;
     const timer = setTimeout(() => {
@@ -156,11 +156,28 @@ export const withTimeout = <T>(promise: Promise<T>, ms: number = 2500, fallbackV
 
 export const saveUser = async (user: User): Promise<void> => {
   try {
-    const userRef = doc(db, COLLECTIONS.USERS, user.id);
-    await withTimeout(setDoc(userRef, {
+    const payload = {
       ...user,
       updatedAt: new Date().toISOString()
-    }), 2500);
+    };
+
+    // Guardar en la colección principal 'users'
+    const userRef = doc(db, COLLECTIONS.USERS, user.id);
+    await withTimeout(setDoc(userRef, payload, { merge: true }), 12000);
+
+    // Si tiene cédula/documentId distinto al id del documento, guardar también como referencia
+    if (user.documentId && user.documentId !== user.id) {
+      const docRef = doc(db, COLLECTIONS.USERS, user.documentId);
+      await withTimeout(setDoc(docRef, payload, { merge: true }), 12000).catch(() => {});
+    }
+
+    // Si es un aliado comercial, guardar también en 'allies' para máxima compatibilidad en Firestore
+    if (user.role === 'ally') {
+      const allyRef = doc(db, 'allies', user.id);
+      await withTimeout(setDoc(allyRef, payload, { merge: true }), 12000).catch(() => {});
+    }
+
+    console.log('[Firestore] Usuario guardado exitosamente en Firestore:', user.name, user.documentId);
   } catch (error: any) {
     if (error?.code === 'permission-denied') {
       handleFirestoreError(error, OperationType.WRITE, `${COLLECTIONS.USERS}/${user.id}`);
@@ -251,13 +268,13 @@ export const getUserByPhone = async (phone: string): Promise<User | null> => {
 export const getAllUsers = async (): Promise<User[]> => {
   try {
     const usersRef = collection(db, COLLECTIONS.USERS);
-    const querySnapshot = await withTimeout(getDocs(usersRef), 2500, { docs: [] } as any);
+    const querySnapshot = await withTimeout(getDocs(usersRef), 12000, { docs: [] } as any);
     let users = querySnapshot.docs.map(doc => doc.data() as User);
 
     // Also check alternative collections 'allies' and 'aliados' in case they were stored under these names in Firestore
     try {
       const alliesRef = collection(db, 'allies');
-      const alliesSnap = await withTimeout(getDocs(alliesRef), 1500, { empty: true, docs: [] } as any);
+      const alliesSnap = await withTimeout(getDocs(alliesRef), 8000, { empty: true, docs: [] } as any);
       if (!alliesSnap.empty) {
         const extraAllies = alliesSnap.docs.map(doc => {
           const data = doc.data() as any;
@@ -273,7 +290,7 @@ export const getAllUsers = async (): Promise<User[]> => {
 
     try {
       const aliadosRef = collection(db, 'aliados');
-      const aliadosSnap = await withTimeout(getDocs(aliadosRef), 1500, { empty: true, docs: [] } as any);
+      const aliadosSnap = await withTimeout(getDocs(aliadosRef), 8000, { empty: true, docs: [] } as any);
       if (!aliadosSnap.empty) {
         const extraAliados = aliadosSnap.docs.map(doc => {
           const data = doc.data() as any;

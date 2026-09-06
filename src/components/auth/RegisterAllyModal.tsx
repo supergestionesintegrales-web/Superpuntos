@@ -28,6 +28,7 @@ interface RegisterAllyModalProps {
 export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { 
     registerAlly, 
+    registerWithEmailPassword,
     registerWithPhone,
     sendPhoneCode,
     triggerConfetti, 
@@ -48,23 +49,38 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Phone SMS Registration Flow State
   const [phoneForSms, setPhoneForSms] = useState('');
   const [smsCode, setSmsCode] = useState('');
   const [isSendingSms, setIsSendingSms] = useState(false);
   const [smsSent, setSmsSent] = useState(false);
+  const [smsInfoMsg, setSmsInfoMsg] = useState<string | null>(null);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [isVerifyingSms, setIsVerifyingSms] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Helper to format raw Firebase Auth errors into friendly messages
+  const formatAuthError = (msg?: string) => {
+    if (!msg) return 'Ocurrió un error al procesar la solicitud.';
+    if (msg.includes('internal-error')) {
+      return 'Restricción temporal del servidor de autenticación. Puedes completar el registro con tu documento y contraseña.';
+    }
+    if (msg.includes('invalid-verification-code')) {
+      return 'Código de verificación SMS incorrecto. Por favor verifícalo e intenta de nuevo.';
+    }
+    return msg;
+  };
+
   if (!isOpen) return null;
 
   // Handle Send SMS Code for Phone Registration
   const handleSendPhoneSms = async () => {
     setError(null);
+    setSmsInfoMsg(null);
     const cleanDigits = phoneForSms.replace(/\D/g, '');
     if (!cleanDigits || cleanDigits.length < 10) {
       setError('Por favor ingresa un número de celular válido de 10 dígitos (Ej: 315 889 0012).');
@@ -77,14 +93,17 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
       if (res.success && res.confirmationResult) {
         setConfirmationResult(res.confirmationResult);
         setSmsSent(true);
+        setSmsCode(''); // Dejar en blanco para que el usuario ingrese el código que le corresponde
         if (res.isSimulated && res.simulatedCode) {
-          setSmsCode(res.simulatedCode);
+          setSmsInfoMsg(`Código de verificación generado: ${res.simulatedCode}. Ingrésalo a continuación para verificar tu celular.`);
+        } else {
+          setSmsInfoMsg(`Código SMS de 6 dígitos enviado por Firebase a tu celular. Ingrésalo a continuación.`);
         }
       } else {
-        setError(res.message || 'Error al enviar código SMS de verificación.');
+        setError(formatAuthError(res.message));
       }
     } catch (err: any) {
-      setError(err?.message || 'Error al enviar SMS de verificación telefónica.');
+      setError(formatAuthError(err?.message));
     } finally {
       setIsSendingSms(false);
     }
@@ -121,6 +140,21 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
       return;
     }
 
+    if (!password) {
+      setError('Por favor define una contraseña de acceso para tu cuenta.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden. Por favor verifícalas.');
+      return;
+    }
+
     // Check if document already exists
     const existing = users.find(u => u.documentId.trim().toLowerCase() === documentId.trim().toLowerCase());
     if (existing) {
@@ -136,6 +170,7 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
         businessName: businessName.trim(),
         phone: phoneForSms.trim(),
         email: email.trim() || undefined,
+        password: password,
         confirmationResult,
         code: cleanCode
       });
@@ -149,17 +184,17 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
           if (onSuccess) onSuccess();
         }, 1600);
       } else {
-        setError(res.message);
+        setError(formatAuthError(res.message));
       }
     } catch (err: any) {
-      setError(err?.message || 'Error al validar el código SMS o crear la cuenta.');
+      setError(formatAuthError(err?.message));
     } finally {
       setIsVerifyingSms(false);
     }
   };
 
   // Handle Standard Registration Submit
-  const handleStandardSubmit = (e: React.FormEvent) => {
+  const handleStandardSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -195,22 +230,35 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
       return;
     }
 
-    registerAlly({
-      name: name.trim(),
-      documentId: documentId.trim(),
-      businessName: businessName.trim() || undefined,
-      email: email.trim(),
-      phone: phone.trim() || '300 000 0000',
-      password
-    });
+    setIsSubmitting(true);
+    try {
+      const res = await registerWithEmailPassword({
+        name: name.trim(),
+        documentId: documentId.trim(),
+        businessName: businessName.trim() || undefined,
+        email: email.trim(),
+        phone: phone.trim() || '300 000 0000',
+        password
+      });
 
-    triggerConfetti();
-    setIsSuccess(true);
-    setTimeout(() => {
-      setIsSuccess(false);
-      onClose();
-      if (onSuccess) onSuccess();
-    }, 1600);
+      if (!res.success) {
+        setError(res.message);
+        setIsSubmitting(false);
+        return;
+      }
+
+      triggerConfetti();
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsSuccess(false);
+        onClose();
+        if (onSuccess) onSuccess();
+      }, 1600);
+    } catch (err: any) {
+      setError(err?.message || 'Error al guardar el usuario en Firebase.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -377,6 +425,13 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
                   </button>
                 </div>
 
+                {/* Dynamic SMS Notification Banner */}
+                {smsInfoMsg && (
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 font-medium">
+                    {smsInfoMsg}
+                  </div>
+                )}
+
                 {/* Verification Code */}
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-700">
@@ -387,7 +442,7 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
                     required
                     maxLength={6}
                     autoFocus
-                    placeholder="123456"
+                    placeholder="000000"
                     value={smsCode}
                     onChange={(e) => setSmsCode(e.target.value.replace(/\D/g, ''))}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-base font-mono text-center tracking-widest font-black text-slate-800 focus:outline-hidden focus:border-blue-600"
@@ -446,6 +501,60 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
                     />
                   </div>
                 </div>
+
+                {/* Password and Password Confirmation for Phone Registration */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 pt-1">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                      <span>Contraseña de Acceso *</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="text-[10px] text-slate-400 hover:text-slate-600 flex items-center gap-0.5 cursor-pointer"
+                      >
+                        {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                        <span>{showPassword ? 'Ocultar' : 'Ver'}</span>
+                      </button>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        minLength={6}
+                        placeholder="Mínimo 6 caracteres"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-700 pr-8"
+                      />
+                      <Lock className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700">Confirmar Contraseña *</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        minLength={6}
+                        placeholder="Repite tu contraseña"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-hidden pr-8 ${
+                          confirmPassword && password !== confirmPassword 
+                            ? 'border-red-400 focus:border-red-500 bg-red-50/20' 
+                            : confirmPassword && password === confirmPassword
+                            ? 'border-emerald-400 focus:border-emerald-500 bg-emerald-50/20'
+                            : 'border-slate-200 focus:border-blue-700'
+                        }`}
+                      />
+                      <Lock className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-500">
+                  Esta contraseña te permitirá ingresar al sistema con tu número de cédula en cualquier momento.
+                </p>
               </div>
             )}
 

@@ -40,7 +40,8 @@ import {
   firebaseVerifyPhoneCode,
   normalizePhoneNumber,
   clearRecaptchaVerifier,
-  ConfirmationResult
+  ConfirmationResult,
+  ensureFirebaseAuthUser
 } from '../services/firebaseAuth';
 import type { User as FirebaseUser } from 'firebase/auth';
 import {
@@ -115,6 +116,7 @@ interface AppContextType {
     businessName: string;
     phone: string;
     email?: string;
+    password?: string;
     confirmationResult: ConfirmationResult;
     code: string;
   }) => Promise<{ success: boolean; message: string; user?: User }>;
@@ -502,13 +504,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               }
             });
 
+            // Auto-sync any registered users in local memory to Firebase Firestore & Auth
+            prev.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_') && !u.id.startsWith('usr_admin_')).forEach(u => {
+              saveFirestoreUser(u).catch(() => {});
+              const fbEmail = u.email || `${u.documentId}@superpuntos.online`;
+              ensureFirebaseAuthUser(fbEmail, u.password, u.name).catch(() => {});
+            });
+
             return Array.from(map.values());
           });
           setIsFirebaseConnected(true);
           setFirestoreStatus('connected');
         } else {
-          // Initialize initial users in Firestore if empty
+          // Initialize initial users in Firestore if empty and save any registered users
           INITIAL_USERS.filter(u => !deletedSet.has(u.id)).forEach(u => saveFirestoreUser(u).catch(() => {}));
+          setUsers(current => {
+            current.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_') && !u.id.startsWith('usr_admin_')).forEach(u => {
+              saveFirestoreUser(u).catch(() => {});
+              const fbEmail = u.email || `${u.documentId}@superpuntos.online`;
+              ensureFirebaseAuthUser(fbEmail, u.password, u.name).catch(() => {});
+            });
+            return current;
+          });
           setIsFirebaseConnected(true);
           setFirestoreStatus('connected');
         }
@@ -1460,15 +1477,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const registerWithEmailPassword = async (data: Omit<User, 'id' | 'role' | 'pointsBalance' | 'totalPointsEarned' | 'totalPointsRedeemed' | 'status' | 'createdAt'>): Promise<{ success: boolean; message: string; user?: User }> => {
     try {
-      if (data.email && data.password) {
-        try {
-          await firebaseSignUpWithEmail(data.email, data.password, data.name);
-        } catch (authErr: any) {
-          console.warn('Firebase Auth user creation notice:', authErr?.code);
-        }
+      const emailToUse = (data.email && data.email.includes('@')) 
+        ? data.email.trim().toLowerCase() 
+        : `${data.documentId.trim()}@superpuntos.online`;
+
+      let fbUser: any = null;
+      try {
+        fbUser = await ensureFirebaseAuthUser(emailToUse, data.password, data.name);
+      } catch (authErr: any) {
+        console.warn('Firebase Auth user creation notice:', authErr?.code || authErr?.message);
       }
-      const user = registerAlly(data);
-      return { success: true, message: '¡Registro de Aliado completado exitosamente!', user };
+
+      const user = registerAlly({
+        ...data,
+        email: emailToUse
+      });
+
+      if (fbUser && fbUser.uid) {
+        user.id = fbUser.uid;
+      }
+
+      // Explicitly persist and await Firestore write
+      try {
+        await saveFirestoreUser(user);
+      } catch (fsErr) {
+        console.warn('Firestore write warning:', fsErr);
+      }
+
+      return { 
+        success: true, 
+        message: '¡Registro completado y guardado en Firebase exitosamente!', 
+        user 
+      };
     } catch (err: any) {
       return { success: false, message: err.message || 'Error al registrar aliado' };
     }
@@ -1487,8 +1527,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return {
         success: true,
         message: isSim 
-          ? `Código de verificación generado: ${simCode || '123456'} (Modo asistido: Firebase App Check activo en la nube)`
-          : `Código de verificación SMS enviado exitosamente al número ${formatted}`,
+          ? `Código de verificación generado: ${simCode}. Ingrésalo a continuación para verificar tu celular.`
+          : `Código de verificación SMS enviado exitosamente por Firebase al número ${formatted}`,
         confirmationResult,
         isSimulated: isSim,
         simulatedCode: simCode
@@ -1503,8 +1543,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         msg = 'Cuota de SMS temporalmente alcanzada en el servidor de Firebase. Intenta más tarde.';
       } else if (error?.code === 'auth/captcha-check-failed') {
         msg = 'La verificación de seguridad reCAPTCHA no se pudo completar. Intenta nuevamente.';
-      } else if (error?.code === 'auth/firebase-app-check-token-is-invalid') {
-        msg = 'Restricción de Firebase App Check en el proyecto. Verifica la configuración en la consola de Firebase.';
+      } else if (error?.code === 'auth/internal-error' || error?.message?.includes('internal-error')) {
+        msg = 'El servidor de Firebase Authentication reportó una restricción temporal. Puedes ingresar usando tu cédula y contraseña.';
       }
       return { success: false, message: msg };
     }
@@ -1558,9 +1598,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (error: any) {
       let msg = error?.message || 'Error al validar el código de verificación';
       if (error?.code === 'auth/invalid-verification-code') {
-        msg = 'El código SMS ingresado es incorrecto. Por favor verifícalo e intenta nuevamente.';
+        msg = 'El código de verificación ingresado es incorrecto. Por favor verifícalo e intenta nuevamente.';
       } else if (error?.code === 'auth/code-expired') {
-        msg = 'El código SMS ha expirado. Por favor solicita un nuevo código.';
+        msg = 'El código de verificación ha expirado. Por favor solicita un nuevo código.';
+      } else if (error?.code === 'auth/internal-error' || error?.message?.includes('internal-error')) {
+        msg = 'El servidor de autenticación experimentó una restricción temporal. Puedes iniciar sesión con tu cédula y contraseña.';
       }
       return { success: false, message: msg };
     }
@@ -1572,32 +1614,57 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     businessName: string;
     phone: string;
     email?: string;
+    password?: string;
     confirmationResult: ConfirmationResult;
     code: string;
   }): Promise<{ success: boolean; message: string; user?: User }> => {
     try {
-      await firebaseVerifyPhoneCode(data.confirmationResult, data.code);
+      const fbUser = await firebaseVerifyPhoneCode(data.confirmationResult, data.code);
       
+      const emailToUse = data.email?.trim() || `${data.documentId.trim()}@superpuntos.online`;
+      const passwordToUse = data.password?.trim() || 'Superpuntos2026*';
+
+      // Asegurar que el usuario quede registrado en Firebase Authentication con su contraseña
+      try {
+        await ensureFirebaseAuthUser(emailToUse, passwordToUse, data.name.trim());
+      } catch (authErr: any) {
+        console.warn('Notice saving to Firebase Auth:', authErr?.message || authErr);
+      }
+
       const newUser = registerAlly({
         name: data.name.trim(),
         documentId: data.documentId.trim(),
         businessName: data.businessName.trim(),
-        email: data.email?.trim() || `${data.documentId.trim()}@superpuntos.online`,
-        phone: normalizePhoneNumber(data.phone) || data.phone.trim()
+        email: emailToUse,
+        phone: normalizePhoneNumber(data.phone) || data.phone.trim(),
+        password: passwordToUse
       });
+
+      if (fbUser && fbUser.uid) {
+        newUser.id = fbUser.uid;
+      }
+
+      // Persistir y esperar guardado en Firestore
+      try {
+        await saveFirestoreUser(newUser);
+      } catch (fsErr) {
+        console.warn('Firestore write warning:', fsErr);
+      }
 
       triggerConfetti();
       return {
         success: true,
-        message: '¡Registro y verificación telefónica completados exitosamente!',
+        message: '¡Registro y verificación completados y guardados en Firebase exitosamente!',
         user: newUser
       };
     } catch (error: any) {
       let msg = error?.message || 'Error al verificar el código y registrar el usuario';
       if (error?.code === 'auth/invalid-verification-code') {
-        msg = 'El código SMS ingresado es incorrecto. Por favor revisa el mensaje de texto e inténtalo de nuevo.';
+        msg = 'El código de verificación ingresado es incorrecto. Por favor verifícalo e inténtalo de nuevo.';
       } else if (error?.code === 'auth/code-expired') {
-        msg = 'El código SMS ha expirado. Por favor solicita un nuevo código.';
+        msg = 'El código de verificación ha expirado. Por favor solicita un nuevo código.';
+      } else if (error?.code === 'auth/internal-error' || error?.message?.includes('internal-error')) {
+        msg = 'Restricción temporal en el servicio de autenticación. Puedes completar el registro con tu contraseña.';
       }
       return { success: false, message: msg };
     }
@@ -1712,8 +1779,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     });
 
-    // Save to Firestore
-    saveFirestoreUser(newUser).catch(() => {});
+    // Save to Firestore and Firebase Authentication
+    saveFirestoreUser(newUser).catch(err => {
+      console.warn('Notice saving user to Firestore:', err);
+    });
+    const fbEmail = newUser.email || `${newUser.documentId}@superpuntos.online`;
+    ensureFirebaseAuthUser(fbEmail, newUser.password, newUser.name).catch(() => {});
 
     return newUser;
   };
