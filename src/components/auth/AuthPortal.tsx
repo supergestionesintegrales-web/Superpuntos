@@ -50,7 +50,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
   const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
   const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
   const [hasCopiedDomain, setHasCopiedDomain] = useState(false);
-  const [directGoogleEmail, setDirectGoogleEmail] = useState('1.jhonvillegas@gmail.com');
+  const [directGoogleEmail, setDirectGoogleEmail] = useState('');
   const [isDirectGoogleLoading, setIsDirectGoogleLoading] = useState(false);
 
   const copyDomainToClipboard = (domain: string) => {
@@ -504,7 +504,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                       type="email"
                       value={directGoogleEmail}
                       onChange={(e) => setDirectGoogleEmail(e.target.value)}
-                      placeholder="ej: 1.jhonvillegas@gmail.com"
+                      placeholder="ej: supergestionesintegrales@gmail.com o aliado@correo.com"
                       className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-400"
                     />
                   </div>
@@ -1050,14 +1050,14 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 
                 <div>
                   <label className="block text-xs font-semibold text-slate-200 mb-2">
-                    Usuario / Correo Administrativo <span className="text-blue-400 font-bold">*</span>
+                    Usuario / Correo Administrativo Autorizado <span className="text-blue-400 font-bold">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     value={adminEmail}
                     onChange={(e) => setAdminEmail(e.target.value)}
-                    placeholder="Ingresa tu correo o usuario administrativo"
+                    placeholder="admin@superpuentos.online o supergestionesintegrales@gmail.com"
                     className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                   />
                 </div>

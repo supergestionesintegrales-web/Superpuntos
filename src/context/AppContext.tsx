@@ -58,6 +58,7 @@ import {
   deleteNotification as deleteFirestoreNotification,
   clearNotificationsByUser as clearFirestoreNotificationsByUser,
   subscribeToNotifications,
+  subscribeToAccessLogs,
   subscribeToUsers,
   subscribeToProducts,
   subscribeToCampaigns,
@@ -366,12 +367,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (fbUser && fbUser.email) {
         const wasExplicitLogout = sessionStorage.getItem('superpuntos_explicit_logout') === 'true';
         if (!wasExplicitLogout) {
-          const cleanEmail = fbUser.email.toLowerCase();
-          const isSuperGestiones = cleanEmail === 'supergestionesintegrales@gmail.com' || cleanEmail.includes('supergestiones');
-          const isSantiago = cleanEmail === 'santiikstro1108@gmail.com' || cleanEmail.includes('santiikstro');
-          const isAdminEmail = isSuperGestiones || isSantiago || cleanEmail.includes('admin');
+          const cleanEmail = fbUser.email.toLowerCase().trim();
+          const isSuperGestiones = cleanEmail === 'supergestionesintegrales@gmail.com' ||
+                                  cleanEmail === 'supergestionesinetgrales@gmail.com' ||
+                                  cleanEmail === 'supergestionesintegrales' ||
+                                  cleanEmail === 'supergestionesinetgrales' ||
+                                  cleanEmail.includes('supergestiones');
+          const isSuperpuntosAdmin = cleanEmail === 'admin@superpuentos.online' ||
+                                    cleanEmail === 'admin@superpuntos.online';
+          const isAdminEmail = isSuperGestiones || isSuperpuntosAdmin;
 
-          let matched = users.find(u => u.email.toLowerCase() === cleanEmail);
+          let matched = users.find(u => u.email.toLowerCase().trim() === cleanEmail);
           if (!matched) {
             try {
               matched = (await getFirestoreUserByEmail(cleanEmail)) || undefined;
@@ -387,23 +393,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             // Auto-recognize returning user from Firebase Auth so they don't see login prompts
             const defaultOwnerName = isSuperGestiones 
               ? 'Super Gestiones Integrales (Administrador Principal)' 
-              : (isSantiago ? 'Santiago Castro (Administrador Principal)' : (cleanEmail.split('@')[0] || 'Aliado Superpuntos'));
+              : (isSuperpuntosAdmin ? 'Administrador Superpuntos' : (cleanEmail.split('@')[0] || 'Aliado Superpuntos'));
             const displayName = fbUser.displayName || defaultOwnerName;
             const newUser: User = {
-              id: isSuperGestiones ? 'usr_admin_owner' : (isAdminEmail ? `usr_admin_${Date.now()}` : `usr_${Date.now()}`),
+              id: isSuperGestiones ? 'usr_admin_owner' : (isSuperpuntosAdmin ? 'usr_admin_portal' : `usr_${Date.now()}`),
               name: displayName,
-              documentId: isSuperGestiones ? '901234567' : (isAdminEmail ? '1098765432' : `G-${fbUser.uid.slice(0, 8)}`),
+              documentId: isSuperGestiones ? '901234567' : (isSuperpuntosAdmin ? '900850320' : `G-${fbUser.uid.slice(0, 8)}`),
               email: cleanEmail,
               phone: fbUser.phoneNumber || '3001234567',
               role: isAdminEmail ? 'admin' : 'ally',
-              businessName: isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : (isAdminEmail ? 'SuperGIROS Central - Dirección General' : undefined),
+              businessName: isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : (isSuperpuntosAdmin ? 'Superpuntos Online - Dirección General' : undefined),
               zone: 'Dirección Nacional',
               pointsBalance: 0,
               totalPointsEarned: 0,
               totalPointsRedeemed: 0,
               status: 'active',
               createdAt: new Date().toISOString(),
-              avatarUrl: fbUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f59e0b&color=0f172a&bold=true`
+              avatarUrl: fbUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=002D72&color=fff&bold=true`
             };
             setUsers(prev => [newUser, ...prev]);
             saveFirestoreUser(newUser).catch(() => {});
@@ -414,13 +420,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     });
 
-    // 2. Real-time Firestore subscriptions for Users, Products, Campaigns, Gestiones, Orders
+    // 2. Real-time Firestore subscriptions for Users, Products, Campaigns, Gestiones, Orders, AccessLogs
     let unsubUsers: (() => void) | undefined;
     let unsubProducts: (() => void) | undefined;
     let unsubCampaigns: (() => void) | undefined;
     let unsubGestiones: (() => void) | undefined;
     let unsubOrders: (() => void) | undefined;
     let unsubNotifications: (() => void) | undefined;
+    let unsubAccessLogs: (() => void) | undefined;
 
     try {
       unsubUsers = subscribeToUsers((firestoreUsers) => {
@@ -430,11 +437,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (storedDeleted) deletedSet = new Set(JSON.parse(storedDeleted));
         } catch {}
 
+        const sanitizeUserRole = (u: User): User => {
+          const email = (u.email || '').toLowerCase().trim();
+          const isSuperGestiones = email === 'supergestionesintegrales@gmail.com' ||
+                                  email === 'supergestionesinetgrales@gmail.com' ||
+                                  email === 'supergestionesintegrales' ||
+                                  email === 'supergestionesinetgrales' ||
+                                  email.includes('supergestiones');
+          const isSuperpuntosAdmin = email === 'admin@superpuentos.online' ||
+                                    email === 'admin@superpuntos.online';
+          const isAuthorizedAdmin = isSuperGestiones || isSuperpuntosAdmin;
+
+          if (u.role === 'admin' && !isAuthorizedAdmin) {
+            return { ...u, role: 'ally' };
+          }
+          if (isAuthorizedAdmin && u.role !== 'admin') {
+            return { ...u, role: 'admin' };
+          }
+          return u;
+        };
+
         if (firestoreUsers && firestoreUsers.length > 0) {
           setUsers(prev => {
             const map = new Map<string, User>();
-            prev.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_')).forEach(u => map.set(u.id, u));
-            firestoreUsers.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_')).forEach(u => map.set(u.id, { ...map.get(u.id), ...u }));
+            prev.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_')).forEach(u => map.set(u.id, sanitizeUserRole(u)));
+            firestoreUsers.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_')).forEach(u => map.set(u.id, sanitizeUserRole({ ...map.get(u.id), ...u })));
+            
+            // Guarantee authorized admins always exist in memory and state
+            INITIAL_USERS.forEach(adm => {
+              if (!map.has(adm.id)) {
+                map.set(adm.id, adm);
+              }
+            });
+
             return Array.from(map.values());
           });
           setIsFirebaseConnected(true);
@@ -489,6 +524,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setNotifications(firestoreNotifs);
         }
       });
+
+      unsubAccessLogs = subscribeToAccessLogs((firestoreLogs) => {
+        if (firestoreLogs && firestoreLogs.length > 0) {
+          setAccessLogs(prev => {
+            const map = new Map<string, AccessLog>();
+            prev.forEach(l => map.set(l.id, l));
+            firestoreLogs.forEach(l => map.set(l.id, l));
+            return Array.from(map.values()).sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+          });
+        }
+      });
+
+      // Synchronize both authorized admin users to Firebase Firestore immediately
+      INITIAL_USERS.forEach(u => saveFirestoreUser(u).catch(() => {}));
     } catch (err) {
       console.warn('Firestore subscription initialized in offline mode:', err);
       setIsFirebaseConnected(false);
@@ -503,6 +552,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (unsubGestiones) unsubGestiones();
       if (unsubOrders) unsubOrders();
       if (unsubNotifications) unsubNotifications();
+      if (unsubAccessLogs) unsubAccessLogs();
     };
   }, []);
 
@@ -677,6 +727,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ipOrDevice: 'Portal Web Superpuntos'
     };
     setAccessLogs(prev => [newLog, ...prev]);
+
+    // Live push to Firebase Firestore so user interaction is saved in Firebase
+    saveFirestoreAccessLog(newLog).catch(err => {
+      console.warn('[Firebase Firestore] Error al guardar interacción de usuario:', err);
+    });
 
     // Live push to la base de datos if token is present
     getAccessToken().then(token => {
@@ -1027,64 +1082,95 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const loginAsAdmin = (emailOrUser: string, enteredPassword?: string) => {
     const clean = emailOrUser.trim().toLowerCase();
-    const isOwner = clean === 'supergestionesintegrales@gmail.com' || 
-                    clean.includes('supergestiones') || 
-                    clean === 'santiikstro1108@gmail.com' || 
-                    clean.includes('santiikstro');
+    
+    // STRICT AUTHORIZATION: Only the 2 authorized emails/accounts are permitted as administrator:
+    // 1. supergestionesintegrales@gmail.com (or typo supergestionesinetgrales)
+    // 2. admin@superpuentos.online (or admin@superpuntos.online) with password Admin2026**
+    const isSuperGestiones = 
+      clean === 'supergestionesintegrales@gmail.com' || 
+      clean === 'supergestionesinetgrales@gmail.com' || 
+      clean === 'supergestionesintegrales' ||
+      clean === 'supergestionesinetgrales' ||
+      clean.includes('supergestiones') ||
+      clean === 'usr_admin_owner' ||
+      clean === '901234567';
+
+    const isSuperpuntosAdmin = 
+      clean === 'admin@superpuentos.online' || 
+      clean === 'admin@superpuntos.online' || 
+      clean === 'admin' ||
+      clean === 'usr_admin_portal' ||
+      clean === '900850320';
+
+    if (!isSuperGestiones && !isSuperpuntosAdmin) {
+      logAccessEvent('login', `Intento de acceso administrativo denegado para: ${emailOrUser}`);
+      return { 
+        success: false, 
+        message: 'Acceso denegado. Solo los correos administrativos autorizados (supergestionesintegrales@gmail.com y admin@superpuentos.online) tienen acceso al panel de administración.' 
+      };
+    }
 
     let adminUser = users.find(u => 
-      (u.role === 'admin' || isOwner) && (
-        u.email.toLowerCase() === clean || 
-        u.documentId.toLowerCase() === clean || 
-        u.id.toLowerCase() === clean || 
-        clean.includes('admin') ||
-        (isOwner && (u.email.toLowerCase().includes('supergestiones') || u.email.toLowerCase().includes('santiikstro')))
-      )
+      (isSuperGestiones && (
+        u.id === 'usr_admin_owner' || 
+        u.email.toLowerCase().includes('supergestiones')
+      )) ||
+      (isSuperpuntosAdmin && (
+        u.id === 'usr_admin_portal' || 
+        u.email.toLowerCase() === 'admin@superpuentos.online' ||
+        u.email.toLowerCase() === 'admin@superpuntos.online'
+      ))
     );
 
-    if (!adminUser && isOwner) {
-      adminUser = INITIAL_USERS.find(u => 
-        u.email.toLowerCase() === 'supergestionesintegrales@gmail.com' ||
-        u.email.toLowerCase().includes('supergestiones')
-      ) || INITIAL_USERS[0];
-      setUsers(prev => [adminUser!, ...prev.filter(u => u.id !== adminUser!.id)]);
-    } else if (!adminUser) {
-      adminUser = users.find(u => u.role === 'admin') || INITIAL_USERS[0];
+    if (!adminUser) {
+      adminUser = isSuperGestiones 
+        ? INITIAL_USERS.find(u => u.id === 'usr_admin_owner') || INITIAL_USERS[0]
+        : INITIAL_USERS.find(u => u.id === 'usr_admin_portal') || INITIAL_USERS[1];
+      if (adminUser) {
+        setUsers(prev => [adminUser!, ...prev.filter(u => u.id !== adminUser!.id)]);
+        saveFirestoreUser(adminUser).catch(() => {});
+      }
+    }
+
+    if (!adminUser) {
+      return { success: false, message: 'Perfil de administrador no encontrado en el sistema.' };
     }
 
     if (adminUser.role !== 'admin') {
       adminUser = { ...adminUser, role: 'admin' };
       setUsers(prev => prev.map(u => u.id === adminUser!.id ? adminUser! : u));
+      saveFirestoreUser(adminUser).catch(() => {});
     }
 
+    // Password validation - Must match configured password or the explicit 'Admin2026**'
+    const expectedPassword = adminUser.password || 'Admin2026**';
     let isPasswordCorrect = false;
     let isTempPasswordLogin = false;
 
-    if (!isOwner && adminUser.password && adminUser.password.trim() !== '') {
-      if (enteredPassword && enteredPassword.trim() === adminUser.password.trim()) {
-        isPasswordCorrect = true;
-      }
+    if (enteredPassword && (enteredPassword.trim() === expectedPassword.trim() || enteredPassword.trim() === 'Admin2026**')) {
+      isPasswordCorrect = true;
+    }
 
-      // Also check temporary password (5 hours)
-      if (!isPasswordCorrect && adminUser.tempPassword && adminUser.tempPassword.trim() !== '') {
-        if (enteredPassword && enteredPassword.trim() === adminUser.tempPassword.trim()) {
-          const now = Date.now();
-          const expiresTime = adminUser.tempPasswordExpiresAt ? new Date(adminUser.tempPasswordExpiresAt).getTime() : 0;
-          if (expiresTime > now) {
-            isPasswordCorrect = true;
-            isTempPasswordLogin = true;
-          } else {
-            return {
-              success: false,
-              message: 'La contraseña temporal ha expirado (límite de 5 horas superado). Por favor solicita una nueva.'
-            };
-          }
+    // Also check temporary password (5 hours)
+    if (!isPasswordCorrect && adminUser.tempPassword && adminUser.tempPassword.trim() !== '') {
+      if (enteredPassword && enteredPassword.trim() === adminUser.tempPassword.trim()) {
+        const now = Date.now();
+        const expiresTime = adminUser.tempPasswordExpiresAt ? new Date(adminUser.tempPasswordExpiresAt).getTime() : 0;
+        if (expiresTime > now) {
+          isPasswordCorrect = true;
+          isTempPasswordLogin = true;
+        } else {
+          return {
+            success: false,
+            message: 'La contraseña temporal ha expirado (límite de 5 horas superado). Por favor solicita una nueva.'
+          };
         }
       }
+    }
 
-      if (!isPasswordCorrect) {
-        return { success: false, message: 'Contraseña de Administrador incorrecta.' };
-      }
+    if (!isPasswordCorrect) {
+      logAccessEvent('login', `Contraseña incorrecta en login administrativo para: ${adminUser.email}`, adminUser);
+      return { success: false, message: 'Contraseña de Administrador incorrecta.' };
     }
 
     setCurrentUserId(adminUser.id);
@@ -1097,7 +1183,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (isTempPasswordLogin || adminUser.mustResetPassword) {
       setMustResetPasswordModalOpen(true);
     }
-    logAccessEvent('login', `Inicio de sesión administrativo en el portal: ${adminUser.name}`, adminUser);
+    logAccessEvent('login', `Inicio de sesión administrativo autorizado en el portal: ${adminUser.name} (${adminUser.email})`, adminUser);
     return { success: true, message: `¡Sesión de Administrador iniciada correctamente! Bienvenido ${adminUser.name}.`, user: adminUser };
   };
 
@@ -1126,19 +1212,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         phone = gUser.phoneNumber || '';
       }
 
-      const cleanEmail = email.toLowerCase();
-      const isSuperGestiones = cleanEmail === 'supergestionesintegrales@gmail.com' || cleanEmail.includes('supergestiones');
-      const isSantiago = cleanEmail === 'santiikstro1108@gmail.com' || cleanEmail.includes('santiikstro');
-      const isJhon = cleanEmail === '1.jhonvillegas@gmail.com' || cleanEmail.includes('jhonvillegas');
-      const isOwnerEmail = isSuperGestiones || isSantiago || isJhon;
-      const isAdminEmail = isOwnerEmail || cleanEmail === 'admin@supergiros.com' || cleanEmail.includes('admin') || preferredRole === 'admin';
+      const cleanEmail = email.toLowerCase().trim();
+      const isSuperGestiones = cleanEmail === 'supergestionesintegrales@gmail.com' || 
+                              cleanEmail === 'supergestionesinetgrales@gmail.com' ||
+                              cleanEmail === 'supergestionesintegrales' ||
+                              cleanEmail === 'supergestionesinetgrales' ||
+                              cleanEmail.includes('supergestiones');
+      const isSuperpuntosAdmin = cleanEmail === 'admin@superpuentos.online' || 
+                                cleanEmail === 'admin@superpuntos.online';
+      const isAuthorizedAdmin = isSuperGestiones || isSuperpuntosAdmin;
       
       const defaultOwnerName = isSuperGestiones 
         ? 'Super Gestiones Integrales (Administrador Principal)' 
-        : (isSantiago ? 'Santiago Castro (Administrador Principal)' : (isJhon ? 'Jhon Villegas (Administrador)' : (displayName || email.split('@')[0] || 'Aliado Superpuntos')));
+        : (isSuperpuntosAdmin ? 'Administrador Superpuntos' : (displayName || email.split('@')[0] || 'Aliado Superpuntos'));
       const finalDisplayName = displayName || defaultOwnerName;
 
-      let matched = users.find(u => u.email.toLowerCase() === cleanEmail);
+      let matched = users.find(u => u.email.toLowerCase().trim() === cleanEmail);
 
       // Check Firestore if not found locally so that all previously earned points and data are loaded!
       if (!matched) {
@@ -1154,26 +1243,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       if (matched) {
-        // Guarantee that if the user is the owner/admin, role is always admin
-        if (isAdminEmail && matched.role !== 'admin') {
+        // Guarantee that only strictly authorized emails can have admin role
+        if (isAuthorizedAdmin && matched.role !== 'admin') {
           matched = {
             ...matched,
             role: 'admin',
-            businessName: matched.businessName || (isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : (isJhon ? 'SuperGIROS Central - Administración' : 'SuperGIROS Central - Dirección General')),
+            businessName: matched.businessName || (isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : 'Superpuntos Online - Dirección General'),
             name: matched.name || finalDisplayName
+          };
+          setUsers(prev => prev.map(u => u.id === matched!.id ? matched! : u));
+          saveFirestoreUser(matched).catch(() => {});
+        } else if (!isAuthorizedAdmin && matched.role === 'admin') {
+          matched = {
+            ...matched,
+            role: 'ally'
           };
           setUsers(prev => prev.map(u => u.id === matched!.id ? matched! : u));
           saveFirestoreUser(matched).catch(() => {});
         }
       } else {
         const newUser: User = {
-          id: isSuperGestiones ? 'usr_admin_owner' : (isJhon ? 'usr_admin_jhon' : (isAdminEmail ? `usr_admin_${Date.now()}` : `usr_${Date.now()}`)),
-          name: isSuperGestiones ? 'Super Gestiones Integrales (Administrador Principal)' : (isSantiago ? 'Santiago Castro (Administrador Principal)' : (isJhon ? 'Jhon Villegas (Administrador)' : finalDisplayName)),
-          documentId: isSuperGestiones ? '901234567' : (isJhon ? '1088334455' : (isAdminEmail ? '1098765432' : `G-${gUid.slice(0, 8)}`)),
+          id: isSuperGestiones ? 'usr_admin_owner' : (isSuperpuntosAdmin ? 'usr_admin_portal' : `usr_${Date.now()}`),
+          name: finalDisplayName,
+          documentId: isSuperGestiones ? '901234567' : (isSuperpuntosAdmin ? '900850320' : `G-${gUid.slice(0, 8)}`),
           email: email,
           phone: phone || '3001234567',
-          role: isAdminEmail ? 'admin' : 'ally',
-          businessName: isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : (isJhon ? 'SuperGIROS Central - Administración' : (isAdminEmail ? 'SuperGIROS Central - Dirección General' : undefined)),
+          role: isAuthorizedAdmin ? 'admin' : 'ally',
+          businessName: isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : (isSuperpuntosAdmin ? 'Superpuntos Online - Dirección General' : undefined),
           zone: 'Dirección Nacional',
           pointsBalance: 0,
           totalPointsEarned: 0,
@@ -1385,15 +1481,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Register New Ally
   const registerAlly = (data: Omit<User, 'id' | 'role' | 'pointsBalance' | 'totalPointsEarned' | 'totalPointsRedeemed' | 'status' | 'createdAt'>): User => {
-    const isOwner = data.email && (
-      data.email.toLowerCase() === 'supergestionesintegrales@gmail.com' ||
-      data.email.toLowerCase().includes('supergestiones') ||
-      data.email.toLowerCase() === 'santiikstro1108@gmail.com' ||
-      data.email.toLowerCase().includes('santiikstro')
-    );
+    const cleanEmail = (data.email || '').toLowerCase().trim();
+    const isSuperGestiones = cleanEmail === 'supergestionesintegrales@gmail.com' ||
+                            cleanEmail === 'supergestionesinetgrales@gmail.com' ||
+                            cleanEmail.includes('supergestiones');
+    const isSuperpuntosAdmin = cleanEmail === 'admin@superpuentos.online' ||
+                              cleanEmail === 'admin@superpuntos.online';
+    const isOwner = isSuperGestiones || isSuperpuntosAdmin;
+
     const newUser: User = {
       ...data,
-      id: isOwner ? 'usr_admin_owner' : `usr_${Date.now()}`,
+      id: isSuperGestiones ? 'usr_admin_owner' : (isSuperpuntosAdmin ? 'usr_admin_portal' : `usr_${Date.now()}`),
       role: isOwner ? 'admin' : 'ally',
       pointsBalance: 0,
       totalPointsEarned: 0,
@@ -1401,7 +1499,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'active',
       createdAt: new Date().toISOString(),
       avatarUrl: isOwner 
-        ? `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=f59e0b&color=0f172a&bold=true`
+        ? `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=002D72&color=fff&bold=true`
         : `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`
     };
 

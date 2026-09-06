@@ -58,19 +58,20 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
     // Exclude mock seed demo users
     if (u.id.startsWith('usr_ally_')) return false;
 
-    if (u.role === 'ally') return true;
-    if ((u.role as any) === 'aliado' || (u.role as any) === 'user' || (u.role as any) === 'comercial') return true;
-    if (u.role !== 'admin') {
-      const email = (u.email || '').toLowerCase();
-      const isAdmin = email === 'supergestionesintegrales@gmail.com' ||
-                      email === 'santiikstro1108@gmail.com' ||
-                      email.includes('admin') ||
-                      email.includes('supergestiones') ||
-                      email.includes('operaciones') ||
-                      email.includes('sistemas');
-      return !isAdmin;
-    }
-    return false;
+    const email = (u.email || '').toLowerCase().trim();
+    const isAuthorizedAdmin = 
+      email === 'supergestionesintegrales@gmail.com' ||
+      email === 'supergestionesinetgrales@gmail.com' ||
+      email === 'supergestionesintegrales' ||
+      email === 'supergestionesinetgrales' ||
+      email.includes('supergestiones') ||
+      email === 'admin@superpuentos.online' ||
+      email === 'admin@superpuntos.online' ||
+      u.id === 'usr_admin_owner' ||
+      u.id === 'usr_admin_portal';
+
+    if (isAuthorizedAdmin) return false;
+    return true;
   };
 
   const allies = users.filter(isAlly);

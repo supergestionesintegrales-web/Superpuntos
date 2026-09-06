@@ -772,3 +772,17 @@ export const subscribeToNotifications = (callback: (notifications: AppNotificati
   );
 };
 
+export const subscribeToAccessLogs = (callback: (logs: AccessLog[]) => void) => {
+  const logsRef = collection(db, COLLECTIONS.ACCESS_LOGS);
+  return onSnapshot(
+    logsRef,
+    (snapshot) => {
+      const logs = snapshot.docs.map(doc => doc.data() as AccessLog);
+      callback(logs.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || '')));
+    },
+    (error) => {
+      console.warn('Firestore subscribeToAccessLogs notice:', error?.message || error);
+    }
+  );
+};
+

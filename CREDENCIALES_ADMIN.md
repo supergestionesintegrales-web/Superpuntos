@@ -1,32 +1,31 @@
-# 🔐 Credenciales de Acceso Administrativo
+# 🔐 Credenciales de Acceso Administrativo Autorizadas
 
-## Usuarios Administradores Configurados
+## Usuarios Administradores Únicos Autorizados
 
-El sistema SuperGIROS Superpuntos tiene **3 usuarios administradores** preconfigurados para que múltiples personas puedan gestionar el sistema.
-
----
-
-### 👤 Administrador Principal
-**Correo:** `admin@supergiros.com`  
-**Documento:** `900850320`  
-**Contraseña:** `SuperGiros2026!`  
-**Área:** Dirección Nacional
+Por directriz de seguridad estricta, únicamente existen **2 cuentas autorizadas** con privilegios administrativos en el sistema Superpuntos:
 
 ---
 
-### 👤 Administrador de Sistemas
-**Correo:** `sistemas@supergiros.com`  
-**Documento:** `900850321`  
-**Contraseña:** `Sistemas2026!`  
-**Área:** Tecnología
+### 👤 1. Super Gestiones Integrales (Administrador Principal)
+- **Correo:** `supergestionesintegrales@gmail.com`
+- **Documento:** `901234567`
+- **Contraseña:** `Admin2026**`
+- **Rol:** Administrador Principal (`admin`)
+- **Organización:** Super Gestiones Integrales - Dirección Central
 
 ---
 
-### 👤 Administrador de Operaciones
-**Correo:** `operaciones@supergiros.com`  
-**Documento:** `900850322`  
-**Contraseña:** `Operaciones2026!`  
-**Área:** Operaciones
+### 👤 2. Administrador Superpuntos
+- **Correo:** `admin@superpuentos.online`
+- **Documento:** `900850320`
+- **Contraseña:** `Admin2026**`
+- **Rol:** Administrador General (`admin`)
+- **Organización:** Superpuntos Online - Dirección General
+
+---
+
+> ⚠️ **RESTRICCIÓN DE SEGURIDAD ABSOLUTA:**
+> Ningún otro correo electrónico tiene permisos administrativos en el portal ni en Firebase Firestore. Cualquier otro usuario registrado o autenticado mediante Google u otro medio tendrá exclusivamente el rol de Aliado Comercial (`ally`). Toda interacción queda registrada en la colección `access_logs` de Firebase Firestore.
 
 ---
 
