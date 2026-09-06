@@ -88,7 +88,7 @@ export const ManualPointsModal: React.FC<ManualPointsModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white p-6 relative">
+        <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-blue-900 text-white p-6 relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
@@ -128,7 +128,7 @@ export const ManualPointsModal: React.FC<ManualPointsModalProps> = ({
               <select
                 value={selectedAllyId}
                 onChange={(e) => setSelectedAllyId(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-slate-50 font-medium"
+                className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-700 bg-slate-50 font-medium"
               >
                 {allies.map(ally => (
                   <option key={ally.id} value={ally.id}>
@@ -140,9 +140,9 @@ export const ManualPointsModal: React.FC<ManualPointsModalProps> = ({
 
             {/* Current Balance Display */}
             {currentSelectedAlly && (
-              <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-200/80 flex items-center justify-between text-xs">
-                <span className="text-amber-900">Saldo actual del aliado:</span>
-                <span className="font-bold text-amber-700">{formatPoints(currentSelectedAlly.pointsBalance)} pts</span>
+              <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-200/80 flex items-center justify-between text-xs">
+                <span className="text-blue-900 font-medium">Saldo actual del aliado:</span>
+                <span className="font-bold text-blue-900">{formatPoints(currentSelectedAlly.pointsBalance)} pts</span>
               </div>
             )}
 
@@ -154,7 +154,7 @@ export const ManualPointsModal: React.FC<ManualPointsModalProps> = ({
                   type="button"
                   onClick={() => setOperationType('bonus')}
                   className={`py-2 px-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    operationType === 'bonus' ? 'bg-amber-500 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    operationType === 'bonus' ? 'bg-blue-900 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
                   + Bono Comercial
@@ -186,14 +186,14 @@ export const ManualPointsModal: React.FC<ManualPointsModalProps> = ({
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-700">Cantidad de Superpuntos *</label>
               <div className="relative">
-                <Coins className="w-5 h-5 text-amber-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Coins className="w-5 h-5 text-blue-900 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="number"
                   required
                   min={1}
                   value={pointsAmount}
                   onChange={(e) => setPointsAmount(parseInt(e.target.value) || 0)}
-                  className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm font-black text-amber-600 focus:outline-hidden focus:border-amber-500"
+                  className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm font-black text-blue-900 focus:outline-hidden focus:border-blue-700"
                 />
               </div>
             </div>
@@ -207,7 +207,7 @@ export const ManualPointsModal: React.FC<ManualPointsModalProps> = ({
                 placeholder="Indica el motivo de la asignación o ajuste de puntos..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-700"
               />
             </div>
 
@@ -235,7 +235,7 @@ export const ManualPointsModal: React.FC<ManualPointsModalProps> = ({
 
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs shadow-md shadow-amber-500/25 flex items-center gap-1.5 transition-all cursor-pointer"
+                className="px-6 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs shadow-md shadow-blue-950/25 flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>Aplicar Movimiento</span>

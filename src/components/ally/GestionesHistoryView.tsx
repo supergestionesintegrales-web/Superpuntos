@@ -67,9 +67,9 @@ export const GestionesHistoryView: React.FC<GestionesHistoryViewProps> = ({ onOp
 
           <button
             onClick={onOpenReportModal}
-            className="px-3.5 py-2 rounded-xl font-bold text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
+            className="px-3.5 py-2 rounded-xl font-bold text-xs bg-blue-900 hover:bg-blue-800 text-white shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
           >
-            <PlusCircle className="w-4 h-4" />
+            <PlusCircle className="w-4 h-4 text-blue-300" />
             <span>Registrar SOAT</span>
           </button>
         </div>
@@ -77,12 +77,12 @@ export const GestionesHistoryView: React.FC<GestionesHistoryViewProps> = ({ onOp
         {/* 3 Compact Metric Badges/Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
           
-          <div className="bg-amber-50/70 rounded-xl p-3 border border-amber-200/80 flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+          <div className="bg-blue-50/70 rounded-xl p-3 border border-blue-200/80 flex items-center justify-between">
+            <span className="text-xs font-bold text-blue-900 uppercase tracking-wider">
               Saldo de Puntos
             </span>
-            <span className="text-lg font-black text-amber-600">
-              {formatPoints(currentUser.pointsBalance)} <span className="text-xs font-bold text-amber-800">pts</span>
+            <span className="text-lg font-black text-blue-900">
+              {formatPoints(currentUser.pointsBalance)} <span className="text-xs font-bold text-blue-700">pts</span>
             </span>
           </div>
 
@@ -120,7 +120,7 @@ export const GestionesHistoryView: React.FC<GestionesHistoryViewProps> = ({ onOp
           <FileText className="w-4 h-4" />
           <span>Pólizas SOAT Registradas</span>
           <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-            activeSubTab === 'gestiones' ? 'bg-amber-400 text-slate-900' : 'bg-slate-200 text-slate-700'
+            activeSubTab === 'gestiones' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'
           }`}>
             {allyGestiones.length}
           </span>
@@ -137,7 +137,7 @@ export const GestionesHistoryView: React.FC<GestionesHistoryViewProps> = ({ onOp
           <Coins className="w-4 h-4" />
           <span>Extracto de Movimientos</span>
           <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-            activeSubTab === 'transactions' ? 'bg-amber-400 text-slate-900' : 'bg-slate-200 text-slate-700'
+            activeSubTab === 'transactions' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'
           }`}>
             {allyTransactions.length}
           </span>
@@ -161,7 +161,7 @@ export const GestionesHistoryView: React.FC<GestionesHistoryViewProps> = ({ onOp
             <button
               onClick={() => setStatusFilter('pending')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 ${
-                statusFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100'
+                statusFilter === 'pending' ? 'bg-blue-900 text-white' : 'bg-blue-50 border border-blue-200 text-blue-900 hover:bg-blue-100'
               }`}
             >
               <Clock className="w-3.5 h-3.5" />
@@ -199,7 +199,7 @@ export const GestionesHistoryView: React.FC<GestionesHistoryViewProps> = ({ onOp
               </p>
               <button
                 onClick={onOpenReportModal}
-                className="px-4 py-2 rounded-xl bg-amber-500 text-white text-xs font-bold hover:bg-amber-600 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-blue-900 text-white text-xs font-bold hover:bg-blue-800 transition-colors cursor-pointer"
               >
                 + Registrar SOAT
               </button>
@@ -233,8 +233,8 @@ export const GestionesHistoryView: React.FC<GestionesHistoryViewProps> = ({ onOp
                       {/* Status Badge */}
                       <div className="flex items-center gap-3 self-end sm:self-center">
                         {ges.status === 'pending' && (
-                          <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1 rounded-xl text-xs font-bold">
-                            <Clock className="w-3.5 h-3.5 text-amber-600 animate-spin" />
+                          <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-900 px-3 py-1 rounded-xl text-xs font-bold">
+                            <Clock className="w-3.5 h-3.5 text-blue-700 animate-spin" />
                             <span>En Revisión Admin</span>
                           </div>
                         )}
@@ -258,7 +258,7 @@ export const GestionesHistoryView: React.FC<GestionesHistoryViewProps> = ({ onOp
                       {ges.licensePlate && (
                         <div>
                           <span className="text-slate-400 block text-[10px] font-bold uppercase">Placa Vehículo:</span>
-                          <span className="font-mono font-black text-amber-950 bg-amber-200/80 px-2 py-0.5 rounded-md inline-block mt-0.5">
+                          <span className="font-mono font-black text-blue-950 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md inline-block mt-0.5">
                             {ges.licensePlate}
                           </span>
                         </div>

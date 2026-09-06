@@ -102,7 +102,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
       {/* Toast Notification */}
       {feedbackToast && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
-          <Sparkles className="w-5 h-5 text-amber-400 shrink-0" />
+          <Sparkles className="w-5 h-5 text-blue-300 shrink-0" />
           <span className="text-sm font-medium">{feedbackToast}</span>
         </div>
       )}
@@ -110,7 +110,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
       {/* Compact & Minimalist Banner */}
       <div className="rounded-2xl bg-slate-900 text-white p-4 sm:p-5 border border-slate-800 shadow-sm flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
             <Coins className="w-6 h-6 stroke-[2.5]" />
           </div>
           <div>
@@ -121,7 +121,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
             </div>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-xs text-slate-400">Tu Billetera de Puntos:</span>
-              <span className="text-sm font-black text-amber-400">
+              <span className="text-sm font-black text-blue-300">
                 {formatPoints(currentUser.pointsBalance)} PTS
               </span>
             </div>
@@ -163,7 +163,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
               onClick={() => setOnlyAffordable(!onlyAffordable)}
               className={`px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${
                 onlyAffordable 
-                  ? 'bg-slate-900 text-amber-400 border-slate-900 shadow-xs' 
+                  ? 'bg-slate-900 text-blue-300 border-slate-900 shadow-xs' 
                   : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
               }`}
             >
@@ -221,12 +221,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                     : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
-                {category === 'Artículos' && <Truck className="w-4 h-4 text-amber-500" />}
-                {category === 'Bonos' && <Sparkles className="w-4 h-4 text-amber-400" />}
+                {category === 'Artículos' && <Truck className="w-4 h-4 text-blue-400" />}
+                {category === 'Bonos' && <Sparkles className="w-4 h-4 text-blue-300" />}
                 {category === 'Todos' && <ShoppingBag className="w-4 h-4 text-slate-400" />}
-                <span>{category === 'Artículos' ? 'Artículos Físicos' : category === 'Bonos' ? 'Bonos de Dinero' : 'Todos los Premios'}</span>
+                <span>{category === 'Artículos' ? 'Artículos (Con Despacho)' : category === 'Bonos' ? 'Bonos de Dinero' : 'Todos los Premios'}</span>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                  isSelected ? 'bg-amber-500 text-slate-900 font-black' : 'bg-slate-100 text-slate-600 font-bold'
+                  isSelected ? 'bg-blue-600 text-white font-black' : 'bg-slate-100 text-slate-600 font-bold'
                 }`}>
                   {count}
                 </span>
@@ -240,7 +240,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
       {/* Products Grid */}
       {filteredProducts.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-xs space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center mx-auto border border-amber-200/60">
+          <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-900 flex items-center justify-center mx-auto border border-blue-200/60">
             <Gift className="w-8 h-8 stroke-[2]" />
           </div>
           <div className="max-w-md mx-auto space-y-1.5">
@@ -281,7 +281,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                   isOutOfStock
                     ? 'border-red-200 hover:border-red-300'
                     : product.stock <= 5
-                    ? 'border-amber-200 hover:border-amber-300'
+                    ? 'border-blue-200 hover:border-blue-300'
                     : 'border-slate-200 hover:border-slate-300 hover:shadow-md'
                 }`}
               >
@@ -302,7 +302,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                       <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-bold shadow-xs ${
                         product.isDigital || product.category === 'Bonos' 
                           ? 'bg-emerald-100 text-emerald-700' 
-                          : 'bg-amber-100 text-amber-600'
+                          : 'bg-blue-100 text-blue-900'
                       }`}>
                         {product.isDigital || product.category === 'Bonos' ? <Banknote className="w-8 h-8" /> : <Gift className="w-8 h-8" />}
                       </div>
@@ -315,12 +315,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                       </span>
                       {(product.isDigital || product.category === 'Bonos') && (
                         <span className="text-[10px] font-extrabold uppercase px-2 py-1 rounded-full bg-emerald-600 text-white shadow-xs flex items-center gap-1">
-                          <Banknote className="w-3 h-3" /> App SuperGiros
+                          <Banknote className="w-3 h-3" /> App SuperGIROS
                         </span>
                       )}
                       {(product.isFeatured || product.featured) && (
-                        <span className="text-[10px] font-extrabold uppercase px-2 py-1 rounded-full bg-amber-500 text-slate-950 flex items-center gap-1 shadow-xs">
-                          <Sparkles className="w-3 h-3" /> Destacado
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-1 rounded-full bg-blue-900 text-white flex items-center gap-1 shadow-xs">
+                          <Sparkles className="w-3 h-3 text-blue-300" /> Destacado
                         </span>
                       )}
                     </div>
@@ -343,12 +343,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block truncate">
                           {product.brand || 'SuperGIROS'}
                         </span>
-                        <h3 className="font-heading font-extrabold text-base text-slate-900 leading-tight group-hover:text-blue-600 transition-colors">
+                        <h3 className="font-heading font-extrabold text-base text-slate-900 leading-tight group-hover:text-blue-900 transition-colors">
                           {product.name}
                         </h3>
                       </div>
                       <div className="text-right shrink-0">
-                        <span className="text-base sm:text-lg font-black text-amber-500 flex items-baseline justify-end gap-1">
+                        <span className="text-base sm:text-lg font-black text-blue-900 flex items-baseline justify-end gap-1">
                           {formatPoints(product.pointsCost)} <span className="text-xs font-bold text-slate-400 uppercase">PTS</span>
                         </span>
                       </div>
@@ -363,7 +363,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                       <div className="space-y-1.5 pt-1">
                         {product.specifications.slice(0, 3).map((spec, idx) => (
                           <div key={idx} className="text-[11px] text-slate-600 flex items-center gap-1.5 bg-slate-50/80 px-2 py-1 rounded-md border border-slate-100">
-                            <span className="text-amber-500 font-bold">•</span>
+                            <span className="text-blue-800 font-bold">•</span>
                             <span className="truncate">{spec}</span>
                           </div>
                         ))}
@@ -383,7 +383,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                         isOutOfStock 
                           ? 'text-red-600' 
                           : product.stock <= 5 
-                          ? 'text-amber-600' 
+                          ? 'text-blue-800' 
                           : 'text-slate-800'
                       }`}>
                         {product.stock} disponibles
@@ -405,7 +405,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                         ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none'
                         : inCartQty > 0
                           ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
-                          : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-blue-600/20 hover:scale-[1.01] active:scale-[0.99]'
+                          : 'bg-blue-900 hover:bg-blue-800 active:bg-blue-950 text-white shadow-blue-900/20 hover:scale-[1.01] active:scale-[0.99]'
                     }`}
                   >
                     {inCartQty > 0 ? (
@@ -458,7 +458,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                   <div className={`w-24 h-24 rounded-3xl flex items-center justify-center font-bold shadow-xs ${
                     selectedProduct.isDigital || selectedProduct.category === 'Bonos'
                       ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-amber-100 text-amber-600'
+                      : 'bg-blue-100 text-blue-900'
                   }`}>
                     {selectedProduct.isDigital || selectedProduct.category === 'Bonos' ? <Banknote className="w-12 h-12" /> : <Gift className="w-12 h-12" />}
                   </div>
@@ -472,12 +472,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                   {(selectedProduct.isDigital || selectedProduct.category === 'Bonos') && (
                     <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-600 text-white shadow-xs flex items-center gap-1">
                       <Banknote className="w-3 h-3" />
-                      App SuperGiros
+                      App SuperGIROS
                     </span>
                   )}
                   {(selectedProduct.isFeatured || selectedProduct.featured) && (
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-amber-500 text-slate-950 shadow-xs flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" /> Destacado
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-blue-900 text-white shadow-xs flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-blue-300" /> Destacado
                     </span>
                   )}
                 </div>
@@ -487,7 +487,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
               <div className="p-6 flex flex-col justify-between space-y-4">
                 <div className="space-y-3">
                   {selectedProduct.brand && (
-                    <span className="text-xs font-extrabold uppercase tracking-wider text-amber-600">
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-blue-900">
                       {selectedProduct.brand}
                     </span>
                   )}
@@ -496,13 +496,13 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                   </h2>
 
                   {/* Points Box */}
-                  <div className="bg-amber-50 rounded-2xl p-3.5 border border-amber-200/80 flex items-center justify-between">
+                  <div className="bg-blue-50/80 rounded-2xl p-3.5 border border-blue-200 flex items-center justify-between">
                     <div>
-                      <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wide block">
+                      <span className="text-[11px] font-bold text-blue-900 uppercase tracking-wide block">
                         Costo de Canje
                       </span>
-                      <div className="flex items-center gap-1.5 text-2xl font-black text-amber-600">
-                        <Coins className="w-6 h-6 text-amber-500" />
+                      <div className="flex items-center gap-1.5 text-2xl font-black text-blue-900">
+                        <Coins className="w-6 h-6 text-blue-800" />
                         <span>{formatPoints(selectedProduct.pointsCost)}</span>
                         <span className="text-xs font-bold text-slate-600">pts</span>
                       </div>
@@ -529,7 +529,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                       <ul className="text-xs text-slate-600 space-y-1">
                         {selectedProduct.specifications.map((spec, idx) => (
                           <li key={idx} className="flex items-start gap-1.5">
-                            <span className="text-amber-500 font-bold">•</span>
+                            <span className="text-blue-800 font-bold">•</span>
                             <span>{spec}</span>
                           </li>
                         ))}
@@ -542,12 +542,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                     {selectedProduct.isDigital || selectedProduct.category === 'Bonos' ? (
                       <>
                         <Banknote className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Bono cargado directamente a la <strong>App SuperGiros</strong> asociada a tu documento tras la validación.</span>
+                        <span>Sin despacho físico. El bono es cargado a tu <strong>App SuperGIROS</strong> con cédula, nombre y teléfono registrados.</span>
                       </>
                     ) : (
                       <>
-                        <Truck className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Envío físico coordinado con la red logística a tu punto o dirección.</span>
+                        <Truck className="w-4 h-4 text-blue-800 shrink-0" />
+                        <span>Los artículos tienen despacho: a la dirección que indiques o para retirar en Oficina Principal SuperGIROS.</span>
                       </>
                     )}
                   </div>
@@ -564,7 +564,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                     className={`w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
                       selectedProduct.stock <= 0
                         ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/30'
+                        : 'bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white shadow-lg shadow-blue-950/30'
                     }`}
                   >
                     <ShoppingCart className="w-4 h-4" />
@@ -586,15 +586,15 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
       {cart.length > 0 && (
         <div className="fixed bottom-6 right-6 z-40 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-4 animate-in slide-in-from-bottom-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500 text-slate-900 flex items-center justify-center font-black shadow-md shadow-amber-500/20">
+            <div className="w-10 h-10 rounded-xl bg-blue-900 text-white flex items-center justify-center font-black shadow-md shadow-blue-950/20">
               <ShoppingBag className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs font-bold text-amber-400">
+              <p className="text-xs font-bold text-blue-300">
                 {cart.reduce((sum, item) => sum + item.quantity, 0)} {cart.length === 1 ? 'premio' : 'premios'} en carrito
               </p>
               <div className="text-sm font-black flex items-center gap-1">
-                <Coins className="w-3.5 h-3.5 text-amber-500" />
+                <Coins className="w-3.5 h-3.5 text-blue-400" />
                 <span>{formatPoints(cart.reduce((sum, i) => sum + (i.product.pointsCost * i.quantity), 0))} pts</span>
               </div>
             </div>
@@ -602,7 +602,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
 
           <button
             onClick={onOpenCart}
-            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-blue-900/30 transition-all cursor-pointer"
           >
             <span>Ver Carrito</span>
             <ArrowRight className="w-3.5 h-3.5" />

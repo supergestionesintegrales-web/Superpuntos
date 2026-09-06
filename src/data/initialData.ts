@@ -101,7 +101,7 @@ export const INITIAL_CAMPAIGNS: CommercialCampaign[] = [
     rulesDescription: 'Registro y validación de póliza SOAT emitida con placa y número de comprobante para verificación oficial en RUNT.',
     categoryTag: 'Seguros Obligatorios',
     requiresReceiptImage: true,
-    bannerColor: 'from-amber-500 to-orange-600'
+    bannerColor: 'from-blue-900 to-blue-700'
   },
   {
     id: 'cmp_giros',

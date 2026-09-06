@@ -82,7 +82,7 @@ export function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100/70 text-slate-800 flex flex-col selection:bg-amber-500 selection:text-white font-sans">
+    <div className="min-h-screen bg-slate-100/70 text-slate-800 flex flex-col selection:bg-blue-900 selection:text-white font-sans">
       
       {/* Navigation (Sidebar on Desktop + Top Bar) */}
       <Navbar

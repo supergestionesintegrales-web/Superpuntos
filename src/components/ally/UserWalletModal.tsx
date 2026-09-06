@@ -76,16 +76,16 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                 <img 
                   src={currentUser.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0f172a&color=fff&bold=true`} 
                   alt={currentUser.name}
-                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover border-2 border-amber-500/50 shadow-lg shadow-amber-500/20"
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover border-2 border-blue-500/50 shadow-lg shadow-blue-900/30"
                 />
-                <div className="absolute -bottom-1.5 -right-1.5 bg-amber-500 text-slate-950 w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] shadow-sm">
+                <div className="absolute -bottom-1.5 -right-1.5 bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] shadow-sm">
                   {tierInfo.current.name === 'Diamante' ? '💎' : '⚡'}
                 </div>
               </div>
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full">
                     {isAlly ? 'Aliado Comercial' : 'Administrador'}
                   </span>
                   {currentUser.documentId && (
@@ -101,7 +101,7 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
 
                 {currentUser.businessName && (
                   <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5 truncate">
-                    <Store className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <Store className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                     <span>{currentUser.businessName}</span>
                   </p>
                 )}
@@ -118,7 +118,7 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                 {/* Board Top: Title & Level Badge */}
                 <div className="flex items-center justify-between pb-3 border-b border-slate-700/80">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                    <div className="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
                       <Coins className="w-4 h-4" />
                     </div>
                     <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
@@ -133,12 +133,12 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                   >
                     <span className="text-[11px] text-slate-300">Nivel:</span>
                     <span className={`text-xs font-black flex items-center gap-1 ${
-                      tierInfo.current.name === 'Diamante' ? 'text-cyan-400' : 'text-amber-400'
+                      tierInfo.current.name === 'Diamante' ? 'text-cyan-400' : 'text-blue-300'
                     }`}>
                       {tierInfo.current.name === 'Diamante' ? <Crown className="w-3.5 h-3.5" /> : <Award className="w-3.5 h-3.5" />}
                       {tierInfo.current.name}
                     </span>
-                    <span className="text-[10px] text-amber-400/80 group-hover:text-amber-300 underline ml-0.5">Escala</span>
+                    <span className="text-[10px] text-blue-300/80 group-hover:text-blue-200 underline ml-0.5">Escala</span>
                   </button>
                 </div>
 
@@ -148,7 +148,7 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                     <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 block mb-1">
                       Puntos Disponibles para Canje
                     </span>
-                    <div className="text-4xl sm:text-5xl font-black text-amber-500 tracking-tight flex items-baseline gap-2">
+                    <div className="text-4xl sm:text-5xl font-black text-blue-400 tracking-tight flex items-baseline gap-2">
                       {formatPoints(currentUser.pointsBalance)}
                       <span className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest">PTS</span>
                     </div>
@@ -157,7 +157,7 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                     </p>
                   </div>
 
-                  <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-inner">
+                  <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-inner">
                     <Coins className="w-8 h-8 stroke-[2.5]" />
                   </div>
                 </div>
@@ -168,11 +168,11 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                     <>
                       <div className="flex justify-between text-xs text-slate-300">
                         <span>Progreso a <strong>{tierInfo.next.name}</strong> ({tierInfo.soatsToNext} SOATs más)</span>
-                        <span className="font-mono text-amber-400">{formatPoints(currentUser.totalPointsEarned || 0)} / {formatPoints(tierInfo.next.minPoints)} pts</span>
+                        <span className="font-mono text-blue-300">{formatPoints(currentUser.totalPointsEarned || 0)} / {formatPoints(tierInfo.next.minPoints)} pts</span>
                       </div>
                       <div className="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-700">
                         <div 
-                          className="bg-gradient-to-r from-amber-500 to-amber-400 h-full rounded-full transition-all duration-500"
+                          className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-500 h-full rounded-full transition-all duration-500"
                           style={{ width: `${tierInfo.progress}%` }}
                         />
                       </div>
@@ -208,7 +208,7 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                   </div>
                   <div className="bg-slate-900/80 rounded-xl p-3 text-center border border-slate-800">
                     <p className="text-[10px] uppercase font-bold text-slate-400">En Validación</p>
-                    <p className="text-base sm:text-lg font-black text-amber-400">{pendingSoats}</p>
+                    <p className="text-base sm:text-lg font-black text-blue-400">{pendingSoats}</p>
                     <p className="text-[9px] text-slate-500">En RUNT</p>
                   </div>
                   <div className="bg-slate-900/80 rounded-xl p-3 text-center border border-slate-800">
@@ -233,7 +233,7 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                     onClose();
                     onOpenReportModal();
                   }}
-                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.99] transition-all cursor-pointer"
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-950/40 active:scale-[0.99] transition-all cursor-pointer"
                 >
                   <PlusCircle className="w-5 h-5 stroke-[2.5]" />
                   <span>Registrar SOAT</span>
@@ -251,7 +251,7 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                       className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-left flex items-center justify-between border border-slate-700 transition-colors cursor-pointer text-xs font-semibold"
                     >
                       <div className="flex items-center gap-2.5">
-                        <FileText className="w-4 h-4 text-amber-400" />
+                        <FileText className="w-4 h-4 text-blue-400" />
                         <span>Mis SOATs Registrados</span>
                       </div>
                       <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -265,7 +265,7 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                       className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-left flex items-center justify-between border border-slate-700 transition-colors cursor-pointer text-xs font-semibold"
                     >
                       <div className="flex items-center gap-2.5">
-                        <ShoppingBag className="w-4 h-4 text-amber-400" />
+                        <ShoppingBag className="w-4 h-4 text-blue-400" />
                         <span>Mis Canjes & Vouchers</span>
                       </div>
                       <ChevronRight className="w-4 h-4 text-slate-400" />

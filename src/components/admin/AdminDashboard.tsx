@@ -77,12 +77,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <div className="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-6 sm:p-8 border border-slate-800 shadow-xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider flex items-center gap-1.5 w-fit">
+            <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30 uppercase tracking-wider flex items-center gap-1.5 w-fit">
               <Sparkles className="w-3.5 h-3.5" />
               Panel de Control Gerencial & Fidelización
             </span>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-              Operaciones & Puntos <span className="text-amber-500">Superpuntos</span>
+              Operaciones & Puntos <span className="text-blue-400">Superpuntos</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
               Monitorea el flujo de puntos, aprueba reportes comerciales de aliados en tiempo real y gestiona el inventario de premios.
@@ -97,14 +97,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               title={`Estado Firestore: ${firestoreStatus}`}
               className="px-3.5 py-2.5 rounded-lg font-bold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
-              <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${isSyncingFirestore ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${isSyncingFirestore ? 'animate-spin' : ''}`} />
               <span>{isSyncingFirestore ? 'Sincronizando...' : 'Sincronizar Firestore'}</span>
               <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
             </button>
 
             <button
               onClick={() => setActiveTab('admin_approvals')}
-              className="px-4 py-2.5 rounded-lg font-bold text-xs sm:text-sm bg-amber-500 hover:bg-amber-400 text-slate-900 shadow-lg shadow-amber-500/20 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+              className="px-4 py-2.5 rounded-lg font-bold text-xs sm:text-sm bg-blue-800 hover:bg-blue-700 text-white shadow-lg shadow-blue-950/30 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
             >
               <CheckSquare className="w-4 h-4 stroke-[2.5]" />
               <span>Validar Gestiones ({pendingGestiones.length})</span>
@@ -114,7 +114,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               onClick={onOpenManualPointsModal}
               className="px-4 py-2.5 rounded-lg font-semibold text-xs sm:text-sm bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <Coins className="w-4 h-4 text-amber-400" />
+              <Coins className="w-4 h-4 text-blue-400" />
               <span>Ajustar / Asignar Puntos</span>
             </button>
           </div>
@@ -129,7 +129,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               Puntos en Circulación
             </span>
-            <div className="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-900 flex items-center justify-center font-bold">
               <Coins className="w-5 h-5" />
             </div>
           </div>
@@ -146,9 +146,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {/* KPI 2: Pending Approvals */}
         <div 
           onClick={() => setActiveTab('admin_approvals')}
-          className={`rounded-2xl p-5 border shadow-xs space-y-3 cursor-pointer transition-all hover:border-amber-400 ${
+          className={`rounded-2xl p-5 border shadow-xs space-y-3 cursor-pointer transition-all hover:border-blue-400 ${
             pendingGestiones.length > 0 
-              ? 'bg-amber-500/5 border-amber-300' 
+              ? 'bg-blue-50/60 border-blue-200' 
               : 'bg-white border-slate-200'
           }`}
         >
@@ -156,15 +156,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               Gestiones por Validar
             </span>
-            <div className="w-9 h-9 rounded-lg bg-amber-500 text-slate-900 flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-lg bg-blue-900 text-white flex items-center justify-center font-bold">
               <Clock className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <div className="text-2xl sm:text-3xl font-black text-amber-500 flex items-center gap-2">
+            <div className="text-2xl sm:text-3xl font-black text-blue-950 flex items-center gap-2">
               {pendingGestiones.length}
               {pendingGestiones.length > 0 && (
-                <span className="text-[10px] font-bold bg-amber-500/20 text-amber-800 px-2 py-0.5 rounded uppercase tracking-wider">
+                <span className="text-[10px] font-bold bg-blue-100 text-blue-900 px-2 py-0.5 rounded uppercase tracking-wider">
                   Revisar
                 </span>
               )}
@@ -232,9 +232,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <button
             onClick={() => setActiveTab('admin_approvals')}
-            className="p-3.5 rounded-xl bg-slate-50 hover:bg-amber-500/10 hover:border-amber-400 border border-slate-200 text-left transition-all group cursor-pointer"
+            className="p-3.5 rounded-xl bg-slate-50 hover:bg-blue-500/10 hover:border-blue-400 border border-slate-200 text-left transition-all group cursor-pointer"
           >
-            <CheckSquare className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform mb-2" />
+            <CheckSquare className="w-5 h-5 text-blue-900 group-hover:scale-110 transition-transform mb-2" />
             <p className="font-bold text-xs text-slate-900">Validar Reportes</p>
             <span className="text-[10px] text-slate-500">{pendingGestiones.length} pendientes</span>
           </button>
@@ -259,9 +259,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           <button
             onClick={onOpenManualPointsModal}
-            className="p-3.5 rounded-xl bg-slate-50 hover:bg-amber-500/10 hover:border-amber-400 border border-slate-200 text-left transition-all group cursor-pointer"
+            className="p-3.5 rounded-xl bg-slate-50 hover:bg-blue-500/10 hover:border-blue-400 border border-slate-200 text-left transition-all group cursor-pointer"
           >
-            <Coins className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform mb-2" />
+            <Coins className="w-5 h-5 text-blue-900 group-hover:scale-110 transition-transform mb-2" />
             <p className="font-bold text-xs text-slate-900">Ajustar Puntos</p>
             <span className="text-[10px] text-slate-500">Asignar o deducir</span>
           </button>
@@ -293,7 +293,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-500" />
+              <Clock className="w-4 h-4 text-blue-900" />
               <h3 className="font-bold text-sm text-slate-900">
                 Gestiones Pendientes de Aprobación ({pendingGestiones.length})
               </h3>
@@ -301,7 +301,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             <button
               onClick={() => setActiveTab('admin_approvals')}
-              className="text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-blue-900 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
             >
               <span>Ver todas</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -336,12 +336,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
 
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className="font-bold text-amber-600">
+                    <span className="font-bold text-blue-900">
                       +{formatPoints(ges.pointsExpected)} pts
                     </span>
                     <button
                       onClick={() => setActiveTab('admin_approvals')}
-                      className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] transition-colors cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-bold text-[11px] transition-colors cursor-pointer"
                     >
                       Revisar
                     </button>
@@ -359,7 +359,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-orange-500" />
+                <AlertTriangle className="w-4 h-4 text-rose-500" />
                 <h3 className="font-bold text-sm text-slate-900">
                   Stock Crítico en Tienda ({lowStockProducts.length})
                 </h3>
@@ -367,7 +367,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
               <button
                 onClick={() => setActiveTab('admin_inventory')}
-                className="text-xs font-bold text-indigo-600 hover:text-indigo-700 cursor-pointer"
+                className="text-xs font-bold text-blue-900 hover:text-blue-800 cursor-pointer"
               >
                 Inventario
               </button>
@@ -380,12 +380,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             ) : (
               <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                 {lowStockProducts.map(p => (
-                  <div key={p.id} className="flex items-center justify-between p-2.5 rounded-xl bg-orange-50/50 border border-orange-200 text-xs">
+                  <div key={p.id} className="flex items-center justify-between p-2.5 rounded-xl bg-rose-50/60 border border-rose-200 text-xs">
                     <div className="flex items-center gap-2 min-w-0">
                       <img src={p.imageUrl} alt={p.name} className="w-8 h-8 rounded-lg object-cover" />
                       <span className="font-bold text-slate-900 truncate">{p.name}</span>
                     </div>
-                    <span className="font-extrabold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-md shrink-0">
+                    <span className="font-extrabold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-md shrink-0">
                       {p.stock} un.
                     </span>
                   </div>
@@ -406,7 +406,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-300">Total Puntos Redimidos:</span>
-                <span className="font-bold text-amber-400">-{formatPoints(totalRedeemedHistorical)} pts</span>
+                <span className="font-bold text-blue-300">-{formatPoints(totalRedeemedHistorical)} pts</span>
               </div>
               <div className="pt-2 border-t border-slate-800 flex justify-between font-bold text-sm">
                 <span>Puntos Vivos en Billeteras:</span>

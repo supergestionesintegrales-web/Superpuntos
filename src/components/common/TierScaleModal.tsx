@@ -36,8 +36,8 @@ export const TierScaleModal: React.FC<TierScaleModalProps> = ({
           </button>
 
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-400 border border-amber-500/30 uppercase tracking-wider flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-amber-400" />
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-500/20 text-blue-300 border border-blue-500/30 uppercase tracking-wider flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-blue-300" />
               Programa de Fidelización
             </span>
           </div>
@@ -53,7 +53,7 @@ export const TierScaleModal: React.FC<TierScaleModalProps> = ({
           {currentUser && currentUser.role === 'ally' && (
             <div className="mt-4 bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-300 font-bold">
                   <Award className="w-5 h-5" />
                 </div>
                 <div>
@@ -99,7 +99,7 @@ export const TierScaleModal: React.FC<TierScaleModalProps> = ({
                 key={tier.name}
                 className={`rounded-2xl p-4 sm:p-5 transition-all border ${
                   isCurrent
-                    ? 'bg-white border-amber-500 shadow-md ring-2 ring-amber-500/20'
+                    ? 'bg-white border-blue-600 shadow-md ring-2 ring-blue-600/20'
                     : isDiamond
                     ? 'bg-gradient-to-br from-cyan-50/70 to-blue-50/40 border-cyan-300 shadow-xs'
                     : 'bg-white border-slate-200 shadow-xs'
@@ -125,7 +125,7 @@ export const TierScaleModal: React.FC<TierScaleModalProps> = ({
                           </span>
                         )}
                         {isCurrent && (
-                          <span className="text-[10px] font-black bg-amber-500 text-slate-900 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          <span className="text-[10px] font-black bg-blue-900 text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
                             Tu Nivel
                           </span>
                         )}
@@ -172,7 +172,7 @@ export const TierScaleModal: React.FC<TierScaleModalProps> = ({
         {/* Footer */}
         <div className="p-4 sm:p-5 bg-white border-t border-slate-200 flex items-center justify-between">
           <div className="text-xs text-slate-500">
-            Cada SOAT aprobado en RUNT acredita <strong className="text-amber-600">5 Superpuntos</strong>.
+            Cada SOAT aprobado en RUNT acredita <strong className="text-blue-900">5 Superpuntos</strong>.
           </div>
 
           <button

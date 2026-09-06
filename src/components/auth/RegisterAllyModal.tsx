@@ -102,11 +102,11 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center shadow-inner font-black">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-blue-900 text-white flex items-center justify-center shadow-inner font-black">
               <UserPlus className="w-6 h-6 stroke-[2.5]" />
             </div>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full">
                 Nuevo Aliado
               </span>
               <h2 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">
@@ -145,7 +145,7 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
                   placeholder="Ej: Laura Sofía Martínez"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-700"
                 />
               </div>
 
@@ -157,7 +157,7 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
                   placeholder="Ej: 1098765432"
                   value={documentId}
                   onChange={(e) => setDocumentId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-700"
                 />
               </div>
             </div>
@@ -170,7 +170,7 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
                   placeholder="Ej: Supergiros La Estación"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-700"
                 />
               </div>
 
@@ -182,7 +182,7 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
                   placeholder="Ej: 315 889 0012"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-700"
                 />
               </div>
             </div>
@@ -195,7 +195,7 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
                 placeholder="aliado@supergestiones.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-700"
               />
             </div>
 
@@ -221,7 +221,7 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
                     placeholder="Mínimo 6 caracteres"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 pr-8"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-700 pr-8"
                   />
                   <Lock className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -242,7 +242,7 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
                         ? 'border-red-400 focus:border-red-500 bg-red-50/20' 
                         : confirmPassword && password === confirmPassword
                         ? 'border-emerald-400 focus:border-emerald-500 bg-emerald-50/20'
-                        : 'border-slate-200 focus:border-amber-500'
+                        : 'border-slate-200 focus:border-blue-700'
                     }`}
                   />
                   <Lock className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -250,8 +250,8 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
               </div>
             </div>
 
-            <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200/80 text-xs text-amber-900 flex items-center gap-2">
-              <Coins className="w-4 h-4 text-amber-600 shrink-0" />
+            <div className="p-3 bg-blue-50 rounded-2xl border border-blue-200/80 text-xs text-blue-900 flex items-center gap-2">
+              <Coins className="w-4 h-4 text-blue-800 shrink-0" />
               <span>
                 El aliado inicia con saldo <strong>0 Superpuntos</strong> y nivel <strong>Bronce</strong>.
               </span>
@@ -268,7 +268,7 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
 
               <button
                 type="submit"
-                className="px-5 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs shadow-md shadow-amber-500/25 flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                className="px-5 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white font-bold text-xs shadow-md shadow-blue-950/25 flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>Completar Registro e Ingresar</span>

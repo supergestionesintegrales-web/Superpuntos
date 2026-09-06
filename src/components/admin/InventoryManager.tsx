@@ -203,7 +203,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
       {/* Header Banner */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+          <span className="text-[11px] font-bold text-blue-900 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
             Control de Premios y Almacén
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
@@ -216,7 +216,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
 
         <button
           onClick={handleOpenAdd}
-          className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-500/20 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+          className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-blue-900 hover:bg-blue-800 text-white shadow-md shadow-blue-950/20 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
           <span>+ Nuevo Premio</span>
@@ -244,11 +244,11 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Stock Crítico (&lt; 5)</p>
           <div className="flex items-baseline justify-between">
-            <span className={`text-2xl font-black ${lowStockCount > 0 ? 'text-amber-500' : 'text-slate-900'}`}>
+            <span className={`text-2xl font-black ${lowStockCount > 0 ? 'text-blue-900' : 'text-slate-900'}`}>
               {lowStockCount}
             </span>
             {lowStockCount > 0 && (
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-900">
                 Atención
               </span>
             )}
@@ -282,7 +282,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
               placeholder="Buscar premio por nombre, marca o especificación..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-slate-900 placeholder:text-slate-400"
+              className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 transition-all text-slate-900 placeholder:text-slate-400"
             />
             {searchQuery && (
               <button
@@ -310,8 +310,8 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
               onClick={() => setStockStatusFilter('low')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
                 stockStatusFilter === 'low' 
-                  ? 'bg-amber-500 text-slate-950 font-bold' 
-                  : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
+                  ? 'bg-blue-900 text-white font-bold' 
+                  : 'bg-blue-50 text-blue-900 hover:bg-blue-100'
               }`}
             >
               Stock Bajo ({lowStockCount})
@@ -349,7 +349,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
               onClick={() => setCategoryFilter(cat)}
               className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 categoryFilter === cat
-                  ? 'bg-amber-500 text-slate-950 shadow-xs'
+                  ? 'bg-blue-900 text-white shadow-xs'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
@@ -369,7 +369,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
           </p>
           <button
             onClick={handleOpenAdd}
-            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-xs cursor-pointer"
+            className="px-4 py-2 bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer"
           >
             + Crear Nuevo Premio
           </button>
@@ -389,7 +389,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                     : isOutOfStock
                     ? 'border-red-200 hover:border-red-300'
                     : isLowStock
-                    ? 'border-amber-200 hover:border-amber-300'
+                    ? 'border-blue-300 hover:border-blue-400'
                     : 'border-slate-200 hover:border-slate-300'
                 }`}
               >
@@ -410,7 +410,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                       <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-bold ${
                         product.isDigital || product.category === 'Bonos'
                           ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-amber-100 text-amber-600'
+                          : 'bg-blue-100 text-blue-900'
                       }`}>
                         {product.isDigital || product.category === 'Bonos' ? <Banknote className="w-8 h-8" /> : <Gift className="w-8 h-8" />}
                       </div>
@@ -428,7 +428,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                         </span>
                       )}
                       {(product.isFeatured || product.featured) && (
-                        <span className="text-[10px] font-extrabold uppercase px-2 py-1 rounded-full bg-amber-500 text-slate-950 flex items-center gap-1 shadow-xs">
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-1 rounded-full bg-blue-900 text-white flex items-center gap-1 shadow-xs">
                           <Sparkles className="w-3 h-3" /> Destacado
                         </span>
                       )}
@@ -455,7 +455,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                         </h3>
                       </div>
                       
-                      <div className="flex items-baseline gap-1 font-black text-lg text-amber-500 shrink-0">
+                      <div className="flex items-baseline gap-1 font-black text-lg text-blue-900 shrink-0">
                         {formatPoints(product.pointsCost)}
                         <span className="text-[10px] font-bold text-slate-400">PTS</span>
                       </div>
@@ -494,7 +494,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                         isOutOfStock 
                           ? 'text-red-600' 
                           : isLowStock 
-                          ? 'text-amber-600' 
+                          ? 'text-blue-900' 
                           : 'text-slate-800'
                       }`}>
                         {product.stock} disponibles
@@ -556,7 +556,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
             {/* Modal Header */}
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-900 flex items-center justify-center">
                   <Package className="w-5 h-5" />
                 </div>
                 <div>
@@ -591,7 +591,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                   placeholder="Ej. Kit Supergiros, Bono $100.000 COP, Freidora de Aire"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 text-slate-900"
                 />
               </div>
 
@@ -604,7 +604,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                   <select
                     value={formData.category}
                     onChange={e => setFormData({ ...formData, category: e.target.value as ProductCategory })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900 cursor-pointer"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 text-slate-900 cursor-pointer"
                   >
                     <option value="Artículos">Artículos (Físico)</option>
                     <option value="Bonos">Bonos (Digital / Saldo)</option>
@@ -623,9 +623,9 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                       placeholder="25"
                       value={formData.pointsCost}
                       onChange={e => setFormData({ ...formData, pointsCost: Number(e.target.value) })}
-                      className="w-full pl-3.5 pr-12 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900 font-bold"
+                      className="w-full pl-3.5 pr-12 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 text-slate-900 font-bold"
                     />
-                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-600">
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-blue-900">
                       PTS
                     </span>
                   </div>
@@ -645,7 +645,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                     placeholder="50"
                     value={formData.stock}
                     onChange={e => setFormData({ ...formData, stock: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900 font-bold"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 text-slate-900 font-bold"
                   />
                 </div>
 
@@ -658,7 +658,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                     placeholder="SuperGIROS, Oster, Sony, etc."
                     value={formData.brand}
                     onChange={e => setFormData({ ...formData, brand: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 text-slate-900"
                   />
                 </div>
               </div>
@@ -674,7 +674,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                     placeholder="https://i.postimg.cc/... o enlace directo a la imagen"
                     value={formData.imageUrl}
                     onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                    className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900"
+                    className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 text-slate-900"
                   />
                   {formData.imageUrl && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md overflow-hidden border border-slate-200">
@@ -697,7 +697,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                   placeholder="Detalles sobre el premio, garantía o condiciones de redención..."
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900 resize-none"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 text-slate-900 resize-none"
                 />
               </div>
 
@@ -711,7 +711,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                   placeholder="Capacidad 4 Litros&#10;Garantía de 1 año&#10;Incluye recetario oficial"
                   value={formData.specificationsText}
                   onChange={e => setFormData({ ...formData, specificationsText: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-slate-900 font-mono text-xs resize-none"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 text-slate-900 font-mono text-xs resize-none"
                 />
               </div>
 
@@ -722,7 +722,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                     type="checkbox"
                     checked={formData.isDigital}
                     onChange={e => setFormData({ ...formData, isDigital: e.target.checked })}
-                    className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500"
+                    className="w-4 h-4 rounded text-blue-900 focus:ring-blue-900"
                   />
                   <div>
                     <p className="text-xs font-bold text-slate-800">Es Digital</p>
@@ -735,7 +735,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                     type="checkbox"
                     checked={formData.isFeatured}
                     onChange={e => setFormData({ ...formData, isFeatured: e.target.checked })}
-                    className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500"
+                    className="w-4 h-4 rounded text-blue-900 focus:ring-blue-900"
                   />
                   <div>
                     <p className="text-xs font-bold text-slate-800">Destacado</p>
@@ -748,7 +748,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                     type="checkbox"
                     checked={formData.active}
                     onChange={e => setFormData({ ...formData, active: e.target.checked })}
-                    className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500"
+                    className="w-4 h-4 rounded text-blue-900 focus:ring-blue-900"
                   />
                   <div>
                     <p className="text-xs font-bold text-slate-800">Disponible</p>
@@ -768,7 +768,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all active:scale-95 cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-black text-xs shadow-md shadow-blue-950/20 transition-all active:scale-95 cursor-pointer"
                 >
                   {editingProduct ? 'Guardar Cambios' : 'Crear Producto'}
                 </button>

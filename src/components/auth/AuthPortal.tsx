@@ -267,11 +267,11 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
 
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-between selection:bg-amber-500 selection:text-slate-900 font-sans text-slate-100 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-between selection:bg-blue-900 selection:text-white font-sans text-slate-100 relative overflow-hidden">
       
       {/* Background Subtle Gradient Accents */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl"></div>
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-900/25 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-slate-800/30 rounded-full pointer-events-none"></div>
       </div>
@@ -279,15 +279,15 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
       {/* Top Header Bar */}
       <header className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center font-black shadow-lg shadow-amber-500/20">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-700 to-blue-950 text-white flex items-center justify-center font-black shadow-lg shadow-blue-900/30">
             <Coins className="w-6 h-6 stroke-[2.5]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-black text-xl text-white tracking-tight">
-                SUPER<span className="text-amber-500">PUNTOS</span>
+                SUPER<span className="text-blue-400">PUNTOS</span>
               </span>
-              <span className="hidden sm:inline-block text-[10px] uppercase font-extrabold tracking-widest text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full">
+              <span className="hidden sm:inline-block text-[10px] uppercase font-extrabold tracking-widest text-blue-300 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded-full">
                 Portal de Fidelización
               </span>
             </div>
@@ -298,8 +298,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-300 border border-blue-500/30 shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
             Conexión Segura
           </span>
         </div>
@@ -327,7 +327,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
             }}
             className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
               activeTab === 'ally_login'
-                ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/25 font-black'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-black'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
             }`}
           >
@@ -342,7 +342,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
             }}
             className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
               activeTab === 'ally_register'
-                ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/25 font-black'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-black'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
             }`}
           >
@@ -357,7 +357,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
             }}
             className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
               activeTab === 'admin_login'
-                ? 'bg-slate-800 text-amber-400 border border-slate-700 shadow-md font-black'
+                ? 'bg-blue-950 text-blue-300 border border-blue-800 shadow-md font-black'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
             }`}
           >
@@ -371,13 +371,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
           
           {/* Banner de Solución para Dominio no Autorizado en Firebase */}
           {unauthorizedDomain && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-amber-950/80 border border-amber-500/50 text-amber-200 text-xs space-y-3.5 animate-in fade-in shadow-xl">
+            <div className="p-4 sm:p-5 rounded-2xl bg-blue-950/80 border border-blue-500/50 text-blue-200 text-xs space-y-3.5 animate-in fade-in shadow-xl">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                  <ShieldAlert className="w-5 h-5 text-blue-300 shrink-0 mt-0.5" />
                   <div>
                     <h4 className="font-bold text-sm text-white">Dominio no autorizado en Firebase Auth</h4>
-                    <p className="text-amber-300/90 text-xs mt-0.5">
+                    <p className="text-blue-300/90 text-xs mt-0.5">
                       Firebase bloquea el acceso con Google hasta que autorices este dominio en la consola de Firebase.
                     </p>
                   </div>
@@ -396,16 +396,16 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
               <div className="p-3 bg-slate-950/90 rounded-xl border border-slate-700/80 flex items-center justify-between gap-2">
                 <div className="overflow-hidden">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">Dominio que debes agregar:</span>
-                  <code className="text-amber-300 font-mono text-xs select-all break-all">{unauthorizedDomain}</code>
+                  <code className="text-blue-300 font-mono text-xs select-all break-all">{unauthorizedDomain}</code>
                 </div>
                 <button
                   type="button"
                   onClick={() => copyDomainToClipboard(unauthorizedDomain)}
-                  className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shrink-0 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shrink-0 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
                 >
                   {hasCopiedDomain ? (
                     <>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-slate-950" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                       <span>¡Copiado!</span>
                     </>
                   ) : (
@@ -424,7 +424,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                   <li>Abre la consola del proyecto <strong className="text-white">superpuntos-on</strong>.</li>
                   <li>Ve a <strong className="text-white">Authentication &gt; Settings</strong> (pestaña Configuración).</li>
                   <li>Baja hasta <strong className="text-white">"Authorized domains"</strong> (Dominios autorizados).</li>
-                  <li>Haz clic en <strong className="text-amber-400">"Add domain"</strong>, pega el dominio copiado y guarda.</li>
+                  <li>Haz clic en <strong className="text-blue-300">"Add domain"</strong>, pega el dominio copiado y guarda.</li>
                 </ol>
               </div>
 
@@ -436,7 +436,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs border border-slate-700 transition-all cursor-pointer"
                 >
-                  <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+                  <ExternalLink className="w-3.5 h-3.5 text-blue-300" />
                   <span>Abrir Configuración en Firebase Console ↗</span>
                 </a>
                 <button
@@ -456,7 +456,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
               
               <div className="border-b border-slate-800 pb-4">
                 <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
-                  <LogIn className="w-5 h-5 text-amber-500" />
+                  <LogIn className="w-5 h-5 text-blue-400" />
                   Iniciar Sesión como Aliado Comercial
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
@@ -468,10 +468,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
               {allyError && (
                 <div className={`p-4 rounded-2xl border flex items-start gap-3.5 text-xs animate-in fade-in slide-in-from-top-2 ${
                   allyError.notRegistered 
-                    ? 'bg-amber-950/70 border-amber-500/40 text-amber-200' 
+                    ? 'bg-blue-950/80 border-blue-500/40 text-blue-200' 
                     : 'bg-red-950/70 border-red-500/40 text-red-200'
                 }`}>
-                  <AlertCircle className={`w-5 h-5 shrink-0 mt-0.5 ${allyError.notRegistered ? 'text-amber-400' : 'text-red-400'}`} />
+                  <AlertCircle className={`w-5 h-5 shrink-0 mt-0.5 ${allyError.notRegistered ? 'text-blue-300' : 'text-red-400'}`} />
                   <div className="flex-1 space-y-2.5">
                     <p className="font-semibold leading-relaxed">
                       {allyError.message}
@@ -480,7 +480,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                       <button
                         type="button"
                         onClick={handleGoToRegisterWithDoc}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all shadow-md cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs transition-all shadow-md cursor-pointer"
                       >
                         <UserPlus className="w-3.5 h-3.5" />
                         <span>Crear mi cuenta de Aliado con esta cédula →</span>
@@ -492,12 +492,12 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
 
               {/* Banner de Reconocimiento de Cuenta */}
               {recognizedName && allyDocument && (
-                <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between text-xs text-amber-200">
+                <div className="p-3.5 bg-blue-600/15 border border-blue-500/30 rounded-2xl flex items-center justify-between text-xs text-blue-200">
                   <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-blue-300 shrink-0" />
                     <div>
                       <p className="font-bold text-white">¡Hola de nuevo, {recognizedName}!</p>
-                      <p className="text-[11px] text-amber-300/80">Cuenta reconocida en el sistema ({allyDocument})</p>
+                      <p className="text-[11px] text-blue-300/80">Cuenta reconocida en el sistema ({allyDocument})</p>
                     </div>
                   </div>
                   <button
@@ -523,7 +523,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 {/* Document Input */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-200 mb-2">
-                    Cédula / Documento de Identidad <span className="text-amber-400 font-bold">*</span>
+                    Cédula / Documento de Identidad <span className="text-blue-400 font-bold">*</span>
                   </label>
                   <input
                     id="input-ally-document"
@@ -536,14 +536,14 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                       if (allyError) setAllyError(null);
                     }}
                     placeholder="Ingresa tu número de documento"
-                    className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all font-mono"
+                    className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
                   />
                 </div>
 
                 {/* Password Input */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-200 mb-2">
-                    Contraseña <span className="text-amber-400 font-bold">*</span>
+                    Contraseña <span className="text-blue-400 font-bold">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -556,7 +556,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                         if (allyError) setAllyError(null);
                       }}
                       placeholder="Ingresa tu contraseña"
-                      className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                      className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                     />
                     <button
                       type="button"
@@ -573,7 +573,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                   id="btn-iniciar-sesion-aliado"
                   type="submit"
                   disabled={isVerifying}
-                  className="w-full py-4 px-6 rounded-xl font-black text-base bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer mt-3"
+                  className="w-full py-4 px-6 rounded-xl font-black text-base bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white shadow-lg shadow-blue-950/40 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer mt-3"
                 >
                   {isVerifying ? (
                     <>
@@ -596,7 +596,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                   id="btn-olvido-contrasena"
                   type="button"
                   onClick={() => setIsForgotPasswordOpen(true)}
-                  className="text-xs text-slate-400 hover:text-amber-400 hover:underline transition-colors cursor-pointer"
+                  className="text-xs text-slate-400 hover:text-blue-300 hover:underline transition-colors cursor-pointer"
                 >
                   ¿Olvidaste tu contraseña?
                 </button>
@@ -652,7 +652,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                     setRegDocument(allyDocument);
                     setActiveTab('ally_register');
                   }}
-                  className="text-xs font-bold text-amber-400 hover:text-amber-300 hover:underline ml-1 cursor-pointer"
+                  className="text-xs font-bold text-blue-400 hover:text-blue-300 hover:underline ml-1 cursor-pointer"
                 >
                   Regístrate aquí
                 </button>
@@ -667,7 +667,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
               
               <div className="border-b border-slate-800 pb-4">
                 <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
-                  <UserPlus className="w-5 h-5 text-amber-500" />
+                  <UserPlus className="w-5 h-5 text-blue-400" />
                   Registro de Nuevo Aliado Comercial
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
@@ -735,7 +735,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 {/* Name */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                    Nombre Completo / Razón Social <span className="text-amber-400 font-bold">*</span>
+                    Nombre Completo / Razón Social <span className="text-blue-400 font-bold">*</span>
                   </label>
                   <input
                     type="text"
@@ -743,7 +743,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
                     placeholder="Ej: Carlos Gómez"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                   />
                 </div>
 
@@ -751,7 +751,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                      Cédula / NIT <span className="text-amber-400 font-bold">*</span>
+                      Cédula / NIT <span className="text-blue-400 font-bold">*</span>
                     </label>
                     <input
                       type="text"
@@ -759,7 +759,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                       value={regDocument}
                       onChange={(e) => setRegDocument(e.target.value)}
                       placeholder="Ej: 1098765432"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all font-mono"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
                     />
                   </div>
 
@@ -773,7 +773,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                         value={regBusinessName}
                         onChange={(e) => setRegBusinessName(e.target.value)}
                         placeholder="Ej: Variedades El Centro"
-                        className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                       />
                       <Building2 className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                     </div>
@@ -784,7 +784,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                      Correo Electrónico <span className="text-amber-400 font-bold">*</span>
+                      Correo Electrónico <span className="text-blue-400 font-bold">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -793,7 +793,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                         value={regEmail}
                         onChange={(e) => setRegEmail(e.target.value)}
                         placeholder="aliado@correo.com"
-                        className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                       />
                       <Mail className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                     </div>
@@ -809,7 +809,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                         value={regPhone}
                         onChange={(e) => setRegPhone(e.target.value)}
                         placeholder="300 123 4567"
-                        className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                       />
                       <Phone className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                     </div>
@@ -820,7 +820,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                      Contraseña <span className="text-amber-400 font-bold">*</span>
+                      Contraseña <span className="text-blue-400 font-bold">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -830,7 +830,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                         value={regPassword}
                         onChange={(e) => setRegPassword(e.target.value)}
                         placeholder="Mínimo 6 caracteres"
-                        className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                       />
                       <button
                         type="button"
@@ -844,7 +844,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                      Confirmar Contraseña <span className="text-amber-400 font-bold">*</span>
+                      Confirmar Contraseña <span className="text-blue-400 font-bold">*</span>
                     </label>
                     <input
                       type={showRegPassword ? 'text' : 'password'}
@@ -852,7 +852,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                       value={regConfirmPassword}
                       onChange={(e) => setRegConfirmPassword(e.target.value)}
                       placeholder="Repite tu contraseña"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                     />
                   </div>
                 </div>
@@ -860,7 +860,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 <button
                   type="submit"
                   disabled={isRegistering || regSuccess}
-                  className="w-full py-4 px-6 rounded-xl font-black text-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer mt-2"
+                  className="w-full py-4 px-6 rounded-xl font-black text-sm bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white shadow-lg shadow-blue-950/40 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer mt-2"
                 >
                   {isRegistering ? (
                     <>
@@ -869,7 +869,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-4 h-4 text-blue-300" />
                       <span>Registrarme y Acceder</span>
                     </>
                   )}
@@ -884,7 +884,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('ally_login')}
-                  className="text-xs font-bold text-amber-400 hover:text-amber-300 hover:underline ml-1 cursor-pointer"
+                  className="text-xs font-bold text-blue-400 hover:text-blue-300 hover:underline ml-1 cursor-pointer"
                 >
                   Inicia sesión aquí
                 </button>
@@ -899,7 +899,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
               
               <div className="border-b border-slate-800 pb-4">
                 <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-amber-500" />
+                  <ShieldCheck className="w-5 h-5 text-blue-400" />
                   Acceso Administrativo SuperGIROS
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
@@ -956,7 +956,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 
                 <div>
                   <label className="block text-xs font-semibold text-slate-200 mb-2">
-                    Usuario / Correo Administrativo <span className="text-amber-400 font-bold">*</span>
+                    Usuario / Correo Administrativo <span className="text-blue-400 font-bold">*</span>
                   </label>
                   <input
                     type="text"
@@ -964,13 +964,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                     value={adminEmail}
                     onChange={(e) => setAdminEmail(e.target.value)}
                     placeholder="Ingresa tu correo o usuario administrativo"
-                    className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                    className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-200 mb-2">
-                    Contraseña de Administrador <span className="text-amber-400 font-bold">*</span>
+                    Contraseña de Administrador <span className="text-blue-400 font-bold">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -979,7 +979,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                       value={adminPassword}
                       onChange={(e) => setAdminPassword(e.target.value)}
                       placeholder="Ingresa tu contraseña"
-                      className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                      className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                     />
                     <button
                       type="button"
@@ -995,7 +995,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                   id="btn-iniciar-sesion-admin"
                   type="submit"
                   disabled={isAdminLoggingIn}
-                  className="w-full py-4 px-6 rounded-xl font-black text-sm bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 shadow-lg flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer mt-2"
+                  className="w-full py-4 px-6 rounded-xl font-black text-sm bg-blue-950 hover:bg-blue-900 text-blue-200 border border-blue-800 shadow-lg flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer mt-2"
                 >
                   {isAdminLoggingIn ? (
                     <>
@@ -1017,7 +1017,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 <button
                   type="button"
                   onClick={() => setIsForgotPasswordOpen(true)}
-                  className="text-xs text-slate-400 hover:text-amber-400 hover:underline transition-colors cursor-pointer"
+                  className="text-xs text-slate-400 hover:text-blue-300 hover:underline transition-colors cursor-pointer"
                 >
                   ¿Olvidaste tu contraseña de administrador?
                 </button>

@@ -71,7 +71,7 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
       {/* Header */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+          <span className="text-[11px] font-bold text-blue-900 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
             Directorio y Fidelización de Aliados
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
@@ -91,7 +91,7 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
             className="px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer"
             title="Ver requisitos de Bronce, Plata, Oro y Diamante (25-30 SOATs)"
           >
-            <Award className="w-4 h-4 text-amber-500" />
+            <Award className="w-4 h-4 text-blue-900" />
             <span>Escalas de Fidelidad</span>
           </button>
 
@@ -100,7 +100,7 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
               onClick={onOpenRegisterAlly}
               className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-slate-900 hover:bg-slate-800 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
             >
-              <PlusCircle className="w-4 h-4 text-amber-400" />
+              <PlusCircle className="w-4 h-4 text-blue-400" />
               <span>+ Registrar Aliado</span>
             </button>
           )}
@@ -110,7 +110,7 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
               setTargetAllyForPoints(undefined);
               setIsPointsModalOpen(true);
             }}
-            className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-md shadow-amber-500/25 flex items-center gap-2 transition-all hover:scale-102 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-blue-900 hover:bg-blue-800 text-white shadow-md shadow-blue-950/25 flex items-center gap-2 transition-all hover:scale-102 cursor-pointer"
           >
             <Coins className="w-4 h-4" />
             <span>+ Asignar Puntos / Bono</span>
@@ -127,13 +127,13 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
             placeholder="Buscar por aliado, cédula, punto comercial..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-slate-50"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-700 bg-slate-50"
           />
         </div>
 
         {/* Zone Select Dropdown */}
         <div className="relative w-full sm:w-auto min-w-[220px]">
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus-within:border-amber-500 transition-all">
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus-within:border-blue-700 transition-all">
             <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
             <select
               value={selectedZone}
@@ -199,7 +199,7 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
                 <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-xs space-y-1 text-slate-600">
                   {ally.businessName && (
                     <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-                      <Store className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                      <Store className="w-3.5 h-3.5 text-blue-900 shrink-0" />
                       <span className="truncate">{ally.businessName}</span>
                     </div>
                   )}
@@ -215,10 +215,10 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
 
                 {/* Points overview cards */}
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-200/70">
-                    <span className="text-[10px] font-bold text-amber-800 uppercase block">Saldo Disponible</span>
-                    <span className="text-base font-black text-amber-600 flex items-center gap-1">
-                      <Coins className="w-3.5 h-3.5 text-amber-500" />
+                  <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-200/70">
+                    <span className="text-[10px] font-bold text-blue-900 uppercase block">Saldo Disponible</span>
+                    <span className="text-base font-black text-blue-900 flex items-center gap-1">
+                      <Coins className="w-3.5 h-3.5 text-blue-900" />
                       {formatPoints(ally.pointsBalance)} pts
                     </span>
                   </div>
@@ -255,7 +255,7 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
 
                   <button
                     onClick={() => handleOpenPoints(ally.id)}
-                    className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-white flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-blue-900 hover:bg-blue-800 text-white flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
                     title="Asignar bonos, ajustes o deducciones a este aliado"
                   >
                     <Coins className="w-3.5 h-3.5" />
@@ -304,7 +304,7 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400 font-medium">Saldo de Puntos:</span>
-                <span className="font-bold text-amber-600">{formatPoints(userToDelete.pointsBalance)} pts</span>
+                <span className="font-bold text-blue-900">{formatPoints(userToDelete.pointsBalance)} pts</span>
               </div>
             </div>
 

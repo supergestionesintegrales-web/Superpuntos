@@ -171,7 +171,7 @@ export const CampaignsManager: React.FC<CampaignsManagerProps> = ({
                 
                 {/* Top Row: Icon + Category Badge + Active pill */}
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200/60 text-amber-600 flex items-center justify-center shadow-xs">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200/60 text-blue-900 flex items-center justify-center shadow-xs">
                     <CampaignIcon name={camp.iconName} className="w-6 h-6" />
                   </div>
 
@@ -197,8 +197,8 @@ export const CampaignsManager: React.FC<CampaignsManagerProps> = ({
                   <h3 className="font-heading font-extrabold text-base text-slate-900">
                     {camp.serviceType}
                   </h3>
-                  <div className="flex items-baseline gap-1 mt-1 font-black text-xl text-amber-600">
-                    <Coins className="w-4 h-4 text-amber-500 self-center" />
+                  <div className="flex items-baseline gap-1 mt-1 font-black text-xl text-blue-900">
+                    <Coins className="w-4 h-4 text-blue-900 self-center" />
                     <span>+{formatPoints(camp.pointsAwarded)}</span>
                     <span className="text-xs font-bold text-slate-500">
                       {camp.calculationType === 'per_unit' && camp.minAmount
@@ -328,7 +328,7 @@ export const CampaignsManager: React.FC<CampaignsManagerProps> = ({
                     min={1}
                     value={formData.pointsAwarded}
                     onChange={(e) => setFormData({ ...formData, pointsAwarded: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-black text-amber-600 focus:outline-hidden focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-black text-blue-900 focus:outline-hidden focus:border-emerald-500"
                   />
                 </div>
 

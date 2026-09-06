@@ -105,8 +105,8 @@ export const DeliveryAuditManager: React.FC = () => {
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] font-bold text-amber-700 block">Pendientes Despacho</span>
-          <span className={`text-xl font-black ${pendingCount > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
+          <span className="text-[11px] font-bold text-blue-900 block">Pendientes Despacho</span>
+          <span className={`text-xl font-black ${pendingCount > 0 ? 'text-blue-900' : 'text-slate-900'}`}>
             {pendingCount + preparingCount}
           </span>
         </div>
@@ -138,7 +138,7 @@ export const DeliveryAuditManager: React.FC = () => {
           <button
             onClick={() => setStatusFilter('pending')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 cursor-pointer ${
-              statusFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100'
+              statusFilter === 'pending' ? 'bg-blue-900 text-white' : 'bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100'
             }`}
           >
             Pendientes ({pendingCount})
@@ -234,8 +234,8 @@ export const DeliveryAuditManager: React.FC = () => {
 
                     {/* Points */}
                     <td className="p-4">
-                      <div className="font-black text-amber-600 flex items-center gap-1">
-                        <Coins className="w-3.5 h-3.5 text-amber-500" />
+                      <div className="font-black text-blue-900 flex items-center gap-1">
+                        <Coins className="w-3.5 h-3.5 text-blue-700" />
                         <span>{formatPoints(order.totalPoints)}</span>
                         <span className="text-[10px] text-slate-500">pts</span>
                       </div>
@@ -243,18 +243,38 @@ export const DeliveryAuditManager: React.FC = () => {
 
                     {/* Delivery Destination */}
                     <td className="p-4">
-                      {order.deliveryType === 'digital' ? (
-                        <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">
-                          <Banknote className="w-3 h-3 text-emerald-600" />
-                          Bono App SuperGiros
-                        </span>
+                      {order.deliveryType === 'digital' || order.hasBonos ? (
+                        <div className="space-y-1">
+                          <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">
+                            <Banknote className="w-3 h-3 text-emerald-600" />
+                            Bono App SuperGiros
+                          </span>
+                          <div className="text-[10px] text-slate-600">
+                            C.C: <strong>{order.supergirosDocument || order.allyDocument}</strong>
+                            <br />
+                            Cel: <strong>{order.supergirosPhone || order.allyPhone}</strong>
+                            {order.supergirosName && (
+                              <span className="block text-slate-500 truncate max-w-[160px]">{order.supergirosName}</span>
+                            )}
+                          </div>
+                        </div>
+                      ) : order.pickupOffice || order.deliveryType === 'branch_pickup' ? (
+                        <div className="space-y-0.5">
+                          <span className="text-[11px] font-bold text-blue-950 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200 inline-flex items-center gap-1">
+                            <Building className="w-3 h-3 text-blue-900" />
+                            Retiro en Oficina
+                          </span>
+                          <p className="text-[10px] text-slate-700 font-medium">
+                            {order.pickupOffice || 'Oficina Principal SuperGIROS'}
+                          </p>
+                        </div>
                       ) : order.shippingAddress ? (
                         <div>
                           <p className="text-slate-800 font-medium truncate max-w-[180px]">{order.shippingAddress}</p>
                           <span className="text-[10px] text-slate-500">{order.shippingCity} • {order.recipientName}</span>
                         </div>
                       ) : (
-                        <span className="text-[11px] text-slate-500">Retiro en Oficina Central</span>
+                        <span className="text-[11px] text-slate-500">Retiro en Oficina Principal SuperGIROS</span>
                       )}
                     </td>
 
@@ -280,8 +300,8 @@ export const DeliveryAuditManager: React.FC = () => {
                         </div>
                       )}
                       {order.status === 'preparing' && (
-                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 inline-flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-amber-600" />
+                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-900 border border-blue-300 inline-flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-blue-700" />
                           En Preparación
                         </span>
                       )}

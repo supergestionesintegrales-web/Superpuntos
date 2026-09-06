@@ -10,6 +10,7 @@ import {
   AppNotification, 
   CartItem,
   OrderStatus,
+  DeliveryType,
   AccessLog,
   SheetsSyncStatus
 } from '../types';
@@ -202,6 +203,7 @@ interface AppContextType {
     pickupOffice?: string;
     recipientName?: string;
     recipientPhone?: string;
+    pickupPersonDocument?: string;
     supergirosDocument?: string;
     supergirosName?: string;
     supergirosPhone?: string;
@@ -1626,7 +1628,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             newCampaign.rulesDescription || '',
             newCampaign.requiresReceiptImage ? 'Sí' : 'No',
             newCampaign.iconName || 'Award',
-            newCampaign.bannerColor || 'from-amber-500 to-orange-600',
+            newCampaign.bannerColor || 'from-blue-900 to-blue-700',
             new Date().toLocaleString('es-CO')
           ],
           spreadsheetId
@@ -2154,6 +2156,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     pickupOffice?: string;
     recipientName?: string;
     recipientPhone?: string;
+    pickupPersonDocument?: string;
     supergirosDocument?: string;
     supergirosName?: string;
     supergirosPhone?: string;
@@ -2248,6 +2251,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       pickupOffice: deliveryDetails.pickupOffice,
       recipientName: deliveryDetails.recipientName || currentUser.name,
       recipientPhone: deliveryDetails.recipientPhone || currentUser.phone,
+      pickupPersonDocument: deliveryDetails.pickupPersonDocument,
       // App SuperGIROS Account
       supergirosDocument: deliveryDetails.supergirosDocument || (hasBonos ? currentUser.documentId : undefined),
       supergirosName: deliveryDetails.supergirosName || (hasBonos ? currentUser.name : undefined),

@@ -125,7 +125,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 text-white p-6 relative">
+        <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-6 relative">
           <button
             onClick={handleClose}
             className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
@@ -134,11 +134,11 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/30 text-amber-400 flex items-center justify-center shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 text-blue-300 flex items-center justify-center shadow-inner">
               <KeyRound className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 rounded-full">
                 Recuperación Segura
               </span>
               <h2 className="text-xl font-black text-white tracking-tight mt-1">
@@ -171,7 +171,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                       setError(null);
                     }}
                     placeholder="ej. aliado@supergiros.com o 1098765432"
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-hidden text-sm transition-all"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 focus:border-blue-700 focus:ring-2 focus:ring-blue-700/20 outline-hidden text-sm transition-all"
                   />
                 </div>
                 <p className="text-[11px] text-slate-500 mt-1">
@@ -205,11 +205,11 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-amber-500 hover:bg-amber-600 text-slate-900 shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-blue-900 hover:bg-blue-800 text-white shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
               >
                 {isLoading ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Generando clave temporal...</span>
                   </>
                 ) : (
@@ -251,10 +251,10 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
               <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-200 pb-2 text-xs">
                   <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-amber-600" />
+                    <Mail className="w-4 h-4 text-blue-900" />
                     <span className="font-semibold text-slate-700">Para: {resetData.sentEmail}</span>
                   </div>
-                  <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="text-[10px] font-bold text-blue-900 bg-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     Válida por 5 horas
                   </span>
@@ -264,7 +264,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                     Tu Contraseña Temporal
                   </span>
-                  <div className="text-2xl font-black text-amber-600 tracking-wider font-mono my-1 selection:bg-amber-100">
+                  <div className="text-2xl font-black text-blue-900 tracking-wider font-mono my-1 selection:bg-blue-100">
                     {resetData.tempPassword}
                   </div>
                   <div className="flex items-center justify-center gap-2">
@@ -281,7 +281,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
 
                 <div className="text-[11px] text-slate-600 space-y-1">
                   <p className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <Clock className="w-3.5 h-3.5 text-blue-900 shrink-0" />
                     <span><strong>Vigencia:</strong> Expira a las {formatExpiryTime(resetData.expiresAt)}.</span>
                   </p>
                   <p className="flex items-center gap-1.5">
@@ -298,7 +298,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                 className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-slate-900 hover:bg-slate-800 text-white shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <span>Ir al Inicio de Sesión con esta Clave</span>
-                <ArrowRight className="w-4 h-4 text-amber-400" />
+                <ArrowRight className="w-4 h-4 text-blue-400" />
               </button>
             </div>
           )}

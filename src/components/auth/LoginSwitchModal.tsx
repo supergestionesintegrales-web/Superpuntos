@@ -57,7 +57,7 @@ export const LoginSwitchModal: React.FC<LoginSwitchModalProps> = ({
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full">
                 Acceso Rápido
               </span>
               <h2 className="text-xl font-black text-white tracking-tight mt-0.5">
@@ -118,7 +118,7 @@ export const LoginSwitchModal: React.FC<LoginSwitchModalProps> = ({
           <div className="space-y-2 pt-2 border-t border-slate-100">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                <Store className="w-4 h-4 text-amber-600" />
+                <Store className="w-4 h-4 text-blue-900" />
                 <span>Rol Aliado Comercial (Canjes & Reportes)</span>
               </h4>
 
@@ -127,7 +127,7 @@ export const LoginSwitchModal: React.FC<LoginSwitchModalProps> = ({
                   onClose();
                   onOpenRegister();
                 }}
-                className="text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
+                className="text-xs font-bold text-blue-900 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
               >
                 <UserPlus className="w-3.5 h-3.5" />
                 <span>+ Registrar Nuevo</span>
@@ -145,7 +145,7 @@ export const LoginSwitchModal: React.FC<LoginSwitchModalProps> = ({
                     onClick={() => handleSelectUser(ally.id)}
                     className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                       isActive 
-                        ? 'bg-amber-50/80 border-amber-500 ring-2 ring-amber-500/20 shadow-xs' 
+                        ? 'bg-blue-50/80 border-blue-600 ring-2 ring-blue-600/20 shadow-xs' 
                         : 'bg-white border-slate-200 hover:bg-slate-50'
                     }`}
                   >
@@ -166,8 +166,8 @@ export const LoginSwitchModal: React.FC<LoginSwitchModalProps> = ({
 
                     <div className="text-right shrink-0 flex items-center gap-2">
                       <div>
-                        <div className="font-black text-amber-600 text-xs flex items-center gap-1 justify-end">
-                          <Coins className="w-3.5 h-3.5 text-amber-500" />
+                        <div className="font-black text-blue-900 text-xs flex items-center gap-1 justify-end">
+                          <Coins className="w-3.5 h-3.5 text-blue-700" />
                           <span>{formatPoints(ally.pointsBalance)} pts</span>
                         </div>
                         {isActive && (

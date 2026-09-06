@@ -37,7 +37,7 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
       >
         {/* Modal Top Bar */}
         <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
+          <div className="flex items-center gap-2 text-xs font-bold text-blue-300">
             <Sparkles className="w-4 h-4" />
             <span>Comprobante de Canje Generado</span>
           </div>
@@ -66,11 +66,11 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
           
           {/* Brand Header */}
           <div className="text-center pb-4 border-b border-slate-200 space-y-1">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-md mb-1">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-900 to-indigo-900 text-white shadow-md mb-1">
               <Coins className="w-7 h-7" />
             </div>
             <h1 className="font-heading font-black text-2xl tracking-tight text-slate-900">
-              SUPER<span className="text-amber-500">PUNTOS</span>
+              SUPER<span className="text-blue-900">PUNTOS</span>
             </h1>
             <p className="text-xs font-bold text-slate-500 tracking-wider uppercase">
               Comprobante Oficial de Redención de Premios
@@ -78,9 +78,9 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
           </div>
 
           {/* Voucher Code Badge & Status */}
-          <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+          <div className="bg-blue-50/80 rounded-2xl p-4 border border-blue-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-900">
                 Código de Comprobante / Voucher
               </span>
               <div className="font-mono text-2xl font-black text-slate-900 tracking-wider">
@@ -151,7 +151,7 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
                       <div className={`w-10 h-10 rounded-lg border flex items-center justify-center shrink-0 shadow-2xs ${
                         item.isDigital || item.category === 'Bonos'
                           ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
-                          : 'bg-amber-100 text-amber-600 border-amber-200'
+                          : 'bg-blue-100 text-blue-900 border-blue-200'
                       }`}>
                         {item.isDigital || item.category === 'Bonos' ? <Banknote className="w-5 h-5" /> : <Gift className="w-5 h-5" />}
                       </div>
@@ -163,7 +163,7 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
                       </span>
                     </div>
                   </div>
-                  <div className="text-right font-bold text-amber-600">
+                  <div className="text-right font-bold text-blue-900">
                     {formatPoints(item.pointsCost * item.quantity)} pts
                   </div>
                 </div>
@@ -175,7 +175,7 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
           {order.shippingAddress && (
             <div className="text-xs bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1">
               <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                <Truck className="w-4 h-4 text-amber-500" />
+                <Truck className="w-4 h-4 text-blue-900" />
                 <span>Despacho de Artículos a Domicilio:</span>
               </span>
               <p className="text-slate-800 font-medium">
@@ -189,16 +189,19 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
 
           {/* Delivery Details - Pickup at Main Office SuperGIROS */}
           {(order.pickupOffice || order.deliveryType === 'branch_pickup') && (
-            <div className="text-xs bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200 space-y-1">
-              <span className="font-bold text-amber-950 flex items-center gap-1.5">
-                <Building className="w-4 h-4 text-amber-600" />
+            <div className="text-xs bg-blue-50/70 p-3.5 rounded-2xl border border-blue-200 space-y-1">
+              <span className="font-bold text-blue-950 flex items-center gap-1.5">
+                <Building className="w-4 h-4 text-blue-900" />
                 <span>Retiro en Oficina Principal SuperGIROS:</span>
               </span>
-              <p className="text-amber-900 font-medium">
+              <p className="text-blue-950 font-medium">
                 Sede: <strong>{order.pickupOffice || 'Oficina Principal SuperGIROS Regional'}</strong>
               </p>
-              <p className="text-amber-800 text-[11px]">
-                Autorizado para reclamar: <strong>{order.recipientName || order.allyName}</strong> • C.C. <strong>{order.recipientPhone || order.allyDocument}</strong>
+              <p className="text-blue-900 text-[11px]">
+                Autorizado para reclamar: <strong>{order.recipientName || order.allyName}</strong> • C.C. <strong>{order.pickupPersonDocument || order.allyDocument}</strong>
+                {order.recipientPhone && (
+                  <span> • Tel: <strong>{order.recipientPhone}</strong></span>
+                )}
               </p>
             </div>
           )}
@@ -233,8 +236,8 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
           {/* Points Total Summary */}
           <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
             <span className="font-bold text-sm text-slate-800">Total Puntos Deducidos:</span>
-            <div className="flex items-center gap-1.5 font-black text-xl text-amber-600">
-              <Coins className="w-5 h-5 text-amber-500" />
+            <div className="flex items-center gap-1.5 font-black text-xl text-blue-900">
+              <Coins className="w-5 h-5 text-blue-800" />
               <span>{formatPoints(order.totalPoints)}</span>
               <span className="text-xs font-bold text-slate-700">pts</span>
             </div>

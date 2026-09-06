@@ -71,13 +71,13 @@ export const DefinitivePasswordModal: React.FC<DefinitivePasswordModalProps> = (
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 text-white p-6">
+        <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/30 text-amber-400 flex items-center justify-center shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 text-blue-300 flex items-center justify-center shadow-inner">
               <KeyRound className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 rounded-full">
                 Paso Requerido
               </span>
               <h2 className="text-xl font-black text-white tracking-tight mt-1">
@@ -95,7 +95,7 @@ export const DefinitivePasswordModal: React.FC<DefinitivePasswordModalProps> = (
           {!success ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs text-slate-600 flex items-center gap-2.5">
-                <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0" />
+                <ShieldCheck className="w-4 h-4 text-blue-900 shrink-0" />
                 <span className="truncate">
                   Usuario actual: <strong>{currentUser.name}</strong> ({currentUser.email || currentUser.documentId})
                 </span>
@@ -117,7 +117,7 @@ export const DefinitivePasswordModal: React.FC<DefinitivePasswordModalProps> = (
                       setError(null);
                     }}
                     placeholder="Mínimo 6 caracteres"
-                    className="w-full pl-11 pr-11 py-3 rounded-xl border border-slate-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-hidden text-sm transition-all font-mono"
+                    className="w-full pl-11 pr-11 py-3 rounded-xl border border-slate-300 focus:border-blue-700 focus:ring-2 focus:ring-blue-700/20 outline-hidden text-sm transition-all font-mono"
                   />
                   <button
                     type="button"
@@ -145,7 +145,7 @@ export const DefinitivePasswordModal: React.FC<DefinitivePasswordModalProps> = (
                       setError(null);
                     }}
                     placeholder="Repite la contraseña"
-                    className="w-full pl-11 pr-11 py-3 rounded-xl border border-slate-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-hidden text-sm transition-all font-mono"
+                    className="w-full pl-11 pr-11 py-3 rounded-xl border border-slate-300 focus:border-blue-700 focus:ring-2 focus:ring-blue-700/20 outline-hidden text-sm transition-all font-mono"
                   />
                   <button
                     type="button"
@@ -169,7 +169,7 @@ export const DefinitivePasswordModal: React.FC<DefinitivePasswordModalProps> = (
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-amber-500 hover:bg-amber-600 text-slate-900 shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-blue-900 hover:bg-blue-800 text-white shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
               >
                 {isLoading ? (
                   <>

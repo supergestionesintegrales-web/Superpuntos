@@ -147,6 +147,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         recipientPhone: hasPhysicalItems 
           ? (physicalDeliveryMode === 'shipping' ? recipientPhone.trim() : pickupPersonPhone.trim())
           : undefined,
+        pickupPersonDocument: hasPhysicalItems && physicalDeliveryMode === 'branch_pickup' ? pickupPersonDoc.trim() : undefined,
         supergirosDocument: hasBonos ? supergirosDoc.trim() : undefined,
         supergirosName: hasBonos ? supergirosName.trim() : undefined,
         supergirosPhone: hasBonos ? supergirosPhone.trim() : undefined,
@@ -174,7 +175,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 relative">
+        <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-6 relative border-b border-blue-900/40">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
@@ -183,11 +184,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-400 shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-blue-900/80 border border-blue-700/50 flex items-center justify-center text-blue-300 shadow-inner">
               <Coins className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] font-bold tracking-wider uppercase bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-bold tracking-wider uppercase bg-blue-800/50 text-blue-200 border border-blue-700/50 px-2 py-0.5 rounded-full">
                 Finalizar Canje
               </span>
               <h2 className="text-xl font-black text-white tracking-tight mt-0.5">
@@ -215,13 +216,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
               </label>
               <div className="flex items-center gap-2 text-[11px]">
                 {hasPhysicalItems && (
-                  <span className="bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full font-bold">
-                    📦 Artículos Físicos
+                  <span className="bg-blue-100 text-blue-900 border border-blue-200 px-2 py-0.5 rounded-full font-bold">
+                    📦 Artículos (Con Despacho)
                   </span>
                 )}
                 {hasBonos && (
                   <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">
-                    📱 Bonos App SuperGIROS
+                    📱 Bonos (Carga App SuperGIROS)
                   </span>
                 )}
               </div>
@@ -248,7 +249,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                         <div className={`w-10 h-10 rounded-lg border flex items-center justify-center shrink-0 shadow-2xs ${
                           isItemBono
                             ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
-                            : 'bg-amber-100 text-amber-600 border-amber-200'
+                            : 'bg-blue-100 text-blue-900 border-blue-200'
                         }`}>
                           {isItemBono ? <Banknote className="w-5 h-5" /> : <Gift className="w-5 h-5" />}
                         </div>
@@ -262,14 +263,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                           <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded-sm ${
                             isItemBono 
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : 'bg-blue-50 text-blue-900 border border-blue-200'
                           }`}>
-                            {isItemBono ? 'Carga App SuperGiros' : 'Despacho Físico'}
+                            {isItemBono ? 'Carga App SuperGIROS (Sin Despacho)' : 'Con Despacho Físico'}
                           </span>
                         </div>
                       </div>
                     </div>
-                    <div className="font-bold text-amber-600 shrink-0 pl-2">
+                    <div className="font-bold text-blue-900 shrink-0 pl-2">
                       {formatPoints(item.product.pointsCost * item.quantity)} pts
                     </div>
                   </div>
@@ -282,18 +283,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
               SECTION 1: PHYSICAL ARTICLES DISPATCH (Only if cart has physical items)
               ========================================================================= */}
           {hasPhysicalItems && (
-            <div className="space-y-3 p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80">
+            <div className="space-y-3 p-4 rounded-2xl bg-blue-50/60 border border-blue-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-lg bg-blue-900 text-white flex items-center justify-center">
                     <Truck className="w-3.5 h-3.5" />
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-slate-900">
                       Despacho de Artículos Físicos
                     </h4>
-                    <p className="text-[10px] text-slate-500">
-                      Los artículos son los únicos productos con despacho. Elige cómo recibirlos:
+                    <p className="text-[10px] text-slate-600">
+                      Los únicos productos con despacho son los <strong>artículos</strong>. Diligencia los datos de dirección donde recibir o la opción de retirar en Oficina Principal SuperGIROS:
                     </p>
                   </div>
                 </div>
@@ -306,21 +307,21 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                   onClick={() => setPhysicalDeliveryMode('shipping')}
                   className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
                     physicalDeliveryMode === 'shipping' 
-                      ? 'bg-white border-amber-500 ring-2 ring-amber-500/20 shadow-xs' 
+                      ? 'bg-white border-blue-800 ring-2 ring-blue-800/20 shadow-xs' 
                       : 'bg-white/80 border-slate-200 hover:bg-white'
                   }`}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                    physicalDeliveryMode === 'shipping' ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600'
+                    physicalDeliveryMode === 'shipping' ? 'bg-blue-900 text-white' : 'bg-slate-100 text-slate-600'
                   }`}>
                     <MapPin className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-slate-900">Envío a Domicilio</p>
-                      {physicalDeliveryMode === 'shipping' && <CheckCircle2 className="w-4 h-4 text-amber-600" />}
+                      <p className="text-xs font-bold text-slate-900">Dirección donde recibir</p>
+                      {physicalDeliveryMode === 'shipping' && <CheckCircle2 className="w-4 h-4 text-blue-800" />}
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-0.5">Recibir en tu dirección o punto comercial</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">Despacho a tu domicilio o dirección indicada</p>
                   </div>
                 </div>
 
@@ -329,32 +330,32 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                   onClick={() => setPhysicalDeliveryMode('branch_pickup')}
                   className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
                     physicalDeliveryMode === 'branch_pickup' 
-                      ? 'bg-white border-amber-500 ring-2 ring-amber-500/20 shadow-xs' 
+                      ? 'bg-white border-blue-800 ring-2 ring-blue-800/20 shadow-xs' 
                       : 'bg-white/80 border-slate-200 hover:bg-white'
                   }`}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                    physicalDeliveryMode === 'branch_pickup' ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600'
+                    physicalDeliveryMode === 'branch_pickup' ? 'bg-blue-900 text-white' : 'bg-slate-100 text-slate-600'
                   }`}>
                     <Building className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-slate-900">Retirar en Oficina Principal</p>
-                      {physicalDeliveryMode === 'branch_pickup' && <CheckCircle2 className="w-4 h-4 text-amber-600" />}
+                      <p className="text-xs font-bold text-slate-900">Retirar en Oficina Principal SuperGIROS</p>
+                      {physicalDeliveryMode === 'branch_pickup' && <CheckCircle2 className="w-4 h-4 text-blue-800" />}
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-0.5">Retiro en ventanilla Oficina SuperGIROS</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">Reclamar en ventanilla de Oficina Principal</p>
                   </div>
                 </div>
               </div>
 
               {/* Sub-form A: Shipping to address */}
               {physicalDeliveryMode === 'shipping' && (
-                <div className="space-y-3 bg-white p-3.5 rounded-xl border border-slate-200 mt-2">
+                <div className="space-y-3 bg-white p-3.5 rounded-xl border border-blue-200/80 mt-2">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
-                        <UserIcon className="w-3 h-3 text-amber-500" />
+                        <UserIcon className="w-3 h-3 text-blue-800" />
                         <span>Nombre de Quien Recibe *</span>
                       </label>
                       <input
@@ -363,13 +364,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                         value={recipientName}
                         onChange={(e) => setRecipientName(e.target.value)}
                         placeholder="Nombre completo"
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-white"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-blue-800 bg-white"
                       />
                     </div>
 
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
-                        <Phone className="w-3 h-3 text-amber-500" />
+                        <Phone className="w-3 h-3 text-blue-800" />
                         <span>Teléfono Celular de Contacto *</span>
                       </label>
                       <input
@@ -378,23 +379,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                         value={recipientPhone}
                         onChange={(e) => setRecipientPhone(e.target.value)}
                         placeholder="Ej: 310 123 4567"
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-white"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-blue-800 bg-white"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-amber-500" />
-                      <span>Dirección Completa de Entrega *</span>
+                      <MapPin className="w-3 h-3 text-blue-800" />
+                      <span>Dirección donde recibir *</span>
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Ej: Calle 15 # 24-50 Local 1 (Punto de Venta / Domicilio)"
+                      placeholder="Ej: Calle 15 # 24-50 Local 1 (Dirección completa donde recibirás)"
                       value={shippingAddress}
                       onChange={(e) => setShippingAddress(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-white"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-blue-800 bg-white"
                     />
                   </div>
 
@@ -407,7 +408,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                         value={shippingCity}
                         onChange={(e) => setShippingCity(e.target.value)}
                         placeholder="Ej: Bogotá D.C."
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-white"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-blue-800 bg-white"
                       />
                     </div>
 
@@ -418,7 +419,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                         value={shippingDepartment}
                         onChange={(e) => setShippingDepartment(e.target.value)}
                         placeholder="Ej: Cundinamarca"
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-white"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-blue-800 bg-white"
                       />
                     </div>
                   </div>
@@ -427,16 +428,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
 
               {/* Sub-form B: Pickup at SuperGIROS Main Office */}
               {physicalDeliveryMode === 'branch_pickup' && (
-                <div className="space-y-3 bg-white p-3.5 rounded-xl border border-slate-200 mt-2">
+                <div className="space-y-3 bg-white p-3.5 rounded-xl border border-blue-200/80 mt-2">
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
-                      <Building className="w-3 h-3 text-amber-500" />
+                      <Building className="w-3 h-3 text-blue-800" />
                       <span>Seleccionar Oficina Principal SuperGIROS *</span>
                     </label>
                     <select
                       value={pickupOffice}
                       onChange={(e) => setPickupOffice(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-white"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-blue-800 bg-white"
                     >
                       {SUPERGIROS_MAIN_OFFICES.map((office, idx) => (
                         <option key={idx} value={office}>
@@ -453,7 +454,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                         placeholder="Escribe el nombre o dirección de la Oficina Principal SuperGIROS"
                         value={pickupCustomOffice}
                         onChange={(e) => setPickupCustomOffice(e.target.value)}
-                        className="w-full mt-2 px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-white"
+                        className="w-full mt-2 px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-blue-800 bg-white"
                       />
                     )}
                   </div>
@@ -467,7 +468,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                         value={pickupPersonName}
                         onChange={(e) => setPickupPersonName(e.target.value)}
                         placeholder="Nombre completo"
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-white"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-blue-800 bg-white"
                       />
                     </div>
 
@@ -479,7 +480,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                         value={pickupPersonDoc}
                         onChange={(e) => setPickupPersonDoc(e.target.value)}
                         placeholder="Número de cédula"
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-white"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-blue-800 bg-white"
                       />
                     </div>
 
@@ -491,14 +492,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                         value={pickupPersonPhone}
                         onChange={(e) => setPickupPersonPhone(e.target.value)}
                         placeholder="Ej: 310 123 4567"
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-white"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-hidden focus:border-blue-800 bg-white"
                       />
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-[10px] text-slate-500 flex items-start gap-2">
-                    <Info className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                    <span>Para reclamar en oficina principal, la persona autorizada debe presentar su cédula original física y el comprobante de canje.</span>
+                  <div className="p-2.5 rounded-lg bg-blue-50/50 border border-blue-100 text-[10px] text-blue-900 flex items-start gap-2">
+                    <Info className="w-3.5 h-3.5 text-blue-800 shrink-0 mt-0.5" />
+                    <span>Para retirar en la Oficina Principal SuperGIROS, la persona autorizada debe presentar su cédula original física y el comprobante de canje.</span>
                   </div>
                 </div>
               )}
@@ -524,7 +525,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                     </span>
                   </div>
                   <p className="text-[11px] text-emerald-800 leading-relaxed mt-0.5">
-                    Los bonos de dinero <strong>no tienen despacho físico</strong>: son cargados directamente al saldo de tu cuenta en la <strong>App SuperGIROS</strong>. Ingresa con exactitud los datos con los que te registraste en la aplicación:
+                    Los bonos de dinero <strong>no tienen despacho físico</strong>: son cargados a tu <strong>App SuperGIROS</strong>. Para esto debes dejar tus datos con los que te registraste en la aplicación:
                   </p>
                 </div>
               </div>
@@ -584,7 +585,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
 
                 <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-100 text-[10px] text-emerald-800 flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>El saldo será abonado a este número y cédula para que puedas retirarlo o enviarlo como giro de forma inmediata.</span>
+                  <span>El saldo será acreditado directamente a tu App SuperGIROS vinculada a estos datos para disponibilidad inmediata.</span>
                 </div>
               </div>
             </div>
@@ -598,20 +599,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
               placeholder="Ej: Entregar en horario comercial o indicar detalle de la sede"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500"
+              className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-800"
             />
           </div>
 
           {/* Total & Confirmation summary */}
-          <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200/90 flex items-center justify-between">
+          <div className="bg-blue-50/80 rounded-2xl p-4 border border-blue-200 flex items-center justify-between">
             <div>
-              <span className="text-xs font-bold text-amber-900 block">Total Superpuntos a Descontar:</span>
+              <span className="text-xs font-bold text-blue-950 block">Total Superpuntos a Descontar:</span>
               <span className="text-[10px] text-slate-600">
                 Saldo actual: {formatPoints(currentUser.pointsBalance)} pts → Nuevo saldo: {formatPoints(currentUser.pointsBalance - cartPointsTotal)} pts
               </span>
             </div>
-            <div className="text-right font-black text-2xl text-amber-600 flex items-center gap-1.5">
-              <Coins className="w-6 h-6 text-amber-500" />
+            <div className="text-right font-black text-2xl text-blue-900 flex items-center gap-1.5">
+              <Coins className="w-6 h-6 text-blue-800" />
               <span>{formatPoints(cartPointsTotal)}</span>
               <span className="text-xs font-bold text-slate-700">pts</span>
             </div>
@@ -623,7 +624,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
               type="checkbox"
               checked={agreedTerms}
               onChange={(e) => setAgreedTerms(e.target.checked)}
-              className="rounded-md border-slate-300 text-amber-600 focus:ring-amber-500 mt-0.5"
+              className="rounded-md border-slate-300 text-blue-900 focus:ring-blue-800 mt-0.5"
             />
             <span>
               Confirmo que deseo redimir estos premios y que la información diligenciada es verídica para proceder con el despacho o la acreditación del bono.
@@ -643,9 +644,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
             <button
               type="submit"
               disabled={isProcessing}
-              className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/30 flex items-center gap-2 transition-all hover:scale-102 cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white shadow-lg shadow-blue-950/30 flex items-center gap-2 transition-all hover:scale-102 cursor-pointer disabled:opacity-50"
             >
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className="w-4 h-4 text-blue-300" />
               <span>{isProcessing ? 'Procesando Canje...' : 'Confirmar y Generar Comprobante'}</span>
             </button>
           </div>

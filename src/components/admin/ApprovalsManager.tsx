@@ -146,7 +146,7 @@ export const ApprovalsManager: React.FC = () => {
       {/* Toast */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
-          <Sparkles className="w-5 h-5 text-amber-400 shrink-0" />
+          <Sparkles className="w-5 h-5 text-blue-400 shrink-0" />
           <span className="text-sm font-medium">{toastMessage}</span>
         </div>
       )}
@@ -154,7 +154,7 @@ export const ApprovalsManager: React.FC = () => {
       {/* Header */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+          <span className="text-[11px] font-bold text-blue-900 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
             Control de Auditoría Comercial
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
@@ -193,8 +193,8 @@ export const ApprovalsManager: React.FC = () => {
               onClick={() => setStatusFilter('pending')}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5 ${
                 statusFilter === 'pending'
-                  ? 'bg-amber-500 text-white shadow-xs'
-                  : 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100'
+                  ? 'bg-blue-900 text-white shadow-xs'
+                  : 'bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100'
               }`}
             >
               <Clock className="w-3.5 h-3.5" />
@@ -241,7 +241,7 @@ export const ApprovalsManager: React.FC = () => {
           {statusFilter === 'pending' && filteredGestiones.length > 0 && (
             <button
               onClick={handleSelectAllPending}
-              className="text-xs font-bold text-amber-600 hover:text-amber-700 cursor-pointer"
+              className="text-xs font-bold text-blue-900 hover:text-blue-800 cursor-pointer"
             >
               {selectedIds.length === filteredGestiones.length ? 'Deseleccionar todas' : 'Seleccionar todas las pendientes'}
             </button>
@@ -257,7 +257,7 @@ export const ApprovalsManager: React.FC = () => {
               placeholder="Buscar por nombre de aliado, cédula, póliza, referencia o cliente..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-amber-500 bg-slate-50"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-700 bg-slate-50"
             />
           </div>
 
@@ -265,7 +265,7 @@ export const ApprovalsManager: React.FC = () => {
             <select
               value={selectedCampaignFilter}
               onChange={(e) => setSelectedCampaignFilter(e.target.value)}
-              className="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-700 focus:outline-hidden focus:border-amber-500 cursor-pointer"
+              className="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-700 focus:outline-hidden focus:border-blue-700 cursor-pointer"
             >
               <option value="all">Todas las Campañas / Servicios</option>
               {uniqueCampaigns.map(camp => (
@@ -300,7 +300,7 @@ export const ApprovalsManager: React.FC = () => {
                 key={gestion.id}
                 className={`bg-white rounded-2xl p-5 sm:p-6 border transition-all shadow-xs space-y-4 ${
                   isPending 
-                    ? 'border-amber-200 hover:border-amber-400 ring-1 ring-amber-400/10' 
+                    ? 'border-blue-200 hover:border-blue-400 ring-1 ring-blue-400/10' 
                     : 'border-slate-200 hover:border-slate-300'
                 }`}
               >
@@ -318,7 +318,7 @@ export const ApprovalsManager: React.FC = () => {
                             isSelected ? prev.filter(id => id !== gestion.id) : [...prev, gestion.id]
                           );
                         }}
-                        className="w-4 h-4 rounded-md border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                        className="w-4 h-4 rounded-md border-slate-300 text-blue-900 focus:ring-blue-500 cursor-pointer"
                       />
                     )}
 
@@ -346,14 +346,14 @@ export const ApprovalsManager: React.FC = () => {
 
                   {/* Status and Points Badge */}
                   <div className="flex items-center gap-3 self-end sm:self-center">
-                    <div className="flex items-center gap-1 text-sm font-black text-amber-600 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
-                      <Coins className="w-4 h-4 text-amber-500" />
+                    <div className="flex items-center gap-1 text-sm font-black text-blue-900 bg-blue-50 px-2.5 py-1 rounded-xl border border-blue-200">
+                      <Coins className="w-4 h-4 text-blue-900" />
                       <span>+{formatPoints(gestion.pointsAwarded || gestion.pointsExpected)}</span>
-                      <span className="text-[10px] font-bold text-amber-800">pts</span>
+                      <span className="text-[10px] font-bold text-blue-800">pts</span>
                     </div>
 
                     {isPending ? (
-                      <span className="text-xs font-bold bg-amber-500 text-white px-2.5 py-1 rounded-xl">
+                      <span className="text-xs font-bold bg-blue-900 text-white px-2.5 py-1 rounded-xl">
                         Pendiente
                       </span>
                     ) : gestion.status === 'approved' ? (
@@ -377,7 +377,7 @@ export const ApprovalsManager: React.FC = () => {
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <strong className="text-slate-800 text-xs font-bold">{gestion.serviceType}</strong>
                       {gestion.soatQuantity && (
-                        <span className="bg-amber-100 text-amber-800 text-[10px] font-black px-1.5 py-0.5 rounded-md">
+                        <span className="bg-blue-100 text-blue-900 text-[10px] font-black px-1.5 py-0.5 rounded-md">
                           {gestion.soatQuantity} SOAT{gestion.soatQuantity > 1 ? 's' : ''} (x5 pts)
                         </span>
                       )}
@@ -390,7 +390,7 @@ export const ApprovalsManager: React.FC = () => {
                     </span>
                     <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                       {gestion.licensePlate && (
-                        <span className="font-mono font-black text-amber-950 bg-amber-200/70 border border-amber-300 px-2 py-0.5 rounded-md text-xs tracking-wider">
+                        <span className="font-mono font-black text-blue-950 bg-blue-100 border border-blue-300 px-2 py-0.5 rounded-md text-xs tracking-wider">
                           {gestion.licensePlate}
                         </span>
                       )}
@@ -496,7 +496,7 @@ export const ApprovalsManager: React.FC = () => {
                 {approvingGestion.licensePlate && (
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500">Placa Vehículo:</span>
-                    <span className="font-mono font-black text-amber-950 bg-amber-200/70 border border-amber-300 px-2 py-0.5 rounded-md text-xs">
+                    <span className="font-mono font-black text-blue-950 bg-blue-100 border border-blue-300 px-2 py-0.5 rounded-md text-xs">
                       {approvingGestion.licensePlate}
                     </span>
                   </div>
@@ -531,14 +531,14 @@ export const ApprovalsManager: React.FC = () => {
                   Superpuntos a Acreditar en Billetera *
                 </label>
                 <div className="relative">
-                  <Coins className="w-5 h-5 text-amber-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Coins className="w-5 h-5 text-blue-800 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="number"
                     required
                     min={1}
                     value={customAwardPoints}
                     onChange={(e) => setCustomAwardPoints(parseInt(e.target.value) || 0)}
-                    className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm font-black text-amber-600 focus:outline-hidden focus:border-emerald-500 bg-amber-50/40"
+                    className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm font-black text-blue-900 focus:outline-hidden focus:border-blue-700 bg-blue-50/40"
                   />
                 </div>
                 <span className="text-[10px] text-slate-500">
@@ -630,7 +630,7 @@ export const ApprovalsManager: React.FC = () => {
                 />
               </div>
 
-              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
+              <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-[11px] text-blue-900">
                 Al rechazar, el aliado no recibirá puntos y recibirá una notificación inmediata con el motivo para su conocimiento.
               </div>
 

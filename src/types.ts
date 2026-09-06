@@ -135,6 +135,7 @@ export interface RedemptionOrder {
   pickupOffice?: string; // Oficina Principal SuperGIROS seleccionada
   recipientName?: string;
   recipientPhone?: string;
+  pickupPersonDocument?: string; // Cédula de la persona que retira en oficina principal
   // App SuperGIROS Details (Bonos de dinero)
   supergirosDocument?: string; // Cédula registrada en App SuperGIROS
   supergirosName?: string; // Nombre registrado en App SuperGIROS
