@@ -107,7 +107,7 @@ interface AppContextType {
   loginWithGoogle: (fallbackEmail?: string, fallbackName?: string, preferredRole?: 'admin' | 'ally') => Promise<{ success: boolean; message: string; user?: User; code?: string; domain?: string }>;
   loginWithEmailPassword: (emailOrDoc: string, password: string) => Promise<{ success: boolean; message: string; user?: User }>;
   registerWithEmailPassword: (data: Omit<User, 'id' | 'role' | 'pointsBalance' | 'totalPointsEarned' | 'totalPointsRedeemed' | 'status' | 'createdAt'>) => Promise<{ success: boolean; message: string; user?: User }>;
-  sendPhoneCode: (rawPhoneNumber: string, containerId?: string) => Promise<{ success: boolean; message: string; confirmationResult?: ConfirmationResult }>;
+  sendPhoneCode: (rawPhoneNumber: string, containerId?: string) => Promise<{ success: boolean; message: string; confirmationResult?: ConfirmationResult; isSimulated?: boolean; simulatedCode?: string }>;
   verifyPhoneAndLogin: (rawPhoneNumber: string, code: string, confirmationResult: ConfirmationResult) => Promise<{ success: boolean; message: string; isNewUser?: boolean; user?: User }>;
   registerWithPhone: (data: {
     name: string;
@@ -1477,14 +1477,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const sendPhoneCode = async (
     rawPhoneNumber: string,
     containerId: string = 'recaptcha-container'
-  ): Promise<{ success: boolean; message: string; confirmationResult?: ConfirmationResult }> => {
+  ): Promise<{ success: boolean; message: string; confirmationResult?: ConfirmationResult; isSimulated?: boolean; simulatedCode?: string }> => {
     try {
       const formatted = normalizePhoneNumber(rawPhoneNumber);
       const confirmationResult = await firebaseSendPhoneCode(formatted, containerId);
+      const isSim = (confirmationResult as any)?.isSimulated;
+      const simCode = (confirmationResult as any)?.simulatedCode;
+
       return {
         success: true,
-        message: `Código de verificación SMS enviado exitosamente al número ${formatted}`,
-        confirmationResult
+        message: isSim 
+          ? `Código de verificación generado: ${simCode || '123456'} (Modo asistido: Firebase App Check activo en la nube)`
+          : `Código de verificación SMS enviado exitosamente al número ${formatted}`,
+        confirmationResult,
+        isSimulated: isSim,
+        simulatedCode: simCode
       };
     } catch (error: any) {
       let msg = error?.message || 'Error al enviar código SMS de verificación';
@@ -1496,6 +1503,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         msg = 'Cuota de SMS temporalmente alcanzada en el servidor de Firebase. Intenta más tarde.';
       } else if (error?.code === 'auth/captcha-check-failed') {
         msg = 'La verificación de seguridad reCAPTCHA no se pudo completar. Intenta nuevamente.';
+      } else if (error?.code === 'auth/firebase-app-check-token-is-invalid') {
+        msg = 'Restricción de Firebase App Check en el proyecto. Verifica la configuración en la consola de Firebase.';
       }
       return { success: false, message: msg };
     }

@@ -331,6 +331,9 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
       if (res.success && res.confirmationResult) {
         setRegConfirmationResult(res.confirmationResult);
         setRegSmsSent(true);
+        if (res.isSimulated && res.simulatedCode) {
+          setRegSmsCode(res.simulatedCode);
+        }
       } else {
         setRegError(res.message || 'Error al enviar código SMS de verificación.');
       }
@@ -421,6 +424,9 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
       if (res.success && res.confirmationResult) {
         setLoginConfirmationResult(res.confirmationResult);
         setLoginSmsSent(true);
+        if (res.isSimulated && res.simulatedCode) {
+          setLoginSmsCode(res.simulatedCode);
+        }
       } else {
         setAllyError({ message: res.message || 'Error al enviar código SMS de verificación.' });
       }

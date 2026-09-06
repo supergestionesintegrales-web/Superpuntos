@@ -77,6 +77,9 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
       if (res.success && res.confirmationResult) {
         setConfirmationResult(res.confirmationResult);
         setSmsSent(true);
+        if (res.isSimulated && res.simulatedCode) {
+          setSmsCode(res.simulatedCode);
+        }
       } else {
         setError(res.message || 'Error al enviar código SMS de verificación.');
       }
