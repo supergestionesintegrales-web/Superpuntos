@@ -521,6 +521,77 @@ export const initializeData = async (
   }
 };
 
+/**
+ * Purges test orders, test transactions, test notifications, and test gestiones from Firestore,
+ * resets all users' points to 0, and restores initial products with full initial stock.
+ */
+export const purgeAllTestDataFromFirestore = async (
+  initialProducts: Product[],
+  initialUsers: User[]
+): Promise<void> => {
+  try {
+    // 1. Delete all orders
+    const ordersSnap = await getDocs(collection(db, COLLECTIONS.ORDERS));
+    if (!ordersSnap.empty) {
+      const b1 = writeBatch(db);
+      ordersSnap.docs.forEach(d => b1.delete(d.ref));
+      await b1.commit();
+    }
+
+    // 2. Delete all transactions
+    const txSnap = await getDocs(collection(db, COLLECTIONS.TRANSACTIONS));
+    if (!txSnap.empty) {
+      const b2 = writeBatch(db);
+      txSnap.docs.forEach(d => b2.delete(d.ref));
+      await b2.commit();
+    }
+
+    // 3. Delete all notifications
+    const notifsSnap = await getDocs(collection(db, COLLECTIONS.NOTIFICATIONS));
+    if (!notifsSnap.empty) {
+      const b3 = writeBatch(db);
+      notifsSnap.docs.forEach(d => b3.delete(d.ref));
+      await b3.commit();
+    }
+
+    // 4. Delete all gestiones
+    const gestSnap = await getDocs(collection(db, COLLECTIONS.GESTIONES));
+    if (!gestSnap.empty) {
+      const b4 = writeBatch(db);
+      gestSnap.docs.forEach(d => b4.delete(d.ref));
+      await b4.commit();
+    }
+
+    // 5. Reset all users points to 0
+    const usersSnap = await getDocs(collection(db, COLLECTIONS.USERS));
+    if (!usersSnap.empty) {
+      const b5 = writeBatch(db);
+      usersSnap.docs.forEach(d => {
+        b5.update(d.ref, {
+          pointsBalance: 0,
+          totalPointsEarned: 0,
+          totalPointsRedeemed: 0
+        });
+      });
+      await b5.commit();
+    }
+
+    // 6. Reset all products to initial stock and specifications
+    if (initialProducts && initialProducts.length > 0) {
+      const b6 = writeBatch(db);
+      initialProducts.forEach(p => {
+        const pRef = doc(db, COLLECTIONS.PRODUCTS, p.id);
+        b6.set(pRef, p);
+      });
+      await b6.commit();
+    }
+
+    console.log('✅ Base de datos Firestore limpiada exitosamente');
+  } catch (error) {
+    console.error('Error limpiando datos de prueba en Firestore:', error);
+  }
+};
+
 // ==================== REAL-TIME LISTENERS ====================
 
 export const subscribeToUsers = (callback: (users: User[]) => void) => {

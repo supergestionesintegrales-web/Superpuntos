@@ -70,7 +70,8 @@ import {
   getAllProducts as getAllFirestoreProducts,
   getAllCampaigns as getAllFirestoreCampaigns,
   getAllGestiones as getAllFirestoreGestiones,
-  getAllOrders as getAllFirestoreOrders
+  getAllOrders as getAllFirestoreOrders,
+  purgeAllTestDataFromFirestore
 } from '../services/firestore';
 import { 
   DEFAULT_SPREADSHEET_ID, 
@@ -226,12 +227,12 @@ interface AppContextType {
 
   // UI & General
   triggerConfetti: () => void;
-  resetAllDataToDefault: () => void;
+  resetAllDataToDefault: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const STORAGE_KEY_PREFIX = 'superpuntos_v14_';
+const STORAGE_KEY_PREFIX = 'superpuntos_v20_clean_';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load state with fallback to seed data
@@ -548,6 +549,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
     return () => unsubscribe();
   }, [spreadsheetId]);
+
+  // One-time automatic clean reset for distribution & release
+  useEffect(() => {
+    const CLEANUP_KEY = 'superpuntos_system_clean_v20_done';
+    try {
+      const alreadyCleaned = localStorage.getItem(CLEANUP_KEY);
+      if (!alreadyCleaned) {
+        console.log('🧹 Limpieza general del sistema para distribución iniciada...');
+        // Clear all previous legacy test keys from localStorage
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && (k.startsWith('superpuntos_') || k.startsWith('supergiros_')) && k !== CLEANUP_KEY) {
+            keysToRemove.push(k);
+          }
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+        localStorage.setItem(CLEANUP_KEY, 'true');
+
+        // Reset all in-memory states immediately
+        setOrders([]);
+        setTransactions([]);
+        setNotifications([]);
+        setGestiones([]);
+        setCart([]);
+        setProducts(INITIAL_PRODUCTS);
+        setUsers(INITIAL_USERS.map(u => ({ ...u, pointsBalance: 0, totalPointsEarned: 0, totalPointsRedeemed: 0 })));
+
+        // Clean Firestore test data (orders, transactions, notifications, gestiones, user points, product stock)
+        purgeAllTestDataFromFirestore(INITIAL_PRODUCTS, INITIAL_USERS).catch(err => {
+          console.warn('Error purgando datos de prueba en Firestore:', err);
+        });
+      }
+    } catch (e) {
+      console.warn('Storage cleanup notice:', e);
+    }
+  }, []);
 
   // Sync with LocalStorage
   useEffect(() => {
@@ -2460,18 +2498,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const resetAllDataToDefault = () => {
-    localStorage.clear();
-    setUsers(INITIAL_USERS);
-    setCurrentUserId('usr_carlos');
+  const resetAllDataToDefault = async () => {
+    try {
+      localStorage.clear();
+      localStorage.setItem('superpuntos_system_clean_v20_done', 'true');
+    } catch {}
+
+    setUsers(INITIAL_USERS.map(u => ({ ...u, pointsBalance: 0, totalPointsEarned: 0, totalPointsRedeemed: 0 })));
+    setCurrentUserId(INITIAL_USERS[0].id);
     setProducts(INITIAL_PRODUCTS);
     setCampaigns(INITIAL_CAMPAIGNS);
-    setGestiones(INITIAL_GESTIONES);
-    setOrders(INITIAL_ORDERS);
-    setTransactions(INITIAL_TRANSACTIONS);
-    setNotifications(INITIAL_NOTIFICATIONS);
+    setGestiones([]);
+    setOrders([]);
+    setTransactions([]);
+    setNotifications([]);
     setAccessLogs(INITIAL_ACCESS_LOGS);
     setCart([]);
+
+    try {
+      await purgeAllTestDataFromFirestore(INITIAL_PRODUCTS, INITIAL_USERS);
+    } catch (err) {
+      console.warn('Firestore purge error:', err);
+    }
   };
 
   return (

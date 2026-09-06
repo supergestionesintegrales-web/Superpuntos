@@ -16,7 +16,10 @@ import {
   Gift,
   Award,
   Database,
-  RefreshCw
+  RefreshCw,
+  RotateCcw,
+  Trash2,
+  X
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { formatPoints, formatDate } from '../../utils/helpers';
@@ -47,10 +50,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     spreadsheetId,
     syncWithFirestore,
     isFirebaseConnected,
-    firestoreStatus
+    firestoreStatus,
+    resetAllDataToDefault
   } = useApp();
 
   const [isSyncingFirestore, setIsSyncingFirestore] = React.useState(false);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = React.useState(false);
+  const [isResetting, setIsResetting] = React.useState(false);
+  const [resetSuccessMessage, setResetSuccessMessage] = React.useState<string | null>(null);
+
+  const handleConfirmReset = async () => {
+    setIsResetting(true);
+    try {
+      await resetAllDataToDefault();
+      setResetSuccessMessage('¡Sistema limpiado con éxito! Se eliminaron órdenes, notificaciones, movimientos y se reiniciaron saldos a 0.');
+      setTimeout(() => {
+        setResetSuccessMessage(null);
+        setIsResetConfirmOpen(false);
+      }, 2000);
+    } catch (err) {
+      console.error('Error al reiniciar sistema:', err);
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   const handleManualFirestoreSync = async () => {
     setIsSyncingFirestore(true);
@@ -116,6 +139,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             >
               <Coins className="w-4 h-4 text-blue-400" />
               <span>Ajustar / Asignar Puntos</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsResetConfirmOpen(true)}
+              title="Limpiar movimientos, puntos de prueba y canjes para distribución"
+              className="px-3.5 py-2.5 rounded-lg font-bold text-xs bg-rose-950/50 hover:bg-rose-900/70 text-rose-300 border border-rose-800/60 flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
+              <span>Limpiar Datos de Prueba</span>
             </button>
           </div>
         </div>
@@ -418,6 +451,97 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
 
       </div>
+
+      {/* Confirmation Modal for Resetting / Cleaning System */}
+      {isResetConfirmOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative text-white space-y-5">
+            <button
+              onClick={() => !isResetting && setIsResetConfirmOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/30">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-bold text-white">
+                  Limpiar Sistema para Distribución
+                </h3>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Esta acción restablecerá el sistema a su estado inicial de lanzamiento limpio:
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 text-xs text-slate-300 space-y-2">
+              <div className="flex items-center gap-2 text-rose-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                <span>Se eliminan todas las órdenes de canje (pruebas de olla, bonos, etc.)</span>
+              </div>
+              <div className="flex items-center gap-2 text-rose-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                <span>Se eliminan todas las notificaciones pendientes e historial</span>
+              </div>
+              <div className="flex items-center gap-2 text-rose-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                <span>Se eliminan todos los movimientos y transacciones contables</span>
+              </div>
+              <div className="flex items-center gap-2 text-rose-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                <span>Se eliminan todas las gestiones comerciales de prueba</span>
+              </div>
+              <div className="flex items-center gap-2 text-emerald-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>Se restauran los stocks iniciales (Olla a presión a 20 un., etc.)</span>
+              </div>
+              <div className="flex items-center gap-2 text-emerald-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>Se reinician los saldos de puntos a 0 para todos los usuarios</span>
+              </div>
+            </div>
+
+            {resetSuccessMessage && (
+              <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                <span>{resetSuccessMessage}</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isResetting}
+                onClick={() => setIsResetConfirmOpen(false)}
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={isResetting}
+                onClick={handleConfirmReset}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-900/40 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isResetting ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Limpiando sistema...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Confirmar y Limpiar Todo</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
