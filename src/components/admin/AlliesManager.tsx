@@ -20,12 +20,12 @@ import {
   AlertTriangle,
   RefreshCw,
   CheckCircle2,
-  X
+  X,
+  Pencil
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { User } from '../../types';
 import { formatPoints, getAllyTier, formatDate } from '../../utils/helpers';
-import { INITIAL_USERS } from '../../data/initialData';
 import { ManualPointsModal } from './ManualPointsModal';
 import { TierScaleModal } from '../common/TierScaleModal';
 
@@ -35,7 +35,7 @@ interface AlliesManagerProps {
 }
 
 export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints, onOpenRegisterAlly }) => {
-  const { users, switchUser, currentUser, deleteUser, syncWithFirestore, registerAlly } = useApp();
+  const { users, switchUser, currentUser, deleteUser, syncWithFirestore, registerAlly, updateUser } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedZone, setSelectedZone] = useState('all');
@@ -48,8 +48,16 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<{ type: 'success' | 'info' | 'error'; message: string } | null>(null);
 
-  // Robust check for commercial allies
+  // Editing Ally Business / Company
+  const [editingAlly, setEditingAlly] = useState<User | null>(null);
+  const [editingBusinessName, setEditingBusinessName] = useState('');
+  const [editingZone, setEditingZone] = useState('');
+
+  // Robust check for commercial allies - ONLY real registered users in Firebase
   const isAlly = (u: User): boolean => {
+    // Exclude mock seed demo users
+    if (u.id.startsWith('usr_ally_')) return false;
+
     if (u.role === 'ally') return true;
     if ((u.role as any) === 'aliado' || (u.role as any) === 'user' || (u.role as any) === 'comercial') return true;
     if (u.role !== 'admin') {
@@ -121,35 +129,6 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
       setIsSyncing(false);
       setTimeout(() => setSyncFeedback(null), 8000);
     }
-  };
-
-  const handleLoadBaseAllies = () => {
-    const baseAllies = INITIAL_USERS.filter(u => u.role === 'ally');
-    let loadedCount = 0;
-    baseAllies.forEach(ba => {
-      const exists = users.some(u => u.documentId === ba.documentId || u.id === ba.id);
-      if (!exists) {
-        registerAlly({
-          name: ba.name,
-          documentId: ba.documentId,
-          email: ba.email,
-          phone: ba.phone,
-          password: ba.password,
-          zone: ba.zone,
-          businessName: ba.businessName,
-          avatarUrl: ba.avatarUrl
-        });
-        loadedCount++;
-      }
-    });
-
-    setSyncFeedback({
-      type: 'success',
-      message: loadedCount > 0 
-        ? `Se agregaron ${loadedCount} aliados comerciales base con 0 puntos listos para operar.`
-        : 'Todos los aliados comerciales base ya se encuentran registrados.'
-    });
-    setTimeout(() => setSyncFeedback(null), 6000);
   };
 
   return (
@@ -307,6 +286,9 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
                         </h3>
                         <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono">
                           <span>C.C. {ally.documentId}</span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-sans font-semibold border border-blue-100">
+                            {ally.documentId.startsWith('G-') ? 'Google Auth' : 'Plataforma'}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -325,23 +307,48 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
                   </div>
 
                   {/* Business details */}
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-xs space-y-1 text-slate-600">
-                    {ally.businessName && (
-                      <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-                        <Store className="w-3.5 h-3.5 text-blue-900 shrink-0" />
-                        <span className="truncate">{ally.businessName}</span>
+                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-xs space-y-2 text-slate-600">
+                    {/* Empresa / Aliado Highlight */}
+                    <div className="flex items-center justify-between gap-2 p-2 bg-blue-50/80 rounded-xl border border-blue-200/80">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Store className="w-4 h-4 text-blue-900 shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-[9px] text-blue-800 font-bold uppercase tracking-wider block">Empresa / Aliado</span>
+                          <span className="font-extrabold text-xs text-slate-900 truncate block">
+                            {ally.businessName || (
+                              <span className="text-amber-600 font-normal italic">
+                                Sin Empresa asignada
+                              </span>
+                            )}
+                          </span>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex items-center gap-1.5 text-[11px]">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>{ally.zone || 'Principal'}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingAlly(ally);
+                          setEditingBusinessName(ally.businessName || '');
+                          setEditingZone(ally.zone || '');
+                        }}
+                        className="p-1 rounded-lg text-blue-900 hover:bg-blue-200/60 transition-colors shrink-0 cursor-pointer"
+                        title="Editar o asignar Empresa / Aliado Comercial"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
                     </div>
-                    {ally.phone && (
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-0.5">
                       <div className="flex items-center gap-1.5 text-[11px]">
-                        <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span>{ally.phone}</span>
+                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate">{ally.zone || 'Principal'}</span>
                       </div>
-                    )}
+                      {ally.phone && (
+                        <div className="flex items-center gap-1.5 text-[11px]">
+                          <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span className="truncate">{ally.phone}</span>
+                        </div>
+                      )}
+                    </div>
                     {ally.email && (
                       <div className="flex items-center gap-1.5 text-[11px]">
                         <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -418,7 +425,7 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
             </h3>
             <p className="text-xs text-slate-500 max-w-md mx-auto">
               {allies.length === 0 
-                ? 'La red comercial está lista para recibir registros o puedes cargar los aliados autorizados iniciales con saldo en 0 para iniciar la distribución.'
+                ? 'En la Red de Aliados solo figuran los usuarios registrados en Firebase (formulario de registro o cuenta Google). Cada aliado debe contar con su empresa o punto comercial asignado.'
                 : `No existen resultados que coincidan con la búsqueda "${searchQuery}" en la zona "${selectedZone}".`}
             </p>
           </div>
@@ -435,13 +442,6 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
                     <span>+ Registrar Nuevo Aliado</span>
                   </button>
                 )}
-                <button
-                  onClick={handleLoadBaseAllies}
-                  className="px-4 py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
-                >
-                  <Store className="w-4 h-4" />
-                  <span>Cargar Red Base (0 pts)</span>
-                </button>
                 <button
                   onClick={handleSyncFirebase}
                   disabled={isSyncing}
@@ -576,6 +576,97 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Ally Business Modal */}
+      {editingAlly && (
+        <div 
+          className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+          onClick={() => setEditingAlly(null)}
+        >
+          <div 
+            className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-slate-900 p-5 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-400">
+                  <Store className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm">Editar Empresa / Aliado</h3>
+                  <p className="text-[11px] text-slate-400">{editingAlly.name}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setEditingAlly(null)}
+                className="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (!editingBusinessName.trim()) return;
+              updateUser({
+                ...editingAlly,
+                businessName: editingBusinessName.trim(),
+                zone: editingZone.trim() || editingAlly.zone || 'Principal'
+              });
+              setEditingAlly(null);
+            }} className="p-5 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Store className="w-3.5 h-3.5 text-blue-900" />
+                  <span>Empresa o Aliado Comercial *</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  placeholder="Ej: SuperGIROS La Estación, Droguería Central..."
+                  value={editingBusinessName}
+                  onChange={(e) => setEditingBusinessName(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-blue-900 bg-slate-50"
+                />
+                <p className="text-[11px] text-slate-400">
+                  Esta empresa identifica al usuario en la Red de Aliados Comerciales y en sus gestiones.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Ciudad o Zona Operativa</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: Cali Centro, Palmira, Jamundí..."
+                  value={editingZone}
+                  onChange={(e) => setEditingZone(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-blue-900 bg-slate-50"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingAlly(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-900 hover:bg-blue-800 text-white cursor-pointer shadow-sm transition-all"
+                >
+                  Guardar Cambios
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

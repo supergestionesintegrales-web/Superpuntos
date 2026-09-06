@@ -46,6 +46,11 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
       return;
     }
 
+    if (!businessName.trim()) {
+      setError('Por favor indica a qué Empresa o Aliado Comercial perteneces (campo obligatorio).');
+      return;
+    }
+
     if (!password) {
       setError('La contraseña de acceso es obligatoria.');
       return;
@@ -164,14 +169,21 @@ export const RegisterAllyModal: React.FC<RegisterAllyModalProps> = ({ isOpen, on
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Punto Comercial / Negocio (Opcional)</label>
-                <input
-                  type="text"
-                  placeholder="Ej: Supergiros La Estación"
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-700"
-                />
+                <label className="text-xs font-bold text-slate-700">
+                  Empresa o Aliado Comercial *
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej: SuperGIROS La Estación, Droguería Central..."
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-hidden focus:border-blue-700"
+                  />
+                  <Store className="w-3.5 h-3.5 text-blue-900 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                </div>
+                <p className="text-[10px] text-slate-400">Punto de venta, razón social o entidad a la que perteneces</p>
               </div>
 
               <div className="space-y-1">

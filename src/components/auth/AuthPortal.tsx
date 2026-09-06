@@ -228,6 +228,11 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
       return;
     }
 
+    if (!regBusinessName.trim()) {
+      setRegError('Por favor indica a qué Empresa o Aliado Comercial perteneces (campo obligatorio para identificarte en el programa).');
+      return;
+    }
+
     if (!regPassword) {
       setRegError('La contraseña de acceso es obligatoria (*).');
       return;
@@ -844,18 +849,20 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                      Punto de Venta / Negocio
+                      Empresa o Aliado Comercial <span className="text-blue-400 font-bold">*</span>
                     </label>
                     <div className="relative">
                       <input
                         type="text"
+                        required
                         value={regBusinessName}
                         onChange={(e) => setRegBusinessName(e.target.value)}
-                        placeholder="Ej: Variedades El Centro"
+                        placeholder="Ej: SuperGIROS La Estación, Droguería Central..."
                         className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                       />
                       <Building2 className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                     </div>
+                    <p className="text-[10px] text-slate-400 mt-1">Nombre del punto de venta o razón social de tu empresa</p>
                   </div>
                 </div>
 

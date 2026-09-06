@@ -16,7 +16,9 @@ import {
   Mail, 
   Phone, 
   Store, 
-  ShieldCheck
+  ShieldCheck,
+  Pencil,
+  Check
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { formatPoints, getAllyTier, TIERS } from '../../utils/helpers';
@@ -35,13 +37,24 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
   onOpenReportModal,
   onNavigateTab
 }) => {
-  const { currentUser, gestiones, orders, logout } = useApp();
+  const { currentUser, gestiones, orders, logout, updateUser } = useApp();
   const [isTierModalOpen, setIsTierModalOpen] = useState(false);
+  const [isEditingBusiness, setIsEditingBusiness] = useState(false);
+  const [businessInput, setBusinessInput] = useState('');
 
   if (!isOpen || !currentUser) return null;
 
   const isAlly = currentUser.role === 'ally';
   const tierInfo = getAllyTier(currentUser.totalPointsEarned || 0);
+
+  const handleSaveBusiness = () => {
+    if (!businessInput.trim()) return;
+    updateUser({
+      ...currentUser,
+      businessName: businessInput.trim()
+    });
+    setIsEditingBusiness(false);
+  };
 
   const allyGestiones = gestiones.filter(g => g.allyId === currentUser.id);
   const approvedSoats = allyGestiones.filter(g => g.status === 'approved').length;
@@ -99,11 +112,75 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                   {currentUser.name}
                 </h2>
 
-                {currentUser.businessName && (
-                  <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5 truncate">
-                    <Store className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                    <span>{currentUser.businessName}</span>
-                  </p>
+                {isAlly ? (
+                  <div className="mt-1">
+                    {isEditingBusiness ? (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <div className="relative flex-1">
+                          <Store className="w-3.5 h-3.5 text-blue-400 absolute left-2 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            value={businessInput}
+                            onChange={(e) => setBusinessInput(e.target.value)}
+                            placeholder="Nombre de la Empresa o Aliado..."
+                            className="w-full bg-slate-950 border border-blue-500/60 rounded-lg pl-7 pr-2 py-1 text-xs text-white placeholder-slate-500 focus:outline-hidden focus:ring-1 focus:ring-blue-400"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveBusiness();
+                              if (e.key === 'Escape') setIsEditingBusiness(false);
+                            }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleSaveBusiness}
+                          className="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-2 py-1 rounded-lg transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
+                        >
+                          <Check className="w-3 h-3" />
+                          Guardar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingBusiness(false)}
+                          className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] px-2 py-1 rounded-lg transition-colors shrink-0 cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-xs text-slate-300 flex items-center gap-1.5 truncate">
+                          <Store className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                          <span className="font-semibold text-white">
+                            {currentUser.businessName || (
+                              <span className="text-amber-400 font-normal italic">
+                                Sin Empresa o Aliado asignado
+                              </span>
+                            )}
+                          </span>
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBusinessInput(currentUser.businessName || '');
+                            setIsEditingBusiness(true);
+                          }}
+                          className="text-[10px] text-blue-300 hover:text-white bg-blue-500/20 hover:bg-blue-500/30 px-1.5 py-0.5 rounded border border-blue-500/30 flex items-center gap-1 transition-all cursor-pointer shrink-0"
+                          title="Cambiar o indicar de qué Aliado o Empresa eres"
+                        >
+                          <Pencil className="w-2.5 h-2.5" />
+                          <span>{currentUser.businessName ? 'Cambiar' : 'Indicar Empresa'}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  currentUser.businessName && (
+                    <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5 truncate">
+                      <Store className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                      <span>{currentUser.businessName}</span>
+                    </p>
+                  )
                 )}
               </div>
             </div>

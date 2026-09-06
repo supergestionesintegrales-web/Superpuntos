@@ -252,7 +252,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (saved) {
       try {
         const parsed: User[] = JSON.parse(saved);
-        const filtered = parsed.filter(u => !deletedSet.has(u.id));
+        const filtered = parsed.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_'));
         // Ensure owner is present and admin
         const ownerIndex = filtered.findIndex(u => 
           u.email.toLowerCase() === 'supergestionesintegrales@gmail.com' ||
@@ -269,18 +269,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           result = [INITIAL_USERS[0], ...result];
         }
 
-        // Check if there are any allies in current state
-        const hasAllies = result.some(u => u.role === 'ally' || (u.role as any) === 'aliado');
-        if (!hasAllies) {
-          const initialAllies = INITIAL_USERS.filter(u => u.role === 'ally');
-          result = [...result, ...initialAllies.filter(ia => !deletedSet.has(ia.id))];
-        }
         return result;
       } catch {
-        return INITIAL_USERS.filter(u => !deletedSet.has(u.id));
+        return INITIAL_USERS.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_'));
       }
     }
-    return INITIAL_USERS.filter(u => !deletedSet.has(u.id));
+    return INITIAL_USERS.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_'));
   });
 
   const [currentUserId, setCurrentUserId] = useState<string>(() => {
@@ -402,7 +396,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               email: cleanEmail,
               phone: fbUser.phoneNumber || '3001234567',
               role: isAdminEmail ? 'admin' : 'ally',
-              businessName: isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : (isAdminEmail ? 'SuperGIROS Central - Dirección General' : displayName),
+              businessName: isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : (isAdminEmail ? 'SuperGIROS Central - Dirección General' : undefined),
               zone: 'Dirección Nacional',
               pointsBalance: 0,
               totalPointsEarned: 0,
@@ -439,8 +433,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (firestoreUsers && firestoreUsers.length > 0) {
           setUsers(prev => {
             const map = new Map<string, User>();
-            prev.filter(u => !deletedSet.has(u.id)).forEach(u => map.set(u.id, u));
-            firestoreUsers.filter(u => !deletedSet.has(u.id)).forEach(u => map.set(u.id, { ...map.get(u.id), ...u }));
+            prev.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_')).forEach(u => map.set(u.id, u));
+            firestoreUsers.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_')).forEach(u => map.set(u.id, { ...map.get(u.id), ...u }));
             return Array.from(map.values());
           });
           setIsFirebaseConnected(true);
@@ -1179,7 +1173,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           email: email,
           phone: phone || '3001234567',
           role: isAdminEmail ? 'admin' : 'ally',
-          businessName: isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : (isJhon ? 'SuperGIROS Central - Administración' : (isAdminEmail ? 'SuperGIROS Central - Dirección General' : finalDisplayName)),
+          businessName: isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : (isJhon ? 'SuperGIROS Central - Administración' : (isAdminEmail ? 'SuperGIROS Central - Dirección General' : undefined)),
           zone: 'Dirección Nacional',
           pointsBalance: 0,
           totalPointsEarned: 0,

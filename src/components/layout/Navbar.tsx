@@ -248,7 +248,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-slate-400 text-[10px] truncate font-mono">
-                    {currentUser.role === 'admin' ? '🛡️ Super Admin' : '👤 Aliado Comercial'}
+                    {currentUser.role === 'admin' 
+                      ? '🛡️ Super Admin' 
+                      : (currentUser.businessName ? `🏪 ${currentUser.businessName}` : '👤 Aliado Comercial')}
                   </span>
                 </div>
               </div>
