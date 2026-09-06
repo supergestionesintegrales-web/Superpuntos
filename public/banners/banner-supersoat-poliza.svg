@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgBanner2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#051336" />
+      <stop offset="35%" stop-color="#072b6b" />
+      <stop offset="70%" stop-color="#0c4a9e" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+
+    <!-- SuperSOAT Gradient: Vibrant Yellow to Bright Orange -->
+    <linearGradient id="soatTextGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb" />
+      <stop offset="15%" stop-color="#fef08a" />
+      <stop offset="45%" stop-color="#f59e0b" />
+      <stop offset="80%" stop-color="#ea580c" />
+      <stop offset="100%" stop-color="#c2410c" />
+    </linearGradient>
+
+    <!-- Poliza Gradient: Deep Orange -->
+    <linearGradient id="polizaTextGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffedd5" />
+      <stop offset="30%" stop-color="#fb923c" />
+      <stop offset="70%" stop-color="#ea580c" />
+      <stop offset="100%" stop-color="#9a3412" />
+    </linearGradient>
+
+    <!-- Drop Shadows for 3D Text -->
+    <filter id="textExtrude3D" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="0" flood-color="#032b69" flood-opacity="1" />
+      <feDropShadow dx="0" dy="8" stdDeviation="0" flood-color="#021c44" flood-opacity="1" />
+      <feDropShadow dx="0" dy="16" stdDeviation="10" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+
+    <filter id="neonShieldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="15" flood-color="#38bdf8" flood-opacity="0.6" />
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1200" height="480" rx="28" fill="url(#bgBanner2)" />
+
+  <!-- Diagonal Tech Chevrons Background Pattern -->
+  <g opacity="0.25">
+    <path d="M-100 0 L400 480 M0 0 L500 480 M100 0 L600 480 M200 0 L700 480 M300 0 L800 480 M400 0 L900 480 M500 0 L1000 480 M600 0 L1100 480 M700 0 L1200 480 M800 0 L1300 480" stroke="#38bdf8" stroke-width="2" stroke-opacity="0.4" />
+    <path d="M900 0 L1400 480 M1000 0 L1500 480" stroke="#60a5fa" stroke-width="2.5" stroke-opacity="0.5" />
+    <!-- Chevron Highlights -->
+    <polyline points="750,50 820,120 750,190" fill="none" stroke="#60a5fa" stroke-width="6" stroke-linecap="round" opacity="0.3" />
+    <polyline points="850,220 920,290 850,360" fill="none" stroke="#60a5fa" stroke-width="6" stroke-linecap="round" opacity="0.3" />
+  </g>
+
+  <!-- Left Side: Futuristic Insurance Policy Shield Watermark -->
+  <g transform="translate(40, 100)" opacity="0.45" filter="url(#neonShieldGlow)">
+    <!-- Document Silhouette -->
+    <rect x="0" y="0" width="160" height="230" rx="14" fill="#0f275e" stroke="#38bdf8" stroke-width="3" stroke-dasharray="6 4" opacity="0.6" />
+    <text x="80" y="32" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="14" fill="#38bdf8" text-anchor="middle" letter-spacing="2">
+      INSURANCE
+    </text>
+    <line x1="20" y1="50" x2="140" y2="50" stroke="#38bdf8" stroke-width="2" opacity="0.5" />
+    <line x1="20" y1="70" x2="110" y2="70" stroke="#38bdf8" stroke-width="2" opacity="0.3" />
+    <line x1="20" y1="90" x2="130" y2="90" stroke="#38bdf8" stroke-width="2" opacity="0.3" />
+    <line x1="20" y1="110" x2="90" y2="110" stroke="#38bdf8" stroke-width="2" opacity="0.3" />
+    <!-- Glowing Blue Shield -->
+    <path d="M80 130 Q120 130 120 165 Q120 205 80 225 Q40 205 40 165 Q40 130 80 130 Z" fill="#0284c7" fill-opacity="0.3" stroke="#38bdf8" stroke-width="3" />
+    <path d="M80 145 Q105 145 105 170 Q105 198 80 212 Q55 198 55 170 Q55 145 80 145 Z" fill="#38bdf8" fill-opacity="0.25" stroke="#e0f2fe" stroke-width="1.5" />
+  </g>
+
+  <!-- SuperGIROS Brand Pill (Top Center/Left) -->
+  <g transform="translate(320, 75)">
+    <!-- Swirl Orb Icon -->
+    <g transform="translate(0, 0)">
+      <circle cx="28" cy="28" r="22" fill="#0284c7" />
+      <ellipse cx="28" cy="28" rx="28" ry="11" fill="none" stroke="#e0f2fe" stroke-width="4" transform="rotate(-30 28 28)" />
+      <ellipse cx="28" cy="28" rx="16" ry="6" fill="#38bdf8" opacity="0.8" />
+    </g>
+    <!-- Brand Wordmark -->
+    <text x="75" y="38" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="44" fill="#ffffff" letter-spacing="0.5">
+      SuperGIROS<tspan font-size="24" dy="-14">®</tspan>
+    </text>
+  </g>
+
+  <!-- ================= GIANT 3D LOGO: SuperSOAT + Póliza ================= -->
+  <g transform="translate(180, 160)" filter="url(#textExtrude3D)">
+    <!-- White Outline Background (Thick Sticker Rim) -->
+    <g>
+      <!-- Thick 3D Outer border for SuperSOAT -->
+      <text x="380" y="110" font-family="Impact, Arial Black, sans-serif" font-style="italic" font-weight="900" font-size="130" fill="#ffffff" stroke="#ffffff" stroke-width="26" stroke-linejoin="round" text-anchor="middle" letter-spacing="1">
+        SuperSOAT
+      </text>
+      <!-- Thick 3D Outer border for +Póliza -->
+      <text x="740" y="180" font-family="Impact, Arial Black, sans-serif" font-style="italic" font-weight="900" font-size="95" fill="#ffffff" stroke="#ffffff" stroke-width="22" stroke-linejoin="round" text-anchor="middle" letter-spacing="1">
+        +Póliza*
+      </text>
+    </g>
+
+    <!-- Deep Blue Inset Shadow Outline -->
+    <g>
+      <text x="380" y="110" font-family="Impact, Arial Black, sans-serif" font-style="italic" font-weight="900" font-size="130" fill="#052e6f" stroke="#052e6f" stroke-width="12" stroke-linejoin="round" text-anchor="middle" letter-spacing="1">
+        SuperSOAT
+      </text>
+      <text x="740" y="180" font-family="Impact, Arial Black, sans-serif" font-style="italic" font-weight="900" font-size="95" fill="#7c2d12" stroke="#7c2d12" stroke-width="10" stroke-linejoin="round" text-anchor="middle" letter-spacing="1">
+        +Póliza*
+      </text>
+    </g>
+
+    <!-- Foreground Vibrant Gradient Fill -->
+    <g>
+      <text x="380" y="110" font-family="Impact, Arial Black, sans-serif" font-style="italic" font-weight="900" font-size="130" fill="url(#soatTextGrad2)" text-anchor="middle" letter-spacing="1">
+        SuperSOAT
+      </text>
+      <text x="740" y="180" font-family="Impact, Arial Black, sans-serif" font-style="italic" font-weight="900" font-size="95" fill="url(#polizaTextGrad2)" text-anchor="middle" letter-spacing="1">
+        +Póliza*
+      </text>
+    </g>
+  </g>
+
+  <!-- Tagline / Value Proposition -->
+  <g transform="translate(260, 415)">
+    <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="18" fill="#e2e8f0" letter-spacing="0.5">
+      Protege tu vehículo y gana Superpuntos al instante con cada emisión
+    </text>
+    <text x="0" y="24" font-family="system-ui, -apple-system, sans-serif" font-weight="500" font-size="14" fill="#93c5fd">
+      Cobertura médica integral • Asistencia jurídica 24/7 • Acumulación preferencial para Aliados
+    </text>
+  </g>
+
+  <!-- Bottom Right Button: [ > Ver Más ] -->
+  <g transform="translate(1010, 405)" cursor="pointer">
+    <!-- Button Background Pill -->
+    <rect x="0" y="0" width="135" height="42" rx="21" fill="#0369a1" fill-opacity="0.6" stroke="#38bdf8" stroke-width="1.5" />
+    <rect x="2" y="2" width="131" height="38" rx="19" fill="#0284c7" fill-opacity="0.4" />
+    <!-- Chevron Icon -->
+    <path d="M22 15 L28 21 L22 27" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Text -->
+    <text x="40" y="26" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="15" fill="#ffffff" letter-spacing="0.5">
+      Ver Más
+    </text>
+  </g>
+</svg>

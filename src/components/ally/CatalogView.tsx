@@ -20,6 +20,7 @@ import { useApp } from '../../context/AppContext';
 import { Product } from '../../types';
 import { formatPoints } from '../../utils/helpers';
 import { ProductImage } from '../common/ProductImage';
+import { PromotionalBannerCarousel } from '../rewards/PromotionalBannerCarousel';
 
 interface CatalogViewProps {
   onOpenReportModal: () => void;
@@ -130,8 +131,16 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
         </div>
       </div>
 
+      {/* Promotional Carousel Banner */}
+      <PromotionalBannerCarousel 
+        onStartRedeeming={() => {
+          const el = document.getElementById('catalog-products-grid');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }}
+      />
+
       {/* Catalog Filters & Search Section */}
-      <div className="space-y-4">
+      <div id="catalog-filters" className="space-y-4">
         
         {/* Search Bar & Fast Toggles */}
         <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
@@ -239,6 +248,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
       </div>
 
       {/* Products Grid */}
+      <div id="catalog-products-grid">
       {filteredProducts.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-xs space-y-4">
           <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-900 flex items-center justify-center mx-auto border border-blue-200/60">
@@ -412,6 +422,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
           })}
         </div>
       )}
+      </div>
 
       {/* Product Detail Modal */}
       {selectedProduct && (
