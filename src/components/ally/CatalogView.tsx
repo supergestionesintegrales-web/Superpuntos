@@ -19,6 +19,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import { Product } from '../../types';
 import { formatPoints } from '../../utils/helpers';
+import { ProductImage } from '../common/ProductImage';
 
 interface CatalogViewProps {
   onOpenReportModal: () => void;
@@ -288,25 +289,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
                 <div>
                   {/* Top Image Preview or Fallback with mix-blend-multiply */}
                   <div className="h-44 bg-slate-100 relative overflow-hidden flex items-center justify-center border-b border-slate-100">
-                    {product.imageUrl ? (
-                      <img 
-                        src={product.imageUrl} 
-                        alt={product.name} 
-                        className="w-full h-full object-contain p-4 mix-blend-multiply group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLElement).style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-bold shadow-xs ${
-                        product.isDigital || product.category === 'Bonos' 
-                          ? 'bg-emerald-100 text-emerald-700' 
-                          : 'bg-blue-100 text-blue-900'
-                      }`}>
-                        {product.isDigital || product.category === 'Bonos' ? <Banknote className="w-8 h-8" /> : <Gift className="w-8 h-8" />}
-                      </div>
-                    )}
+                    <ProductImage 
+                      product={product} 
+                      containerClassName="w-full h-full flex items-center justify-center relative overflow-hidden" 
+                    />
 
                     {/* Top Badges */}
                     <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
@@ -445,24 +431,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
             <div className="grid grid-cols-1 md:grid-cols-2">
               {/* Product Image / Bono Visual */}
               <div className="relative aspect-4/3 md:aspect-auto bg-slate-100 flex items-center justify-center p-6 overflow-hidden border-b md:border-b-0 md:border-r border-slate-200">
-                {selectedProduct.imageUrl ? (
-                  <img
-                    src={selectedProduct.imageUrl}
-                    alt={selectedProduct.name}
-                    className="w-full h-full object-contain max-h-72 mix-blend-multiply"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLElement).style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div className={`w-24 h-24 rounded-3xl flex items-center justify-center font-bold shadow-xs ${
-                    selectedProduct.isDigital || selectedProduct.category === 'Bonos'
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-blue-100 text-blue-900'
-                  }`}>
-                    {selectedProduct.isDigital || selectedProduct.category === 'Bonos' ? <Banknote className="w-12 h-12" /> : <Gift className="w-12 h-12" />}
-                  </div>
-                )}
+                <ProductImage
+                  product={selectedProduct}
+                  fallbackSize="lg"
+                  className="w-full h-full object-contain max-h-72 mix-blend-multiply"
+                  containerClassName="w-full h-full flex items-center justify-center relative overflow-hidden"
+                />
                 
                 {/* Badges */}
                 <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">

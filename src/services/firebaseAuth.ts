@@ -100,7 +100,11 @@ export const googleSignIn = async (): Promise<{ user: FirebaseUser; accessToken:
     }
     return { user: result.user, accessToken: cachedAccessToken || '' };
   } catch (error: any) {
-    console.error('Error al iniciar sesión con Google:', error);
+    if (error?.code === 'auth/unauthorized-domain' || error?.message?.includes('unauthorized-domain')) {
+      console.warn('[Firebase Auth] Dominio pendiente de autorizar en Firebase Console:', typeof window !== 'undefined' ? window.location.hostname : '');
+    } else {
+      console.error('Error al iniciar sesión con Google:', error);
+    }
     throw error;
   } finally {
     isSigningIn = false;
@@ -119,7 +123,11 @@ export const googleSignInForSheets = async (): Promise<string | null> => {
     }
     return null;
   } catch (error: any) {
-    console.error('Error al conectar Google Sheets:', error);
+    if (error?.code === 'auth/unauthorized-domain' || error?.message?.includes('unauthorized-domain')) {
+      console.warn('[Firebase Auth] Dominio pendiente de autorizar en Firebase Console para Google Sheets');
+    } else {
+      console.error('Error al conectar Google Sheets:', error);
+    }
     throw error;
   }
 };

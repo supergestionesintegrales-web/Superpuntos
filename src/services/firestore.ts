@@ -46,6 +46,46 @@ export const COLLECTIONS = {
   ACCESS_LOGS: 'accessLogs'
 };
 
+/**
+ * Executes a Promise with a timeout limit so hanging Firebase network calls
+ * do not freeze the UI or block asynchronous operations.
+ */
+export const withTimeout = <T>(promise: Promise<T>, ms: number = 2500, fallbackVal?: T): Promise<T> => {
+  return new Promise<T>((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        if (fallbackVal !== undefined) {
+          resolve(fallbackVal);
+        } else {
+          reject(new Error(`Timeout de Firestore (${ms}ms)`));
+        }
+      }
+    }, ms);
+
+    promise
+      .then((val) => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve(val);
+        }
+      })
+      .catch((err) => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          if (fallbackVal !== undefined) {
+            resolve(fallbackVal);
+          } else {
+            reject(err);
+          }
+        }
+      });
+  });
+};
+
 // ==================== USERS ====================
 
 export const saveUser = async (user: User): Promise<void> => {
@@ -107,10 +147,45 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
 export const getAllUsers = async (): Promise<User[]> => {
   try {
     const usersRef = collection(db, COLLECTIONS.USERS);
-    const querySnapshot = await getDocs(usersRef);
-    return querySnapshot.docs.map(doc => doc.data() as User);
+    const querySnapshot = await withTimeout(getDocs(usersRef), 2500, { docs: [] } as any);
+    let users = querySnapshot.docs.map(doc => doc.data() as User);
+
+    // Also check alternative collections 'allies' and 'aliados' in case they were stored under these names in Firestore
+    try {
+      const alliesRef = collection(db, 'allies');
+      const alliesSnap = await withTimeout(getDocs(alliesRef), 1500, { empty: true, docs: [] } as any);
+      if (!alliesSnap.empty) {
+        const extraAllies = alliesSnap.docs.map(doc => {
+          const data = doc.data() as any;
+          return {
+            ...data,
+            id: data.id || doc.id,
+            role: data.role || 'ally'
+          } as User;
+        });
+        users = [...users, ...extraAllies.filter(ea => !users.some(u => u.id === ea.id || u.documentId === ea.documentId))];
+      }
+    } catch {}
+
+    try {
+      const aliadosRef = collection(db, 'aliados');
+      const aliadosSnap = await withTimeout(getDocs(aliadosRef), 1500, { empty: true, docs: [] } as any);
+      if (!aliadosSnap.empty) {
+        const extraAliados = aliadosSnap.docs.map(doc => {
+          const data = doc.data() as any;
+          return {
+            ...data,
+            id: data.id || doc.id,
+            role: data.role || 'ally'
+          } as User;
+        });
+        users = [...users, ...extraAliados.filter(ea => !users.some(u => u.id === ea.id || u.documentId === ea.documentId))];
+      }
+    } catch {}
+
+    return users;
   } catch (error) {
-    console.error('Error getting all users from Firestore:', error);
+    console.warn('Notice reading users from Firestore (falling back to local state):', error);
     return [];
   }
 };
@@ -131,11 +206,20 @@ export const updateUser = async (userId: string, data: Partial<User>): Promise<v
 export const deleteUser = async (userId: string): Promise<void> => {
   try {
     const userRef = doc(db, COLLECTIONS.USERS, userId);
-    await deleteDoc(userRef);
-  } catch (error) {
-    console.error('Error deleting user from Firestore:', error);
-    throw error;
+    await withTimeout(deleteDoc(userRef), 2000);
+  } catch (error: any) {
+    console.warn('[Firestore] Aviso al eliminar usuario de Firestore (timeout o red):', error?.message || error);
   }
+
+  // Also clean up from alternative collections if they exist, non-blocking
+  try {
+    const alliesRef = doc(db, 'allies', userId);
+    withTimeout(deleteDoc(alliesRef), 1000).catch(() => {});
+  } catch {}
+  try {
+    const aliadosRef = doc(db, 'aliados', userId);
+    withTimeout(deleteDoc(aliadosRef), 1000).catch(() => {});
+  } catch {}
 };
 
 // ==================== PRODUCTS ====================
@@ -167,10 +251,10 @@ export const getProduct = async (productId: string): Promise<Product | null> => 
 export const getAllProducts = async (): Promise<Product[]> => {
   try {
     const productsRef = collection(db, COLLECTIONS.PRODUCTS);
-    const querySnapshot = await getDocs(productsRef);
+    const querySnapshot = await withTimeout(getDocs(productsRef), 2500, { docs: [] } as any);
     return querySnapshot.docs.map(doc => doc.data() as Product);
   } catch (error) {
-    console.error('Error getting all products from Firestore:', error);
+    console.warn('Error getting all products from Firestore:', error);
     return [];
   }
 };
@@ -191,10 +275,9 @@ export const updateProduct = async (productId: string, data: Partial<Product>): 
 export const deleteProduct = async (productId: string): Promise<void> => {
   try {
     const productRef = doc(db, COLLECTIONS.PRODUCTS, productId);
-    await deleteDoc(productRef);
-  } catch (error) {
-    console.error('Error deleting product from Firestore:', error);
-    throw error;
+    await withTimeout(deleteDoc(productRef), 2000);
+  } catch (error: any) {
+    console.warn('[Firestore] Aviso al eliminar producto en Firestore:', error?.message || error);
   }
 };
 
@@ -227,10 +310,10 @@ export const getCampaign = async (campaignId: string): Promise<CommercialCampaig
 export const getAllCampaigns = async (): Promise<CommercialCampaign[]> => {
   try {
     const campaignsRef = collection(db, COLLECTIONS.CAMPAIGNS);
-    const querySnapshot = await getDocs(campaignsRef);
+    const querySnapshot = await withTimeout(getDocs(campaignsRef), 2500, { docs: [] } as any);
     return querySnapshot.docs.map(doc => doc.data() as CommercialCampaign);
   } catch (error) {
-    console.error('Error getting all campaigns from Firestore:', error);
+    console.warn('Error getting all campaigns from Firestore:', error);
     return [];
   }
 };
@@ -251,10 +334,9 @@ export const updateCampaign = async (campaignId: string, data: Partial<Commercia
 export const deleteCampaign = async (campaignId: string): Promise<void> => {
   try {
     const campaignRef = doc(db, COLLECTIONS.CAMPAIGNS, campaignId);
-    await deleteDoc(campaignRef);
-  } catch (error) {
-    console.error('Error deleting campaign from Firestore:', error);
-    throw error;
+    await withTimeout(deleteDoc(campaignRef), 2000);
+  } catch (error: any) {
+    console.warn('[Firestore] Aviso al eliminar campaña en Firestore:', error?.message || error);
   }
 };
 
@@ -287,11 +369,11 @@ export const getGestion = async (gestionId: string): Promise<ReportedGestion | n
 export const getAllGestiones = async (): Promise<ReportedGestion[]> => {
   try {
     const gestionesRef = collection(db, COLLECTIONS.GESTIONES);
-    const querySnapshot = await getDocs(gestionesRef);
+    const querySnapshot = await withTimeout(getDocs(gestionesRef), 2500, { docs: [] } as any);
     const gestiones = querySnapshot.docs.map(doc => doc.data() as ReportedGestion);
     return gestiones.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   } catch (error) {
-    console.error('Error getting all gestiones from Firestore:', error);
+    console.warn('Error getting all gestiones from Firestore:', error);
     return [];
   }
 };
@@ -348,11 +430,11 @@ export const getOrder = async (orderId: string): Promise<RedemptionOrder | null>
 export const getAllOrders = async (): Promise<RedemptionOrder[]> => {
   try {
     const ordersRef = collection(db, COLLECTIONS.ORDERS);
-    const querySnapshot = await getDocs(ordersRef);
+    const querySnapshot = await withTimeout(getDocs(ordersRef), 2500, { docs: [] } as any);
     const orders = querySnapshot.docs.map(doc => doc.data() as RedemptionOrder);
     return orders.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   } catch (error) {
-    console.error('Error getting all orders from Firestore:', error);
+    console.warn('Error getting all orders from Firestore:', error);
     return [];
   }
 };
@@ -441,9 +523,9 @@ export const updateNotification = async (notificationId: string, data: Partial<A
 export const deleteNotification = async (notificationId: string): Promise<void> => {
   try {
     const notificationRef = doc(db, COLLECTIONS.NOTIFICATIONS, notificationId);
-    await deleteDoc(notificationRef);
-  } catch (error) {
-    console.error('Error deleting notification from Firestore:', error);
+    await withTimeout(deleteDoc(notificationRef), 2000);
+  } catch (error: any) {
+    console.warn('[Firestore] Aviso al eliminar notificación:', error?.message || error);
   }
 };
 
@@ -530,65 +612,77 @@ export const purgeAllTestDataFromFirestore = async (
   initialUsers: User[]
 ): Promise<void> => {
   try {
-    // 1. Delete all orders
-    const ordersSnap = await getDocs(collection(db, COLLECTIONS.ORDERS));
-    if (!ordersSnap.empty) {
-      const b1 = writeBatch(db);
-      ordersSnap.docs.forEach(d => b1.delete(d.ref));
-      await b1.commit();
-    }
+    // 1. Delete all orders with timeout
+    try {
+      const ordersSnap = await withTimeout(getDocs(collection(db, COLLECTIONS.ORDERS)), 2000, null);
+      if (ordersSnap && !ordersSnap.empty) {
+        const b1 = writeBatch(db);
+        ordersSnap.docs.forEach(d => b1.delete(d.ref));
+        await withTimeout(b1.commit(), 2000);
+      }
+    } catch {}
 
-    // 2. Delete all transactions
-    const txSnap = await getDocs(collection(db, COLLECTIONS.TRANSACTIONS));
-    if (!txSnap.empty) {
-      const b2 = writeBatch(db);
-      txSnap.docs.forEach(d => b2.delete(d.ref));
-      await b2.commit();
-    }
+    // 2. Delete all transactions with timeout
+    try {
+      const txSnap = await withTimeout(getDocs(collection(db, COLLECTIONS.TRANSACTIONS)), 2000, null);
+      if (txSnap && !txSnap.empty) {
+        const b2 = writeBatch(db);
+        txSnap.docs.forEach(d => b2.delete(d.ref));
+        await withTimeout(b2.commit(), 2000);
+      }
+    } catch {}
 
-    // 3. Delete all notifications
-    const notifsSnap = await getDocs(collection(db, COLLECTIONS.NOTIFICATIONS));
-    if (!notifsSnap.empty) {
-      const b3 = writeBatch(db);
-      notifsSnap.docs.forEach(d => b3.delete(d.ref));
-      await b3.commit();
-    }
+    // 3. Delete all notifications with timeout
+    try {
+      const notifsSnap = await withTimeout(getDocs(collection(db, COLLECTIONS.NOTIFICATIONS)), 2000, null);
+      if (notifsSnap && !notifsSnap.empty) {
+        const b3 = writeBatch(db);
+        notifsSnap.docs.forEach(d => b3.delete(d.ref));
+        await withTimeout(b3.commit(), 2000);
+      }
+    } catch {}
 
-    // 4. Delete all gestiones
-    const gestSnap = await getDocs(collection(db, COLLECTIONS.GESTIONES));
-    if (!gestSnap.empty) {
-      const b4 = writeBatch(db);
-      gestSnap.docs.forEach(d => b4.delete(d.ref));
-      await b4.commit();
-    }
+    // 4. Delete all gestiones with timeout
+    try {
+      const gestSnap = await withTimeout(getDocs(collection(db, COLLECTIONS.GESTIONES)), 2000, null);
+      if (gestSnap && !gestSnap.empty) {
+        const b4 = writeBatch(db);
+        gestSnap.docs.forEach(d => b4.delete(d.ref));
+        await withTimeout(b4.commit(), 2000);
+      }
+    } catch {}
 
     // 5. Reset all users points to 0
-    const usersSnap = await getDocs(collection(db, COLLECTIONS.USERS));
-    if (!usersSnap.empty) {
-      const b5 = writeBatch(db);
-      usersSnap.docs.forEach(d => {
-        b5.update(d.ref, {
-          pointsBalance: 0,
-          totalPointsEarned: 0,
-          totalPointsRedeemed: 0
+    try {
+      const usersSnap = await withTimeout(getDocs(collection(db, COLLECTIONS.USERS)), 2000, null);
+      if (usersSnap && !usersSnap.empty) {
+        const b5 = writeBatch(db);
+        usersSnap.docs.forEach(d => {
+          b5.update(d.ref, {
+            pointsBalance: 0,
+            totalPointsEarned: 0,
+            totalPointsRedeemed: 0
+          });
         });
-      });
-      await b5.commit();
-    }
+        await withTimeout(b5.commit(), 2000);
+      }
+    } catch {}
 
     // 6. Reset all products to initial stock and specifications
     if (initialProducts && initialProducts.length > 0) {
-      const b6 = writeBatch(db);
-      initialProducts.forEach(p => {
-        const pRef = doc(db, COLLECTIONS.PRODUCTS, p.id);
-        b6.set(pRef, p);
-      });
-      await b6.commit();
+      try {
+        const b6 = writeBatch(db);
+        initialProducts.forEach(p => {
+          const pRef = doc(db, COLLECTIONS.PRODUCTS, p.id);
+          b6.set(pRef, p);
+        });
+        await withTimeout(b6.commit(), 2000);
+      } catch {}
     }
 
     console.log('✅ Base de datos Firestore limpiada exitosamente');
   } catch (error) {
-    console.error('Error limpiando datos de prueba en Firestore:', error);
+    console.warn('Aviso limpiando datos de prueba en Firestore:', error);
   }
 };
 
@@ -596,49 +690,85 @@ export const purgeAllTestDataFromFirestore = async (
 
 export const subscribeToUsers = (callback: (users: User[]) => void) => {
   const usersRef = collection(db, COLLECTIONS.USERS);
-  return onSnapshot(usersRef, (snapshot) => {
-    const users = snapshot.docs.map(doc => doc.data() as User);
-    callback(users);
-  });
+  return onSnapshot(
+    usersRef, 
+    (snapshot) => {
+      const users = snapshot.docs.map(doc => doc.data() as User);
+      callback(users);
+    },
+    (error) => {
+      console.warn('Firestore subscribeToUsers notice:', error?.message || error);
+    }
+  );
 };
 
 export const subscribeToProducts = (callback: (products: Product[]) => void) => {
   const productsRef = collection(db, COLLECTIONS.PRODUCTS);
-  return onSnapshot(productsRef, (snapshot) => {
-    const products = snapshot.docs.map(doc => doc.data() as Product);
-    callback(products);
-  });
+  return onSnapshot(
+    productsRef, 
+    (snapshot) => {
+      const products = snapshot.docs.map(doc => doc.data() as Product);
+      callback(products);
+    },
+    (error) => {
+      console.warn('Firestore subscribeToProducts notice:', error?.message || error);
+    }
+  );
 };
 
 export const subscribeToCampaigns = (callback: (campaigns: CommercialCampaign[]) => void) => {
   const campaignsRef = collection(db, COLLECTIONS.CAMPAIGNS);
-  return onSnapshot(campaignsRef, (snapshot) => {
-    const campaigns = snapshot.docs.map(doc => doc.data() as CommercialCampaign);
-    callback(campaigns);
-  });
+  return onSnapshot(
+    campaignsRef, 
+    (snapshot) => {
+      const campaigns = snapshot.docs.map(doc => doc.data() as CommercialCampaign);
+      callback(campaigns);
+    },
+    (error) => {
+      console.warn('Firestore subscribeToCampaigns notice:', error?.message || error);
+    }
+  );
 };
 
 export const subscribeToGestiones = (callback: (gestiones: ReportedGestion[]) => void) => {
   const gestionesRef = collection(db, COLLECTIONS.GESTIONES);
-  return onSnapshot(gestionesRef, (snapshot) => {
-    const gestiones = snapshot.docs.map(doc => doc.data() as ReportedGestion);
-    callback(gestiones.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
-  });
+  return onSnapshot(
+    gestionesRef, 
+    (snapshot) => {
+      const gestiones = snapshot.docs.map(doc => doc.data() as ReportedGestion);
+      callback(gestiones.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
+    },
+    (error) => {
+      console.warn('Firestore subscribeToGestiones notice:', error?.message || error);
+    }
+  );
 };
 
 export const subscribeToOrders = (callback: (orders: RedemptionOrder[]) => void) => {
   const ordersRef = collection(db, COLLECTIONS.ORDERS);
-  return onSnapshot(ordersRef, (snapshot) => {
-    const orders = snapshot.docs.map(doc => doc.data() as RedemptionOrder);
-    callback(orders.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
-  });
+  return onSnapshot(
+    ordersRef, 
+    (snapshot) => {
+      const orders = snapshot.docs.map(doc => doc.data() as RedemptionOrder);
+      callback(orders.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
+    },
+    (error) => {
+      console.warn('Firestore subscribeToOrders notice:', error?.message || error);
+    }
+  );
 };
 
 export const subscribeToNotifications = (callback: (notifications: AppNotification[]) => void) => {
   const notifsRef = collection(db, COLLECTIONS.NOTIFICATIONS);
-  return onSnapshot(notifsRef, (snapshot) => {
-    const notifs = snapshot.docs.map(doc => doc.data() as AppNotification);
-    callback(notifs.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
-  });
+  return onSnapshot(
+    notifsRef, 
+    (snapshot) => {
+      const notifs = snapshot.docs.map(doc => doc.data() as AppNotification);
+      callback(notifs.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
+    },
+    (error) => {
+      console.warn('Firestore subscribeToNotifications notice:', error?.message || error);
+    }
+  );
 };
 

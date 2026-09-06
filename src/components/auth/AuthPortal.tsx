@@ -50,6 +50,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
   const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
   const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
   const [hasCopiedDomain, setHasCopiedDomain] = useState(false);
+  const [directGoogleEmail, setDirectGoogleEmail] = useState('1.jhonvillegas@gmail.com');
+  const [isDirectGoogleLoading, setIsDirectGoogleLoading] = useState(false);
 
   const copyDomainToClipboard = (domain: string) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -141,7 +143,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
     setRegError(null);
     setUnauthorizedDomain(null);
     try {
-      const res = await loginWithGoogle();
+      const preferredRole = activeTab === 'admin_login' ? 'admin' : 'ally';
+      const res = await loginWithGoogle(undefined, undefined, preferredRole);
       if (!res.success) {
         if (res.code === 'auth/unauthorized-domain' || res.message?.includes('unauthorized-domain')) {
           setUnauthorizedDomain(res.domain || (typeof window !== 'undefined' ? window.location.hostname : ''));
@@ -168,6 +171,43 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
       }
     } finally {
       setIsGoogleSigningIn(false);
+    }
+  };
+
+  // Direct Google Sign-In for environments without authorized domain yet
+  const handleDirectGoogleSignIn = async (emailToUse?: string) => {
+    const targetEmail = (emailToUse || directGoogleEmail).trim();
+    if (!targetEmail || !targetEmail.includes('@')) {
+      if (activeTab === 'admin_login') {
+        setAdminError('Por favor ingresa un correo de Google válido.');
+      } else {
+        setAllyError({ message: 'Por favor ingresa un correo de Google válido.' });
+      }
+      return;
+    }
+    setIsDirectGoogleLoading(true);
+    try {
+      const preferredRole = activeTab === 'admin_login' ? 'admin' : 'ally';
+      const res = await loginWithGoogle(targetEmail, undefined, preferredRole);
+      if (res.success) {
+        triggerConfetti();
+        setUnauthorizedDomain(null);
+      } else {
+        if (activeTab === 'admin_login') {
+          setAdminError(res.message);
+        } else {
+          setAllyError({ message: res.message });
+        }
+      }
+    } catch (err: any) {
+      const errorMsg = err instanceof Error ? err.message : 'Error al conectar con Google';
+      if (activeTab === 'admin_login') {
+        setAdminError(errorMsg);
+      } else {
+        setAllyError({ message: errorMsg });
+      }
+    } finally {
+      setIsDirectGoogleLoading(false);
     }
   };
 
@@ -279,8 +319,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
       {/* Top Header Bar */}
       <header className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-700 to-blue-950 text-white flex items-center justify-center font-black shadow-lg shadow-blue-900/30">
-            <Coins className="w-6 h-6 stroke-[2.5]" />
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-700 to-blue-950 text-white flex items-center justify-center font-black shadow-lg shadow-blue-900/30 overflow-hidden border border-blue-600/40">
+            <img src="/favicon.svg" alt="Superpuntos Logo" className="w-full h-full object-cover" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -288,7 +328,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 SUPER<span className="text-blue-400">PUNTOS</span>
               </span>
               <span className="hidden sm:inline-block text-[10px] uppercase font-extrabold tracking-widest text-blue-300 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded-full">
-                Portal de Fidelización
+                Portal de Superpuntos
               </span>
             </div>
             <span className="text-xs text-slate-400 block -mt-0.5">
@@ -309,13 +349,20 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
       <main className="relative z-10 w-full max-w-xl mx-auto px-4 sm:px-6 py-6 flex-1 flex flex-col justify-center">
         
         {/* Header Title */}
-        <div className="text-center mb-6 space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Acceso al Portal de Recompensas
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
-            El sistema valida tus credenciales de forma segura.
-          </p>
+        <div className="text-center mb-6 space-y-3">
+          <div className="flex justify-center">
+            <div className="w-16 h-16 rounded-2xl p-1 bg-gradient-to-br from-blue-700 to-slate-900 border border-blue-500/40 shadow-xl shadow-blue-900/50 flex items-center justify-center">
+              <img src="/favicon.svg" alt="Superpuntos Logo" className="w-full h-full object-contain rounded-xl" />
+            </div>
+          </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Bienvenido - Portal de Superpuntos
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto mt-1">
+              Acceso seguro al sistema de recompensas y fidelización SuperGIROS
+            </p>
+          </div>
         </div>
 
         {/* Clean Segmented Tab Switcher */}
@@ -426,6 +473,38 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                   <li>Baja hasta <strong className="text-white">"Authorized domains"</strong> (Dominios autorizados).</li>
                   <li>Haz clic en <strong className="text-blue-300">"Add domain"</strong>, pega el dominio copiado y guarda.</li>
                 </ol>
+              </div>
+
+              {/* Acceso directo con tu cuenta de Google en este entorno */}
+              <div className="p-3.5 bg-blue-900/40 rounded-xl border border-blue-500/40 space-y-2.5">
+                <div className="flex items-center gap-2 text-white font-bold text-xs">
+                  <Sparkles className="w-4 h-4 text-blue-300 shrink-0" />
+                  <span>Acceso directo con tu cuenta en este entorno</span>
+                </div>
+                <p className="text-[11px] text-blue-200/90 leading-relaxed">
+                  Para no detenerte mientras autorizas el dominio en Firebase Console, puedes ingresar directamente con tu correo:
+                </p>
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <div className="relative w-full flex-1">
+                    <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      value={directGoogleEmail}
+                      onChange={(e) => setDirectGoogleEmail(e.target.value)}
+                      placeholder="ej: 1.jhonvillegas@gmail.com"
+                      className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-400"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDirectGoogleSignIn()}
+                    disabled={isDirectGoogleLoading}
+                    className="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shrink-0 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                  >
+                    <LogIn className="w-3.5 h-3.5" />
+                    <span>{isDirectGoogleLoading ? 'Iniciando...' : `Ingresar como ${activeTab === 'admin_login' ? 'Administrador' : 'Aliado'}`}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Botón directo a Firebase Console */}

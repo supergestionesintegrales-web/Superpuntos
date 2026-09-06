@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 380" width="100%" height="100%">
+  <defs>
+    <linearGradient id="cardGrad150" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="40%" stop-color="#002D72" />
+      <stop offset="100%" stop-color="#1E3A8A" />
+    </linearGradient>
+    <linearGradient id="emeraldGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="50%" stop-color="#FCD34D" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+    <linearGradient id="chipGrad150" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEF3C7" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+    <filter id="shadow150" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#090E17" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- Background Card -->
+  <rect x="20" y="20" width="560" height="340" rx="24" fill="url(#cardGrad150)" filter="url(#shadow150)" />
+
+  <!-- Decorative Curves / Premium Diamond Wave -->
+  <path d="M 20 160 Q 220 70 390 180 T 580 120 L 580 360 L 20 360 Z" fill="#0B132B" opacity="0.45" />
+  <path d="M 20 230 Q 200 140 380 240 T 580 190 L 580 360 L 20 360 Z" fill="#1D4ED8" opacity="0.20" />
+  <circle cx="510" cy="90" r="150" fill="#3B82F6" opacity="0.10" />
+  <circle cx="90" cy="290" r="100" fill="#10B981" opacity="0.12" />
+
+  <!-- Card Border -->
+  <rect x="20" y="20" width="560" height="340" rx="24" fill="none" stroke="#93C5FD" stroke-width="1.5" stroke-opacity="0.35" />
+
+  <!-- Header: Logo & Badge -->
+  <g transform="translate(50, 48)">
+    <rect x="0" y="0" width="38" height="38" rx="10" fill="#10B981" />
+    <polygon points="19,6 31,30 22,30 19,23 16,30 7,30" fill="#FFFFFF" font-weight="bold" />
+    <circle cx="19" cy="18" r="4" fill="#FFFFFF" />
+    <text x="48" y="22" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="20" fill="#FFFFFF" letter-spacing="1">SUPER<tspan fill="#34D399">PUNTOS</tspan></text>
+    <text x="49" y="34" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="10" fill="#A7F3D0" letter-spacing="2">RED OFICIAL SUPERGIROS</text>
+  </g>
+
+  <!-- Digital Badge -->
+  <g transform="translate(415, 52)">
+    <rect x="0" y="0" width="130" height="30" rx="15" fill="#047857" stroke="#10B981" stroke-width="1" />
+    <text x="65" y="20" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="11" fill="#FFFFFF" letter-spacing="0.5">BONO MÁXIMO</text>
+  </g>
+
+  <!-- Smart Chip Graphic -->
+  <g transform="translate(50, 115)">
+    <rect x="0" y="0" width="52" height="40" rx="8" fill="url(#chipGrad150)" stroke="#B45309" stroke-width="1" />
+    <path d="M 0 20 L 52 20 M 26 0 L 26 40 M 12 0 L 12 40 M 40 0 L 40 40" stroke="#78350F" stroke-width="0.75" opacity="0.6" />
+    <rect x="18" y="12" width="16" height="16" rx="4" fill="none" stroke="#78350F" stroke-width="0.75" />
+  </g>
+
+  <!-- App SuperGIROS Indicator -->
+  <g transform="translate(115, 122)">
+    <text x="0" y="16" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="13" fill="#6EE7B7" letter-spacing="0.5">ACREDITACIÓN INMEDIATA</text>
+    <text x="0" y="32" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="11" fill="#FFFFFF" opacity="0.90">Saldo disponible al instante en App SuperGiros</text>
+  </g>
+
+  <!-- Denomination: Large $150.000 COP -->
+  <g transform="translate(50, 235)">
+    <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="46" fill="url(#emeraldGoldGrad)" letter-spacing="-1">$150.000 <tspan font-size="24" font-weight="700" fill="#F8FAFC">COP</tspan></text>
+    <text x="2" y="24" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="12" fill="#6EE7B7" letter-spacing="1">CANJEABLE POR 100 PUNTOS • MÁXIMA DISPONIBILIDAD</text>
+  </g>
+
+  <!-- Footer Info -->
+  <g transform="translate(50, 315)">
+    <text x="0" y="14" font-family="system-ui, -apple-system, sans-serif" font-weight="500" font-size="11" fill="#94A3B8">COD: SP-BONO-150K-DIGITAL</text>
+  </g>
+  <g transform="translate(420, 315)">
+    <text x="125" y="14" text-anchor="end" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="12" fill="#34D399">APP SUPERGIROS</text>
+  </g>
+</svg>

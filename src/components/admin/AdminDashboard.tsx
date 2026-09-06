@@ -61,15 +61,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleConfirmReset = async () => {
     setIsResetting(true);
+    const safetyTimer = setTimeout(() => {
+      setIsResetting(false);
+      setIsResetConfirmOpen(false);
+    }, 2500);
+
     try {
       await resetAllDataToDefault();
+      clearTimeout(safetyTimer);
       setResetSuccessMessage('¡Sistema limpiado con éxito! Se eliminaron órdenes, notificaciones, movimientos y se reiniciaron saldos a 0.');
       setTimeout(() => {
         setResetSuccessMessage(null);
         setIsResetConfirmOpen(false);
-      }, 2000);
+      }, 1500);
     } catch (err) {
-      console.error('Error al reiniciar sistema:', err);
+      clearTimeout(safetyTimer);
+      console.warn('Aviso al reiniciar sistema:', err);
+      setIsResetConfirmOpen(false);
     } finally {
       setIsResetting(false);
     }
@@ -77,9 +85,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleManualFirestoreSync = async () => {
     setIsSyncingFirestore(true);
+    const safetyTimer = setTimeout(() => {
+      setIsSyncingFirestore(false);
+    }, 3000);
+
     try {
       await syncWithFirestore();
     } finally {
+      clearTimeout(safetyTimer);
       setIsSyncingFirestore(false);
     }
   };
@@ -454,10 +467,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* Confirmation Modal for Resetting / Cleaning System */}
       {isResetConfirmOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative text-white space-y-5">
+        <div 
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+          onClick={() => {
+            setIsResetConfirmOpen(false);
+            setIsResetting(false);
+          }}
+        >
+          <div 
+            className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative text-white space-y-5 cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
-              onClick={() => !isResetting && setIsResetConfirmOpen(false)}
+              onClick={() => {
+                setIsResetConfirmOpen(false);
+                setIsResetting(false);
+              }}
               className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
@@ -514,9 +539,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
-                disabled={isResetting}
-                onClick={() => setIsResetConfirmOpen(false)}
-                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
+                onClick={() => {
+                  setIsResetConfirmOpen(false);
+                  setIsResetting(false);
+                }}
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 Cancelar
               </button>

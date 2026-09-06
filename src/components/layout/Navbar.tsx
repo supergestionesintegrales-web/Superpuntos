@@ -126,7 +126,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       case 'admin_deliveries':
         return { title: 'Despachos & Auditoría', desc: 'Guías de transporte y consolidación contable' };
       default:
-        return { title: 'Portal de Canjes', desc: 'Supergestiones Integrales' };
+        return { title: 'Portal de Superpuntos', desc: 'Supergestiones Integrales' };
     }
   };
 
@@ -139,14 +139,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         
         {/* Brand Header */}
         <div className="p-7 flex flex-col items-center border-b border-slate-800 text-center">
-          <div className="w-12 h-12 bg-blue-900 rounded-xl flex items-center justify-center mb-3 shadow-lg shadow-blue-900/40 text-white border border-blue-700/50">
-            <Coins className="w-7 h-7 stroke-[2.5] text-blue-300" />
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 shadow-lg shadow-blue-900/40 overflow-hidden border border-blue-600/40 bg-blue-950">
+            <img src="/favicon.svg" alt="Superpuntos Logo" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-white font-bold text-xl tracking-tight leading-none">
             SUPER<span className="text-blue-400">PUNTOS</span>
           </h1>
-          <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mt-1.5">
-            Portal de Canjes
+          <p className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mt-1.5">
+            Portal de Superpuntos
           </p>
         </div>
 

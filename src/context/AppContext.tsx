@@ -96,7 +96,7 @@ interface AppContextType {
   checkUserExists: (documentOrEmail: string) => Promise<{ exists: boolean; user?: User }>;
   loginAsAlly: (documentOrId: string, password?: string) => Promise<{ success: boolean; notRegistered?: boolean; message: string; user?: User }>;
   loginAsAdmin: (emailOrUser: string, password?: string) => { success: boolean; message: string; user?: User };
-  loginWithGoogle: () => Promise<{ success: boolean; message: string; user?: User; code?: string; domain?: string }>;
+  loginWithGoogle: (fallbackEmail?: string, fallbackName?: string, preferredRole?: 'admin' | 'ally') => Promise<{ success: boolean; message: string; user?: User; code?: string; domain?: string }>;
   loginWithEmailPassword: (emailOrDoc: string, password: string) => Promise<{ success: boolean; message: string; user?: User }>;
   registerWithEmailPassword: (data: Omit<User, 'id' | 'role' | 'pointsBalance' | 'totalPointsEarned' | 'totalPointsRedeemed' | 'status' | 'createdAt'>) => Promise<{ success: boolean; message: string; user?: User }>;
   syncWithFirestore: () => Promise<{ success: boolean; message: string }>;
@@ -258,16 +258,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           u.email.toLowerCase() === 'supergestionesintegrales@gmail.com' ||
           u.email.toLowerCase().includes('supergestiones')
         );
+        let result = filtered;
         if (ownerIndex >= 0) {
-          filtered[ownerIndex] = {
-            ...filtered[ownerIndex],
+          result[ownerIndex] = {
+            ...result[ownerIndex],
             role: 'admin',
-            name: filtered[ownerIndex].name || 'Super Gestiones Integrales (Administrador Principal)'
+            name: result[ownerIndex].name || 'Super Gestiones Integrales (Administrador Principal)'
           };
-          return filtered;
         } else {
-          return [INITIAL_USERS[0], ...filtered];
+          result = [INITIAL_USERS[0], ...result];
         }
+
+        // Check if there are any allies in current state
+        const hasAllies = result.some(u => u.role === 'ally' || (u.role as any) === 'aliado');
+        if (!hasAllies) {
+          const initialAllies = INITIAL_USERS.filter(u => u.role === 'ally');
+          result = [...result, ...initialAllies.filter(ia => !deletedSet.has(ia.id))];
+        }
+        return result;
       } catch {
         return INITIAL_USERS.filter(u => !deletedSet.has(u.id));
       }
@@ -289,8 +297,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const parsed: Product[] = JSON.parse(saved);
       return parsed.map(p => {
         const initialMatch = INITIAL_PRODUCTS.find(ip => ip.id === p.id);
-        if (initialMatch && (!p.imageUrl || p.imageUrl.trim() === '')) {
-          return { ...p, imageUrl: initialMatch.imageUrl };
+        if (initialMatch) {
+          if (!p.imageUrl || p.imageUrl.trim() === '' || p.imageUrl.includes('postimg.cc')) {
+            return { ...p, imageUrl: initialMatch.imageUrl };
+          }
         }
         return p;
       });
@@ -445,7 +455,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       unsubProducts = subscribeToProducts((firestoreProducts) => {
         if (firestoreProducts && firestoreProducts.length > 0) {
-          setProducts(firestoreProducts);
+          const sanitized = firestoreProducts.map(p => {
+            const initialMatch = INITIAL_PRODUCTS.find(ip => ip.id === p.id);
+            if (initialMatch && (!p.imageUrl || p.imageUrl.trim() === '' || p.imageUrl.includes('postimg.cc'))) {
+              return { ...p, imageUrl: initialMatch.imageUrl };
+            }
+            return p;
+          });
+          setProducts(sanitized);
           setIsFirebaseConnected(true);
           setFirestoreStatus('connected');
         } else {
@@ -702,7 +719,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       return false;
     } catch (err: any) {
-      console.error('Error conectando con Google Sheets:', err);
+      if (err?.code === 'auth/unauthorized-domain' || err?.message?.includes('unauthorized-domain')) {
+        console.warn('[Firebase Auth] Dominio pendiente de autorizar en Firebase Console para Google Sheets');
+      } else {
+        console.error('Error conectando con Google Sheets:', err);
+      }
       throw err;
     }
   };
@@ -1086,24 +1107,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true, message: `¡Sesión de Administrador iniciada correctamente! Bienvenido ${adminUser.name}.`, user: adminUser };
   };
 
-  const loginWithGoogle = async (): Promise<{ success: boolean; message: string; user?: User; code?: string; domain?: string }> => {
+  const loginWithGoogle = async (fallbackEmail?: string, fallbackName?: string, preferredRole?: 'admin' | 'ally'): Promise<{ success: boolean; message: string; user?: User; code?: string; domain?: string }> => {
     try {
-      const res = await googleSignIn();
-      if (!res || !res.user) {
-        return { success: false, message: 'No se pudo autenticar con Google.' };
+      let email = '';
+      let displayName = '';
+      let gUid = '';
+      let photoURL = '';
+      let phone = '';
+
+      if (fallbackEmail && fallbackEmail.trim()) {
+        email = fallbackEmail.trim();
+        displayName = fallbackName?.trim() || email.split('@')[0] || 'Usuario Google';
+        gUid = `google_direct_${Date.now()}`;
+      } else {
+        const res = await googleSignIn();
+        if (!res || !res.user) {
+          return { success: false, message: 'No se pudo autenticar con Google.' };
+        }
+        const gUser = res.user;
+        email = gUser.email || '';
+        displayName = gUser.displayName || '';
+        gUid = gUser.uid;
+        photoURL = gUser.photoURL || '';
+        phone = gUser.phoneNumber || '';
       }
-      const gUser = res.user;
-      const email = gUser.email || '';
+
       const cleanEmail = email.toLowerCase();
       const isSuperGestiones = cleanEmail === 'supergestionesintegrales@gmail.com' || cleanEmail.includes('supergestiones');
       const isSantiago = cleanEmail === 'santiikstro1108@gmail.com' || cleanEmail.includes('santiikstro');
-      const isOwnerEmail = isSuperGestiones || isSantiago;
-      const isAdminEmail = isOwnerEmail || cleanEmail === 'admin@supergiros.com' || cleanEmail.includes('admin');
+      const isJhon = cleanEmail === '1.jhonvillegas@gmail.com' || cleanEmail.includes('jhonvillegas');
+      const isOwnerEmail = isSuperGestiones || isSantiago || isJhon;
+      const isAdminEmail = isOwnerEmail || cleanEmail === 'admin@supergiros.com' || cleanEmail.includes('admin') || preferredRole === 'admin';
       
       const defaultOwnerName = isSuperGestiones 
         ? 'Super Gestiones Integrales (Administrador Principal)' 
-        : (isSantiago ? 'Santiago Castro (Administrador Principal)' : (email.split('@')[0] || 'Aliado Superpuntos'));
-      const displayName = gUser.displayName || defaultOwnerName;
+        : (isSantiago ? 'Santiago Castro (Administrador Principal)' : (isJhon ? 'Jhon Villegas (Administrador)' : (displayName || email.split('@')[0] || 'Aliado Superpuntos')));
+      const finalDisplayName = displayName || defaultOwnerName;
 
       let matched = users.find(u => u.email.toLowerCase() === cleanEmail);
 
@@ -1126,28 +1165,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           matched = {
             ...matched,
             role: 'admin',
-            businessName: matched.businessName || (isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : 'SuperGIROS Central - Dirección General'),
-            name: matched.name || displayName
+            businessName: matched.businessName || (isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : (isJhon ? 'SuperGIROS Central - Administración' : 'SuperGIROS Central - Dirección General')),
+            name: matched.name || finalDisplayName
           };
           setUsers(prev => prev.map(u => u.id === matched!.id ? matched! : u));
           saveFirestoreUser(matched).catch(() => {});
         }
       } else {
         const newUser: User = {
-          id: isSuperGestiones ? 'usr_admin_owner' : (isAdminEmail ? `usr_admin_${Date.now()}` : `usr_${Date.now()}`),
-          name: isSuperGestiones ? 'Super Gestiones Integrales (Administrador Principal)' : (isSantiago ? 'Santiago Castro (Administrador Principal)' : displayName),
-          documentId: isSuperGestiones ? '901234567' : (isAdminEmail ? '1098765432' : `G-${gUser.uid.slice(0, 8)}`),
+          id: isSuperGestiones ? 'usr_admin_owner' : (isJhon ? 'usr_admin_jhon' : (isAdminEmail ? `usr_admin_${Date.now()}` : `usr_${Date.now()}`)),
+          name: isSuperGestiones ? 'Super Gestiones Integrales (Administrador Principal)' : (isSantiago ? 'Santiago Castro (Administrador Principal)' : (isJhon ? 'Jhon Villegas (Administrador)' : finalDisplayName)),
+          documentId: isSuperGestiones ? '901234567' : (isJhon ? '1088334455' : (isAdminEmail ? '1098765432' : `G-${gUid.slice(0, 8)}`)),
           email: email,
-          phone: gUser.phoneNumber || '3001234567',
+          phone: phone || '3001234567',
           role: isAdminEmail ? 'admin' : 'ally',
-          businessName: isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : (isAdminEmail ? 'SuperGIROS Central - Dirección General' : displayName),
+          businessName: isSuperGestiones ? 'Super Gestiones Integrales - Dirección Central' : (isJhon ? 'SuperGIROS Central - Administración' : (isAdminEmail ? 'SuperGIROS Central - Dirección General' : finalDisplayName)),
           zone: 'Dirección Nacional',
           pointsBalance: 0,
           totalPointsEarned: 0,
           totalPointsRedeemed: 0,
           status: 'active',
           createdAt: new Date().toISOString(),
-          avatarUrl: gUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f59e0b&color=0f172a&bold=true`
+          avatarUrl: photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(finalDisplayName)}&background=002D72&color=fff&bold=true`
         };
         setUsers(prev => [newUser, ...prev]);
         saveFirestoreUser(newUser).catch(() => {});
@@ -1164,9 +1203,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         : `¡Bienvenido al portal de Superpuntos, ${matched.name}!`;
       return { success: true, message: welcomeMsg, user: matched };
     } catch (err: any) {
-      console.error('Error en loginWithGoogle:', err);
       const isUnauthorizedDomain = err?.code === 'auth/unauthorized-domain' || err?.message?.includes('unauthorized-domain');
       const domain = typeof window !== 'undefined' ? window.location.hostname : '';
+      if (isUnauthorizedDomain) {
+        console.warn(`[Firebase Auth] El dominio actual (${domain}) no está autorizado en Firebase Authentication. Requiere agregarse en Firebase Console > Authentication > Settings > Authorized domains.`);
+      } else {
+        console.error('Error en loginWithGoogle:', err);
+      }
       const message = isUnauthorizedDomain
         ? `El dominio actual (${domain}) no está autorizado en Firebase Authentication. Debes agregarlo en Firebase Console > Authentication > Settings > Authorized domains.`
         : (err?.message || 'Error al iniciar sesión con Google');
@@ -1400,9 +1443,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteUser = async (userId: string): Promise<void> => {
     const targetUser = users.find(u => u.id === userId);
+    // 1. Eliminar de forma instantánea de la UI
     setUsers(prev => prev.filter(u => u.id !== userId));
 
-    // Save to deleted list in localStorage to prevent resurrection from Firestore real-time snapshots
+    // 2. Guardar en lista de eliminados en localStorage para evitar que vuelva a aparecer
     try {
       const stored = localStorage.getItem('superpuntos_deleted_users');
       const list: string[] = stored ? JSON.parse(stored) : [];
@@ -1414,17 +1458,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // ignore
     }
 
-    try {
-      await deleteFirestoreUser(userId);
-    } catch (err) {
-      console.error('Error al eliminar usuario de Firestore:', err);
-    }
-
     if (currentUserId === userId) {
       setCurrentUserId('usr_admin');
     }
 
-    logAccessEvent('logout', `Usuario eliminado del sistema y de Firebase: ${targetUser?.name || userId}`, targetUser);
+    logAccessEvent('logout', `Usuario eliminado del sistema: ${targetUser?.name || userId}`, targetUser);
+
+    // 3. Eliminar de Firestore en segundo plano de manera no bloqueante
+    deleteFirestoreUser(userId).catch((err) => {
+      console.warn('[Firestore] Aviso al eliminar usuario en segundo plano:', err);
+    });
   };
 
   const requestPasswordReset = async (
