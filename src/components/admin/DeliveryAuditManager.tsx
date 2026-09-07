@@ -75,7 +75,7 @@ export const DeliveryAuditManager: React.FC = () => {
     <div className="space-y-6 pb-16">
       
       {/* Header */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl p-4 sm:p-6 sm:p-8 border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <span className="text-[11px] font-bold text-teal-800 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
             Logística y Auditoría de Redenciones
@@ -90,7 +90,7 @@ export const DeliveryAuditManager: React.FC = () => {
 
         <button
           onClick={handleExportCSV}
-          className="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md shadow-emerald-600/25 flex items-center gap-2 transition-all hover:scale-102 cursor-pointer"
+          className="w-full md:w-auto px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all hover:scale-102 cursor-pointer"
         >
           <FileSpreadsheet className="w-4 h-4" />
           <span>Exportar Reporte (.CSV)</span>
@@ -98,7 +98,7 @@ export const DeliveryAuditManager: React.FC = () => {
       </div>
 
       {/* KPI metric strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
           <span className="text-[11px] font-bold text-slate-500 block">Total Canjes</span>
           <span className="text-xl font-black text-slate-900">{orders.length}</span>
@@ -382,7 +382,7 @@ export const DeliveryAuditManager: React.FC = () => {
               </p>
             </div>
 
-            <form onSubmit={handleConfirmDispatch} className="p-6 space-y-4">
+            <form onSubmit={handleConfirmDispatch} className="p-4 sm:p-6 space-y-4">
               
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700">Empresa Transportadora *</label>
@@ -414,18 +414,18 @@ export const DeliveryAuditManager: React.FC = () => {
                 <p className="text-[11px] text-slate-500">Receptor: {dispatchingOrder.recipientName} ({dispatchingOrder.recipientPhone})</p>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setDispatchingOrder(null)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer text-center"
                 >
                   Cancelar
                 </button>
 
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/30 flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/30 flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
                 >
                   <Truck className="w-4 h-4" />
                   <span>Confirmar Despacho</span>

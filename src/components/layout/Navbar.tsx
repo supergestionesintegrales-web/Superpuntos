@@ -59,7 +59,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     markNotificationAsRead, 
     markAllNotificationsAsRead,
     deleteNotification,
-    clearNotifications
+    clearNotifications,
+    logout
   } = useApp();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -307,10 +308,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {/* Subtle Shimmer Sheen */}
                   <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
                   
-                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors shrink-0">
                     <PlusCircle className="w-3 h-3 sm:w-4 sm:h-4 stroke-[2.5] text-blue-200 group-hover:rotate-90 transition-transform duration-300" />
                   </div>
-                  <span className="tracking-tight whitespace-nowrap">Registrar SOAT</span>
+                  <span className="tracking-tight whitespace-nowrap text-xs sm:text-sm">
+                    <span className="hidden xs:inline">Registrar </span>SOAT
+                  </span>
                 </button>
               </div>
             )}
@@ -322,28 +325,28 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="flex flex-col items-end cursor-pointer group"
                 title="Gestiones pendientes de validación"
               >
-                <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                <p className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 tracking-wider">
                   Por Validar
                 </p>
-                <div className="flex items-center space-x-1.5">
-                  <span className="text-lg sm:text-xl font-black text-blue-900">
+                <div className="flex items-center space-x-1 sm:space-x-1.5">
+                  <span className="text-base sm:text-xl font-black text-blue-900">
                     {pendingGestionesCount}
                   </span>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Gestiones</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase hidden xs:inline">Gestiones</span>
                 </div>
               </div>
             )}
 
-            <div className="h-9 w-px bg-slate-200 hidden sm:block"></div>
+            <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
 
             {/* Ally: Cart Button */}
             {currentUser.role === 'ally' && (
               <button
                 onClick={onOpenCart}
-                className="relative p-2.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200"
+                className="relative p-2 sm:p-2.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200 shrink-0"
                 title="Ver carrito de canjes"
               >
-                <ShoppingCart className="w-5 h-5" />
+                <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
                 {cartItemCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 bg-blue-900 text-white font-extrabold text-[10px] min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 shadow-sm">
                     {cartItemCount}
@@ -354,14 +357,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Admin: Quick Shortcuts */}
             {currentUser.role === 'admin' && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
 
                 <button
                   onClick={() => setActiveTab('admin_approvals')}
-                  className="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold flex items-center space-x-2 shadow-xl shadow-blue-950/20 active:scale-95 transition-all cursor-pointer"
+                  className="bg-blue-900 hover:bg-blue-800 text-white px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center space-x-1.5 sm:space-x-2 shadow-sm active:scale-95 transition-all cursor-pointer shrink-0"
                 >
-                  <CheckSquare className="w-4 h-4 text-blue-300" />
-                  <span>Validar SOATs</span>
+                  <CheckSquare className="w-4 h-4 text-blue-300 shrink-0" />
+                  <span className="hidden sm:inline">Validar SOATs</span>
                 </button>
               </div>
             )}
@@ -370,10 +373,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200 relative"
+                className="p-2 sm:p-2.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200 relative shrink-0"
                 title="Notificaciones"
               >
-                <Bell className="w-5 h-5" />
+                <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
                 {unreadNotifications.length > 0 && (
                   <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-blue-700 rounded-full ring-2 ring-white"></span>
                 )}
@@ -381,7 +384,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               {/* Notifications Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 py-3 z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-sm sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 py-3 z-50 animate-in fade-in slide-in-from-top-2">
                   <div className="px-4 pb-2.5 border-b border-slate-100 flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <Bell className="w-4 h-4 text-blue-900" />
@@ -568,6 +571,36 @@ export const Navbar: React.FC<NavbarProps> = ({
                 })}
               </>
             )}
+
+            {/* Mobile Actions: Wallet & Logout */}
+            <div className="pt-2 mt-2 border-t border-slate-800 space-y-1.5">
+              {currentUser.role === 'ally' && (
+                <button
+                  onClick={() => {
+                    setIsWalletModalOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-blue-900/30 border border-blue-800/40 text-blue-200 text-xs font-bold hover:bg-blue-900/50 transition-colors"
+                >
+                  <div className="flex items-center space-x-2.5">
+                    <Coins className="w-4 h-4 text-blue-400" />
+                    <span>Mi Billetera & Nivel</span>
+                  </div>
+                  <span className="font-mono text-amber-400 font-black">{formatPoints(currentUser.pointsBalance)} pts</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  logout();
+                }}
+                className="w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-lg text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 font-semibold text-xs transition-colors cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Cerrar Sesión</span>
+              </button>
+            </div>
 
           </div>
         )}

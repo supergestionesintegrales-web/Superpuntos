@@ -67,7 +67,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ onGoToCatalog }) => {
     <div className="space-y-6 pb-16">
       
       {/* Header */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl p-4 sm:p-6 sm:p-8 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <span className="text-[11px] font-bold text-blue-900 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
             Recompensas Reclamadas
@@ -82,7 +82,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ onGoToCatalog }) => {
 
         <button
           onClick={onGoToCatalog}
-          className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-blue-950 hover:bg-blue-900 text-white flex items-center gap-2 transition-colors cursor-pointer"
+          className="w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-blue-950 hover:bg-blue-900 text-white flex items-center justify-center gap-2 transition-colors cursor-pointer"
         >
           <Gift className="w-4 h-4 text-blue-300" />
           <span>Explorar Catálogo</span>
@@ -114,7 +114,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ onGoToCatalog }) => {
             return (
               <div
                 key={order.id}
-                className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-slate-300 transition-all shadow-xs space-y-4"
+                className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 hover:border-slate-300 transition-all shadow-xs space-y-4"
               >
                 {/* Order Top Bar */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
@@ -139,7 +139,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ onGoToCatalog }) => {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     {getStatusBadge(order.status)}
                     
                     <button

@@ -170,14 +170,14 @@ export const TierScaleModal: React.FC<TierScaleModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:p-5 bg-white border-t border-slate-200 flex items-center justify-between">
+        <div className="p-4 sm:p-5 bg-white border-t border-slate-200 flex flex-col-reverse sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <div className="text-xs text-slate-500">
             Cada SOAT aprobado en RUNT acredita <strong className="text-blue-900">5 Superpuntos</strong>.
           </div>
 
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors cursor-pointer text-center"
           >
             Entendido
           </button>

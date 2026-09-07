@@ -74,31 +74,31 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="relative p-6 bg-gradient-to-r from-slate-900 via-indigo-950/80 to-slate-900 border-b border-slate-800">
+          <div className="relative p-4 sm:p-6 bg-gradient-to-r from-slate-900 via-indigo-950/80 to-slate-900 border-b border-slate-800">
             <button
               onClick={onClose}
-              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              className="absolute top-4 right-4 sm:top-5 sm:right-5 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Cerrar modal"
             >
               <X className="w-4 h-4" />
             </button>
 
             {/* User Identity Info */}
-            <div className="flex items-center gap-4">
-              <div className="relative">
+            <div className="flex items-center gap-3 sm:gap-4 pr-8 sm:pr-0">
+              <div className="relative shrink-0">
                 <img 
                   src={currentUser.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0f172a&color=fff&bold=true`} 
                   alt={currentUser.name}
-                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover border-2 border-blue-500/50 shadow-lg shadow-blue-900/30"
+                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl object-cover border-2 border-blue-500/50 shadow-lg shadow-blue-900/30"
                 />
-                <div className="absolute -bottom-1.5 -right-1.5 bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] shadow-sm">
+                <div className="absolute -bottom-1.5 -right-1.5 bg-blue-600 text-white w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-black text-[9px] sm:text-[10px] shadow-sm">
                   {tierInfo.current.name === 'Diamante' ? '💎' : '⚡'}
                 </div>
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full">
                     {isAlly ? 'Aliado Comercial' : 'Administrador'}
                   </span>
                   {currentUser.documentId && (
@@ -108,7 +108,7 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                   )}
                 </div>
 
-                <h2 className="text-lg sm:text-xl font-black text-white tracking-tight mt-1 truncate">
+                <h2 className="text-base sm:text-xl font-black text-white tracking-tight mt-0.5 sm:mt-1 truncate">
                   {currentUser.name}
                 </h2>
 
@@ -186,16 +186,16 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
             </div>
           </div>
 
-          <div className="p-5 sm:p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 max-h-[75vh] overflow-y-auto">
             
             {/* TABLERO DE BILLETERA DE PUNTOS */}
             {isAlly && (
-              <div className="bg-slate-800/90 rounded-2xl p-5 border border-slate-700/80 space-y-4 shadow-inner">
+              <div className="bg-slate-800/90 rounded-2xl p-4 sm:p-5 border border-slate-700/80 space-y-4 shadow-inner">
                 
                 {/* Board Top: Title & Level Badge */}
-                <div className="flex items-center justify-between pb-3 border-b border-slate-700/80">
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-700/80">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shrink-0">
                       <CoinIcon className="w-4 h-4" />
                     </div>
                     <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
@@ -220,12 +220,12 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                 </div>
 
                 {/* Main Points Number Display */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 block mb-1">
                       Puntos Disponibles para Canje
                     </span>
-                    <div className="text-4xl sm:text-5xl font-black text-blue-400 tracking-tight flex items-baseline gap-2">
+                    <div className="text-3xl sm:text-5xl font-black text-blue-400 tracking-tight flex items-baseline gap-2">
                       {formatPoints(currentUser.pointsBalance)}
                       <span className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest">PTS</span>
                     </div>
@@ -234,8 +234,8 @@ export const UserWalletModal: React.FC<UserWalletModalProps> = ({
                     </p>
                   </div>
 
-                  <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center shadow-inner">
-                    <CoinIcon className="w-10 h-10" />
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center shadow-inner shrink-0">
+                    <CoinIcon className="w-8 h-8 sm:w-10 sm:h-10" />
                   </div>
                 </div>
 

@@ -606,14 +606,16 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
               setActiveTab('ally_login');
               setAllyError(null);
             }}
-            className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`py-2.5 px-2 sm:px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer ${
               activeTab === 'ally_login'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-black'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
             }`}
           >
-            <Store className="w-4 h-4 shrink-0" />
-            <span>Ingreso Aliado</span>
+            <Store className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">
+              <span className="hidden sm:inline">Ingreso </span>Aliado
+            </span>
           </button>
 
           <button
@@ -621,14 +623,16 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
               setActiveTab('ally_register');
               setRegError(null);
             }}
-            className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`py-2.5 px-2 sm:px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer ${
               activeTab === 'ally_register'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-black'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
             }`}
           >
-            <UserPlus className="w-4 h-4 shrink-0" />
-            <span>Registrarse</span>
+            <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">
+              <span className="hidden sm:inline">Nuevo </span>Registro
+            </span>
           </button>
 
           <button
@@ -636,14 +640,16 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
               setActiveTab('admin_login');
               setAdminError(null);
             }}
-            className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`py-2.5 px-2 sm:px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer ${
               activeTab === 'admin_login'
                 ? 'bg-blue-950 text-blue-300 border border-blue-800 shadow-md font-black'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
             }`}
           >
-            <ShieldCheck className="w-4 h-4 shrink-0" />
-            <span>Administrador</span>
+            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">
+              <span className="hidden sm:inline">Portal </span>Admin
+            </span>
           </button>
         </div>
 
@@ -1711,7 +1717,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                     required
                     value={adminEmail}
                     onChange={(e) => setAdminEmail(e.target.value)}
-                    placeholder="admin@superpuentos.online o supergestionesintegrales@gmail.com"
+                    placeholder="Escribir correo"
                     className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                   />
                 </div>

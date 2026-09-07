@@ -103,27 +103,27 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
       
       {/* Toast Notification */}
       {feedbackToast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
+        <div className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 left-4 sm:left-auto z-50 bg-slate-900 text-white px-4 sm:px-5 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
           <Sparkles className="w-5 h-5 text-blue-300 shrink-0" />
-          <span className="text-sm font-medium">{feedbackToast}</span>
+          <span className="text-xs sm:text-sm font-medium">{feedbackToast}</span>
         </div>
       )}
 
       {/* Compact & Minimalist Banner */}
-      <div className="rounded-2xl bg-slate-900 text-white p-4 sm:p-5 border border-slate-800 shadow-sm flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center shrink-0">
-            <CoinIcon className="w-7 h-7" />
+      <div className="rounded-2xl bg-slate-900 text-white p-4 sm:p-5 border border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center shrink-0">
+            <CoinIcon className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base sm:text-lg font-bold text-white tracking-tight">
+              <h1 className="text-sm sm:text-lg font-bold text-white tracking-tight">
                 Hola, {currentUser.name}
               </h1>
             </div>
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-0.5">
               <span className="text-xs text-slate-400">Tu Billetera de Puntos:</span>
-              <span className="text-sm font-black text-blue-300">
+              <span className="text-xs sm:text-sm font-black text-blue-300">
                 {formatPoints(currentUser.pointsBalance)} PTS
               </span>
             </div>
@@ -250,12 +250,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
       {/* Products Grid */}
       <div id="catalog-products-grid">
       {filteredProducts.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-xs space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-900 flex items-center justify-center mx-auto border border-blue-200/60">
-            <Gift className="w-8 h-8 stroke-[2]" />
+        <div className="bg-white rounded-2xl p-6 sm:p-12 text-center border border-slate-200 shadow-xs space-y-4">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-blue-50 text-blue-900 flex items-center justify-center mx-auto border border-blue-200/60">
+            <Gift className="w-7 h-7 sm:w-8 sm:h-8 stroke-[2]" />
           </div>
           <div className="max-w-md mx-auto space-y-1.5">
-            <h3 className="text-base font-bold text-slate-900">
+            <h3 className="text-sm sm:text-base font-bold text-slate-900">
               {products.length === 0 ? 'Catálogo en Actualización' : 'No encontramos premios con estos filtros'}
             </h3>
             <p className="text-xs text-slate-500 leading-relaxed">
@@ -279,7 +279,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredProducts.map(product => {
             const inCartQty = getProductCartQty(product.id);
             const isOutOfStock = product.stock <= 0;
@@ -569,17 +569,17 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
 
       {/* Floating Bottom Cart Bar */}
       {cart.length > 0 && (
-        <div className="fixed bottom-6 right-6 z-40 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-4 animate-in slide-in-from-bottom-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-900 text-white flex items-center justify-center font-black shadow-md shadow-blue-950/20">
-              <ShoppingBag className="w-5 h-5" />
+        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-40 bg-slate-900 text-white p-3.5 sm:p-4 rounded-2xl shadow-2xl border border-slate-700 flex items-center justify-between sm:justify-start gap-3 sm:gap-4 animate-in slide-in-from-bottom-4">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-900 text-white flex items-center justify-center font-black shadow-md shadow-blue-950/20 shrink-0">
+              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <p className="text-xs font-bold text-blue-300">
-                {cart.reduce((sum, item) => sum + item.quantity, 0)} {cart.length === 1 ? 'premio' : 'premios'} en carrito
+              <p className="text-[11px] sm:text-xs font-bold text-blue-300">
+                {cart.reduce((sum, item) => sum + item.quantity, 0)} {cart.length === 1 ? 'premio' : 'premios'}
               </p>
-              <div className="text-sm font-black flex items-center gap-1.5">
-                <CoinIcon className="w-4 h-4" />
+              <div className="text-xs sm:text-sm font-black flex items-center gap-1">
+                <CoinIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>{formatPoints(cart.reduce((sum, i) => sum + (i.product.pointsCost * i.quantity), 0))} pts</span>
               </div>
             </div>
@@ -587,7 +587,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ onOpenReportModal, onO
 
           <button
             onClick={onOpenCart}
-            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-blue-900/30 transition-all cursor-pointer"
+            className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-blue-900/30 transition-all cursor-pointer shrink-0"
           >
             <span>Ver Carrito</span>
             <ArrowRight className="w-3.5 h-3.5" />

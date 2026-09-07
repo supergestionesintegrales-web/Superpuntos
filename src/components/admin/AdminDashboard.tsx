@@ -110,14 +110,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     <div className="space-y-8 pb-16">
       
       {/* Admin Hero Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-6 sm:p-8 border border-slate-800 shadow-xl">
+      <div className="relative overflow-hidden rounded-2xl bg-slate-900 text-white p-4 sm:p-6 lg:p-8 border border-slate-800 shadow-xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30 uppercase tracking-wider flex items-center gap-1.5 w-fit">
               <Sparkles className="w-3.5 h-3.5" />
               Panel de Control Gerencial & Fidelización
             </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight text-white">
               Operaciones & Puntos <span className="text-blue-400">Superpuntos</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
@@ -125,7 +125,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <button
               type="button"
               onClick={handleManualFirestoreSync}
@@ -276,12 +276,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Quick Action Shortcuts */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-xs">
         <h3 className="font-bold text-[10px] uppercase tracking-widest text-slate-400 mb-4">
           Accesos Rápidos de Administración
         </h3>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
           <button
             onClick={() => setActiveTab('admin_approvals')}
             className="p-3.5 rounded-xl bg-slate-50 hover:bg-blue-500/10 hover:border-blue-400 border border-slate-200 text-left transition-all group cursor-pointer"
@@ -344,7 +344,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left 7 Cols: Pending Gestiones Spotlight */}
-        <div className="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
+        <div className="lg:col-span-7 bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-blue-900" />
@@ -410,7 +410,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="lg:col-span-5 space-y-6">
           
           {/* Low Stock Card */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
+          <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-rose-500" />
@@ -544,14 +544,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => {
                   setIsResetConfirmOpen(false);
                   setIsResetting(false);
                 }}
-                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer text-center"
               >
                 Cancelar
               </button>
@@ -559,7 +559,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 type="button"
                 disabled={isResetting}
                 onClick={handleConfirmReset}
-                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-900/40 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-900/40 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
               >
                 {isResetting ? (
                   <>

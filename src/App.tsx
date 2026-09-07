@@ -169,7 +169,7 @@ export function AppContent() {
         </main>
 
         {/* Geometric Balance Footer */}
-        <footer className="h-16 bg-slate-100 border-t border-slate-200 px-6 sm:px-10 flex flex-wrap items-center justify-between text-xs text-slate-500 shrink-0">
+        <footer className="h-14 bg-slate-100 border-t border-slate-200 px-6 sm:px-10 flex items-center justify-between text-xs text-slate-500 shrink-0">
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
@@ -177,14 +177,6 @@ export function AppContent() {
             </div>
             <span className="hidden sm:inline text-slate-300">|</span>
             <span className="hidden sm:inline">Próximo Cierre de Campaña: <strong>30 de Noviembre</strong></span>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <span className="text-slate-600 font-semibold">
-              {currentUser.name} ({currentUser.role === 'admin' ? 'Administrador' : 'Aliado'})
-            </span>
-            <span className="text-slate-300">•</span>
-            <span className="text-slate-400">Soporte Operaciones: aliados@superpuntos.com</span>
           </div>
         </footer>
 

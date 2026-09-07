@@ -306,7 +306,7 @@ export const ApprovalsManager: React.FC = () => {
               >
                 {/* Card Top Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start sm:items-center gap-3">
                     
                     {/* Batch checkbox if pending */}
                     {isPending && (
@@ -318,7 +318,7 @@ export const ApprovalsManager: React.FC = () => {
                             isSelected ? prev.filter(id => id !== gestion.id) : [...prev, gestion.id]
                           );
                         }}
-                        className="w-4 h-4 rounded-md border-slate-300 text-blue-900 focus:ring-blue-500 cursor-pointer"
+                        className="w-4 h-4 mt-1 sm:mt-0 rounded-md border-slate-300 text-blue-900 focus:ring-blue-500 cursor-pointer shrink-0"
                       />
                     )}
 
@@ -326,8 +326,8 @@ export const ApprovalsManager: React.FC = () => {
                       <CampaignIcon name={gestion.serviceType} className="w-5 h-5" />
                     </div>
 
-                    <div>
-                      <div className="flex items-center gap-2">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <span className="text-xs font-bold text-slate-900">
                           {gestion.allyName}
                         </span>
@@ -345,7 +345,7 @@ export const ApprovalsManager: React.FC = () => {
                   </div>
 
                   {/* Status and Points Badge */}
-                  <div className="flex items-center gap-3 self-end sm:self-center">
+                  <div className="flex items-center gap-2 sm:gap-3 self-start sm:self-center flex-wrap">
                     <div className="flex items-center gap-1.5 text-sm font-black text-blue-900 bg-blue-50 px-2.5 py-1 rounded-xl border border-blue-200">
                       <CoinIcon className="w-4 h-4" />
                       <span>+{formatPoints(gestion.pointsAwarded || gestion.pointsExpected)}</span>
@@ -449,19 +449,19 @@ export const ApprovalsManager: React.FC = () => {
 
                 {/* Actions for Pending Gestiones */}
                 {isPending && (
-                  <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
+                  <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 border-t border-slate-100">
                     <button
                       onClick={() => handleOpenRejectModal(gestion)}
-                      className="px-4 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold transition-colors cursor-pointer"
+                      className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold transition-colors cursor-pointer text-center"
                     >
                       Rechazar Reporte
                     </button>
 
                     <button
                       onClick={() => handleOpenApproveModal(gestion)}
-                      className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all hover:scale-102 cursor-pointer"
+                      className="w-full sm:w-auto px-5 py-2.5 sm:py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                     >
-                      <CheckCircle2 className="w-4 h-4" />
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
                       <span>Aprobar e Inyectar Puntos</span>
                     </button>
                   </div>

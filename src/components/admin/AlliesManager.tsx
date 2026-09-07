@@ -379,7 +379,7 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
                 </div>
 
                 {/* Action buttons */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                   <button
                     onClick={() => switchUser(ally.id)}
                     className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1 transition-colors cursor-pointer"
@@ -525,14 +525,14 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
               </div>
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => {
                   setUserToDelete(null);
                   setIsDeleting(false);
                 }}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                className="w-full sm:flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer text-center"
               >
                 Cancelar
               </button>
@@ -562,7 +562,7 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
                     setTimeout(() => setSyncFeedback(null), 6000);
                   }
                 }}
-                className="flex-1 py-3 px-4 rounded-xl font-black text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-md shadow-rose-600/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                className="w-full sm:flex-1 py-3 px-4 rounded-xl font-black text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-md shadow-rose-600/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
               >
                 {isDeleting ? (
                   <>
@@ -652,17 +652,17 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setEditingAlly(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors"
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors text-center"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-900 hover:bg-blue-800 text-white cursor-pointer shadow-sm transition-all"
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-bold bg-blue-900 hover:bg-blue-800 text-white cursor-pointer shadow-sm transition-all text-center"
                 >
                   Guardar Cambios
                 </button>

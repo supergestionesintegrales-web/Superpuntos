@@ -201,7 +201,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
     <div className="space-y-6 pb-16">
       
       {/* Header Banner */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl p-4 sm:p-6 sm:p-8 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <span className="text-[11px] font-bold text-blue-900 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
             Control de Premios y Almacén
@@ -216,7 +216,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
 
         <button
           onClick={handleOpenAdd}
-          className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-blue-900 hover:bg-blue-800 text-white shadow-md shadow-blue-950/20 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+          className="w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-blue-900 hover:bg-blue-800 text-white shadow-md shadow-blue-950/20 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
           <span>+ Nuevo Premio</span>
@@ -224,7 +224,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Premios</p>
           <div className="flex items-baseline justify-between">
@@ -554,7 +554,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
           <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
             
             {/* Modal Header */}
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+            <div className="p-4 sm:p-6 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-900 flex items-center justify-center">
                   <Package className="w-5 h-5" />
@@ -758,17 +758,17 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
               </div>
 
               {/* Submit Buttons */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer text-center"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-black text-xs shadow-md shadow-blue-950/20 transition-all active:scale-95 cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-black text-xs shadow-md shadow-blue-950/20 transition-all active:scale-95 cursor-pointer text-center"
                 >
                   {editingProduct ? 'Guardar Cambios' : 'Crear Producto'}
                 </button>

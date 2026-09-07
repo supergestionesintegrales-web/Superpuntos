@@ -211,26 +211,26 @@ export const ReportGestionModal: React.FC<ReportGestionModalProps> = ({ isOpen, 
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 relative">
+        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 sm:p-6 relative">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
 
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-300 shadow-inner">
-              <Car className="w-6 h-6" />
+          <div className="flex items-center gap-3 pr-8 sm:pr-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-300 shadow-inner shrink-0">
+              <Car className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold tracking-wider uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 rounded-full">
-                  SOAT Único y Comprobación
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="text-[9px] sm:text-[10px] font-bold tracking-wider uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full">
+                  SOAT Único
                 </span>
-                <span className="text-xs text-slate-300">Aliado: {currentUser.name}</span>
+                <span className="text-[11px] sm:text-xs text-slate-300 truncate">Aliado: {currentUser.name}</span>
               </div>
-              <h2 className="text-xl font-black text-white tracking-tight mt-0.5">
+              <h2 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">
                 Registrar Venta de SOAT
               </h2>
             </div>
@@ -239,13 +239,13 @@ export const ReportGestionModal: React.FC<ReportGestionModalProps> = ({ isOpen, 
 
         {/* Success Message Overlay */}
         {submittedSuccess ? (
-          <div className="p-10 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto animate-bounce">
-              <CheckCircle2 className="w-10 h-10" />
+          <div className="p-6 sm:p-10 text-center space-y-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto animate-bounce">
+              <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-slate-900">¡Enviado a Comprobar! 🎉</h3>
-              <p className="text-sm text-slate-600 max-w-md mx-auto">
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900">¡Enviado a Comprobar! 🎉</h3>
+              <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
                 {submittedCount === 1 
                   ? 'Tu SOAT ha sido enviado al Administrador con estado "Pendiente de Validación".' 
                   : `Tus ${submittedCount} SOATs únicos han sido registrados con éxito en una sola comprobación.`}
@@ -256,7 +256,7 @@ export const ReportGestionModal: React.FC<ReportGestionModalProps> = ({ isOpen, 
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[82vh] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5 max-h-[82vh] overflow-y-auto">
             
             {errorMsg && (
               <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
@@ -449,11 +449,11 @@ export const ReportGestionModal: React.FC<ReportGestionModalProps> = ({ isOpen, 
             </div>
 
             {/* Modal Buttons */}
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer text-center"
               >
                 Cancelar
               </button>
@@ -461,9 +461,9 @@ export const ReportGestionModal: React.FC<ReportGestionModalProps> = ({ isOpen, 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white shadow-md shadow-blue-950/30 flex items-center gap-2 transition-all hover:scale-102 cursor-pointer disabled:opacity-50"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white shadow-md shadow-blue-950/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
               >
-                <SendHorizontal className="w-4 h-4" />
+                <SendHorizontal className="w-4 h-4 shrink-0" />
                 <span>
                   {isSubmitting 
                     ? 'Enviando comprobación...' 

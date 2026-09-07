@@ -1066,6 +1066,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     if (found) {
+      // If found user record has no password in local state, fetch security credentials from Firestore
+      if (!found.password || found.password.trim() === '') {
+        try {
+          const freshFromFirestore = (await getFirestoreUserByDocument(cleanDoc)) || 
+                                     (await getFirestoreUserByEmail(cleanDoc)) ||
+                                     (cleanDigits.length >= 7 ? await getFirestoreUserByPhone(cleanDoc) : null) ||
+                                     (await getFirestoreUser(found.id));
+          if (freshFromFirestore && freshFromFirestore.password && freshFromFirestore.password.trim() !== '') {
+            found = { ...found, ...freshFromFirestore };
+            setUsers(prev => [found!, ...prev.filter(u => u.id !== found!.id)]);
+          }
+        } catch {}
+      }
+
       let isPasswordCorrect = false;
       let isTempPasswordLogin = false;
 
@@ -1094,13 +1108,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }
 
-      // If user has a password and neither permanent nor valid temp matched
-      if (!isPasswordCorrect && found.password && found.password.trim() !== '') {
-        return { 
-          success: false, 
-          notRegistered: false, 
-          message: 'Contraseña incorrecta. Si la olvidaste, puedes generar una clave temporal de 5 horas en "¿Olvidaste tu contraseña?".' 
-        };
+      // STRICT VALIDATION: If password did not match, REJECT access!
+      if (!isPasswordCorrect) {
+        logAccessEvent('login', `Intento de acceso denegado por contraseña incorrecta para: ${found.name} (${found.documentId})`, found);
+        if (found.password && found.password.trim() !== '') {
+          return { 
+            success: false, 
+            notRegistered: false, 
+            message: 'Contraseña incorrecta. Por favor verifica tus credenciales o genera una clave temporal en "¿Olvidaste tu contraseña?".' 
+          };
+        } else {
+          return {
+            success: false,
+            notRegistered: false,
+            message: 'Este usuario no tiene una contraseña configurada en el sistema. Por favor utiliza la opción "¿Olvidaste tu contraseña?" para crear tu clave de acceso.'
+          };
+        }
       }
 
       setCurrentUserId(found.id);
@@ -1454,8 +1477,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    if (!isPasswordCorrect && matched.password && matched.password.trim() !== '') {
-      return { success: false, message: 'Contraseña incorrecta. Si la olvidaste, puedes generar una clave temporal de 5 horas.' };
+    if (!isPasswordCorrect) {
+      if (matched.password && matched.password.trim() !== '') {
+        return { success: false, message: 'Contraseña incorrecta. Por favor verifica tus credenciales o utiliza la opción "¿Olvidaste tu contraseña?".' };
+      } else {
+        return { success: false, message: 'Este usuario no tiene una contraseña configurada en el sistema. Por favor utiliza la opción "¿Olvidaste tu contraseña?" para crear una clave de acceso.' };
+      }
     }
 
     setCurrentUserId(matched.id);

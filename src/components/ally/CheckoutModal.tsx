@@ -205,23 +205,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-6 relative border-b border-blue-900/40">
+        <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-4 sm:p-6 relative border-b border-blue-900/40">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
 
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-blue-900/80 border border-blue-700/50 flex items-center justify-center shadow-inner">
-              <CoinIcon className="w-8 h-8" />
+          <div className="flex items-center gap-3 pr-8 sm:pr-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-blue-900/80 border border-blue-700/50 flex items-center justify-center shadow-inner shrink-0">
+              <CoinIcon className="w-7 h-7 sm:w-8 sm:h-8" />
             </div>
             <div>
-              <span className="text-[10px] font-bold tracking-wider uppercase bg-blue-800/50 text-blue-200 border border-blue-700/50 px-2 py-0.5 rounded-full">
+              <span className="text-[9px] sm:text-[10px] font-bold tracking-wider uppercase bg-blue-800/50 text-blue-200 border border-blue-700/50 px-2 py-0.5 rounded-full">
                 Finalizar Canje
               </span>
-              <h2 className="text-xl font-black text-white tracking-tight mt-0.5">
+              <h2 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">
                 Confirmación y Entrega de Premios
               </h2>
             </div>
@@ -229,7 +229,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         </div>
 
         {/* Content Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 max-h-[80vh] overflow-y-auto">
           
           {errorMsg && (
             <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
@@ -634,15 +634,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
           </div>
 
           {/* Total & Confirmation summary */}
-          <div className="bg-blue-50/80 rounded-2xl p-4 border border-blue-200 flex items-center justify-between">
+          <div className="bg-blue-50/80 rounded-2xl p-3.5 sm:p-4 border border-blue-200 flex flex-wrap items-center justify-between gap-3">
             <div>
               <span className="text-xs font-bold text-blue-950 block">Total Superpuntos a Descontar:</span>
               <span className="text-[10px] text-slate-600">
                 Saldo actual: {formatPoints(currentUser.pointsBalance)} pts → Nuevo saldo: {formatPoints(currentUser.pointsBalance - cartPointsTotal)} pts
               </span>
             </div>
-            <div className="text-right font-black text-2xl text-blue-900 flex items-center gap-2">
-              <CoinIcon className="w-6 h-6" />
+            <div className="text-right font-black text-xl sm:text-2xl text-blue-900 flex items-center gap-2">
+              <CoinIcon className="w-5 h-5 sm:w-6 sm:h-6" />
               <span>{formatPoints(cartPointsTotal)}</span>
               <span className="text-xs font-bold text-slate-700">pts</span>
             </div>
@@ -654,7 +654,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
               type="checkbox"
               checked={agreedTerms}
               onChange={(e) => setAgreedTerms(e.target.checked)}
-              className="rounded-md border-slate-300 text-blue-900 focus:ring-blue-800 mt-0.5"
+              className="rounded-md border-slate-300 text-blue-900 focus:ring-blue-800 mt-0.5 shrink-0"
             />
             <span>
               Confirmo que deseo redimir estos premios y que la información diligenciada es verídica para proceder con el despacho o la acreditación del bono.
@@ -662,11 +662,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
           </label>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer text-center"
             >
               Regresar al Carrito
             </button>
@@ -674,9 +674,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
             <button
               type="submit"
               disabled={isProcessing}
-              className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white shadow-lg shadow-blue-950/30 flex items-center gap-2 transition-all hover:scale-102 cursor-pointer disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white shadow-lg shadow-blue-950/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
-              <Sparkles className="w-4 h-4 text-blue-300" />
+              <Sparkles className="w-4 h-4 text-blue-300 shrink-0" />
               <span>{isProcessing ? 'Procesando Canje...' : 'Confirmar y Generar Comprobante'}</span>
             </button>
           </div>

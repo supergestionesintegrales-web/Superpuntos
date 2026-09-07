@@ -67,7 +67,7 @@ export const GestionesHistoryView: React.FC<GestionesHistoryViewProps> = ({ onOp
 
           <button
             onClick={onOpenReportModal}
-            className="px-3.5 py-2 rounded-xl font-bold text-xs bg-blue-900 hover:bg-blue-800 text-white shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
+            className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 rounded-xl font-bold text-xs bg-blue-900 hover:bg-blue-800 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
           >
             <PlusCircle className="w-4 h-4 text-blue-300" />
             <span>Registrar SOAT</span>
@@ -231,7 +231,7 @@ export const GestionesHistoryView: React.FC<GestionesHistoryViewProps> = ({ onOp
                       </div>
 
                       {/* Status Badge */}
-                      <div className="flex items-center gap-3 self-end sm:self-center">
+                      <div className="flex items-center gap-3 self-start sm:self-center">
                         {ges.status === 'pending' && (
                           <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-900 px-3 py-1 rounded-xl text-xs font-bold">
                             <Clock className="w-3.5 h-3.5 text-blue-700 animate-spin" />
@@ -331,7 +331,7 @@ export const GestionesHistoryView: React.FC<GestionesHistoryViewProps> = ({ onOp
       {activeSubTab === 'transactions' && (
         <div className="space-y-4">
           <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
-            <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
               <h3 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
                 Movimientos Contables de Superpuntos
               </h3>

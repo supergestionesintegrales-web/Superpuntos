@@ -62,7 +62,7 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
         </div>
 
         {/* Printable Voucher Section */}
-        <div id="printable-voucher" className="p-6 sm:p-8 space-y-6 bg-white">
+        <div id="printable-voucher" className="p-4 sm:p-8 space-y-5 sm:space-y-6 bg-white">
           
           {/* Brand Header */}
           <div className="text-center pb-4 border-b border-slate-200 space-y-1">
@@ -113,7 +113,7 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
           )}
 
           {/* Ally Information */}
-          <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs bg-slate-50 p-3.5 sm:p-4 rounded-2xl border border-slate-200">
             <div>
               <span className="text-slate-500 block">Aliado Titular:</span>
               <strong className="text-slate-900 font-bold">{order.allyName}</strong>
@@ -244,12 +244,12 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({ order, isOpen, onClo
           </div>
 
           {/* Security stamp & barcode representation */}
-          <div className="pt-4 border-t border-dashed border-slate-200 flex items-center justify-between text-[10px] text-slate-400">
+          <div className="pt-4 border-t border-dashed border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[10px] text-slate-400">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>Transacción cifrada y validada por Superpuntos S.A.S.</span>
             </div>
-            <span className="font-mono">{order.id}</span>
+            <span className="font-mono break-all">{order.id}</span>
           </div>
 
         </div>
