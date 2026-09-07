@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Truck, 
@@ -44,23 +44,53 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const [physicalDeliveryMode, setPhysicalDeliveryMode] = useState<'shipping' | 'branch_pickup'>('shipping');
   
   // Shipping data (Artículos)
-  const [shippingAddress, setShippingAddress] = useState(currentUser.businessName ? `${currentUser.businessName} - ${currentUser.zone}` : '');
-  const [shippingCity, setShippingCity] = useState(currentUser.zone.split('-')[0]?.trim() || 'Bogotá D.C.');
+  const userZone = currentUser?.zone || '';
+  const defaultCity = userZone ? (userZone.includes('-') ? userZone.split('-')[0]?.trim() : userZone.trim()) : 'Bogotá D.C.';
+
+  const [shippingAddress, setShippingAddress] = useState(
+    currentUser?.businessName 
+      ? `${currentUser.businessName}${userZone ? ` - ${userZone}` : ''}` 
+      : (userZone || '')
+  );
+  const [shippingCity, setShippingCity] = useState(defaultCity || 'Bogotá D.C.');
   const [shippingDepartment, setShippingDepartment] = useState('Cundinamarca');
-  const [recipientName, setRecipientName] = useState(currentUser.name);
-  const [recipientPhone, setRecipientPhone] = useState(currentUser.phone);
+  const [recipientName, setRecipientName] = useState(currentUser?.name || '');
+  const [recipientPhone, setRecipientPhone] = useState(currentUser?.phone || '');
 
   // Branch pickup data (Artículos)
   const [pickupOffice, setPickupOffice] = useState(SUPERGIROS_MAIN_OFFICES[0]);
   const [pickupCustomOffice, setPickupCustomOffice] = useState('');
-  const [pickupPersonName, setPickupPersonName] = useState(currentUser.name);
-  const [pickupPersonDoc, setPickupPersonDoc] = useState(currentUser.documentId);
-  const [pickupPersonPhone, setPickupPersonPhone] = useState(currentUser.phone);
+  const [pickupPersonName, setPickupPersonName] = useState(currentUser?.name || '');
+  const [pickupPersonDoc, setPickupPersonDoc] = useState(currentUser?.documentId || '');
+  const [pickupPersonPhone, setPickupPersonPhone] = useState(currentUser?.phone || '');
 
   // App SuperGIROS data (Bonos de dinero)
-  const [supergirosDoc, setSupergirosDoc] = useState(currentUser.documentId || '');
-  const [supergirosName, setSupergirosName] = useState(currentUser.name || '');
-  const [supergirosPhone, setSupergirosPhone] = useState(currentUser.phone || '');
+  const [supergirosDoc, setSupergirosDoc] = useState(currentUser?.documentId || '');
+  const [supergirosName, setSupergirosName] = useState(currentUser?.name || '');
+  const [supergirosPhone, setSupergirosPhone] = useState(currentUser?.phone || '');
+
+  // Sync state if currentUser changes or modal reopens
+  useEffect(() => {
+    if (isOpen && currentUser) {
+      const currentZone = currentUser.zone || '';
+      const city = currentZone ? (currentZone.includes('-') ? currentZone.split('-')[0]?.trim() : currentZone.trim()) : 'Bogotá D.C.';
+      
+      setShippingAddress(
+        currentUser.businessName 
+          ? `${currentUser.businessName}${currentZone ? ` - ${currentZone}` : ''}` 
+          : (currentZone || '')
+      );
+      setShippingCity(city || 'Bogotá D.C.');
+      setRecipientName(currentUser.name || '');
+      setRecipientPhone(currentUser.phone || '');
+      setPickupPersonName(currentUser.name || '');
+      setPickupPersonDoc(currentUser.documentId || '');
+      setPickupPersonPhone(currentUser.phone || '');
+      setSupergirosDoc(currentUser.documentId || '');
+      setSupergirosName(currentUser.name || '');
+      setSupergirosPhone(currentUser.phone || '');
+    }
+  }, [isOpen, currentUser]);
 
   const [notes, setNotes] = useState('');
   const [agreedTerms, setAgreedTerms] = useState(true);

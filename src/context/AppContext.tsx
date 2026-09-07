@@ -276,8 +276,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const filtered = parsed.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_'));
         // Ensure owner is present and admin
         const ownerIndex = filtered.findIndex(u => 
-          u.email.toLowerCase() === 'supergestionesintegrales@gmail.com' ||
-          u.email.toLowerCase().includes('supergestiones')
+          (u.email || '').toLowerCase() === 'supergestionesintegrales@gmail.com' ||
+          (u.email || '').toLowerCase().includes('supergestiones')
         );
         let result = filtered;
         if (ownerIndex >= 0) {
@@ -397,7 +397,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                                     cleanEmail === 'admin@superpuntos.online';
           const isAdminEmail = isSuperGestiones || isSuperpuntosAdmin;
 
-          let matched = users.find(u => u.email.toLowerCase().trim() === cleanEmail);
+          let matched = users.find(u => (u.email || '').toLowerCase().trim() === cleanEmail);
           if (!matched) {
             try {
               matched = (await getFirestoreUserByEmail(cleanEmail)) || undefined;
@@ -413,7 +413,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             // Auto-recognize returning user from Firebase Auth so they don't see login prompts
             const defaultOwnerName = isSuperGestiones 
               ? 'Super Gestiones Integrales (Administrador Principal)' 
-              : (isSuperpuntosAdmin ? 'Administrador Superpuntos' : (cleanEmail.split('@')[0] || 'Aliado Superpuntos'));
+              : (isSuperpuntosAdmin ? 'Administrador Superpuntos' : ((cleanEmail || '').split('@')[0] || 'Aliado Superpuntos'));
             const displayName = fbUser.displayName || defaultOwnerName;
             const newUser: User = {
               id: isSuperGestiones ? 'usr_admin_owner' : (isSuperpuntosAdmin ? 'usr_admin_portal' : `usr_${Date.now()}`),
@@ -967,9 +967,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // 1. Check in local state
     const localFound = users.find(u => 
-      u.documentId.toLowerCase() === clean || 
-      u.email.toLowerCase() === clean ||
-      u.id.toLowerCase() === clean
+      (u.documentId || '').toLowerCase() === clean || 
+      (u.email || '').toLowerCase() === clean ||
+      (u.id || '').toLowerCase() === clean
     );
     if (localFound) return { exists: true, user: localFound };
 
@@ -990,9 +990,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (token) {
         const sheetUsers = await fetchUsersFromGoogleSheets(token, spreadsheetId);
         const sheetFound = sheetUsers.find(u => 
-          u.documentId.toLowerCase() === clean || 
-          u.email.toLowerCase() === clean ||
-          u.id.toLowerCase() === clean
+          (u.documentId || '').toLowerCase() === clean || 
+          (u.email || '').toLowerCase() === clean ||
+          (u.id || '').toLowerCase() === clean
         );
         if (sheetFound) {
           // Merge to state and save to Firestore
@@ -1018,10 +1018,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const cleanDigits = cleanDoc.replace(/\D/g, '');
     let found = users.find(u => 
       u.role === 'ally' && (
-        u.documentId.toLowerCase() === cleanDoc || 
-        u.id.toLowerCase() === cleanDoc ||
-        u.email.toLowerCase() === cleanDoc ||
-        u.name.toLowerCase() === cleanDoc ||
+        (u.documentId || '').toLowerCase() === cleanDoc || 
+        (u.id || '').toLowerCase() === cleanDoc ||
+        (u.email || '').toLowerCase() === cleanDoc ||
+        (u.name || '').toLowerCase() === cleanDoc ||
         (cleanDigits.length >= 7 && (u.phone || '').replace(/\D/g, '').endsWith(cleanDigits.slice(-10)))
       )
     );
@@ -1049,9 +1049,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const sheetUsers = await fetchUsersFromGoogleSheets(token, spreadsheetId);
           const fromSheet = sheetUsers.find(u => 
             u.role === 'ally' && (
-              u.documentId.toLowerCase() === cleanDoc || 
-              u.id.toLowerCase() === cleanDoc ||
-              u.email.toLowerCase() === cleanDoc
+              (u.documentId || '').toLowerCase() === cleanDoc || 
+              (u.id || '').toLowerCase() === cleanDoc ||
+              (u.email || '').toLowerCase() === cleanDoc
             )
           );
           if (fromSheet) {
@@ -1166,12 +1166,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let adminUser = users.find(u => 
       (isSuperGestiones && (
         u.id === 'usr_admin_owner' || 
-        u.email.toLowerCase().includes('supergestiones')
+        (u.email || '').toLowerCase().includes('supergestiones')
       )) ||
       (isSuperpuntosAdmin && (
         u.id === 'usr_admin_portal' || 
-        u.email.toLowerCase() === 'admin@superpuentos.online' ||
-        u.email.toLowerCase() === 'admin@superpuntos.online'
+        (u.email || '').toLowerCase() === 'admin@superpuentos.online' ||
+        (u.email || '').toLowerCase() === 'admin@superpuntos.online'
       ))
     );
 
@@ -1250,7 +1250,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (fallbackEmail && fallbackEmail.trim()) {
         email = fallbackEmail.trim();
-        displayName = fallbackName?.trim() || email.split('@')[0] || 'Usuario Google';
+        displayName = fallbackName?.trim() || (email || '').split('@')[0] || 'Usuario Google';
         gUid = `google_direct_${Date.now()}`;
       } else {
         const res = await googleSignIn();
@@ -1277,10 +1277,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       const defaultOwnerName = isSuperGestiones 
         ? 'Super Gestiones Integrales (Administrador Principal)' 
-        : (isSuperpuntosAdmin ? 'Administrador Superpuntos' : (displayName || email.split('@')[0] || 'Aliado Superpuntos'));
+        : (isSuperpuntosAdmin ? 'Administrador Superpuntos' : (displayName || (email || '').split('@')[0] || 'Aliado Superpuntos'));
       const finalDisplayName = displayName || defaultOwnerName;
 
-      let matched = users.find(u => u.email.toLowerCase().trim() === cleanEmail);
+      let matched = users.find(u => (u.email || '').toLowerCase().trim() === cleanEmail);
 
       // Check Firestore if not found locally so that all previously earned points and data are loaded!
       if (!matched) {
@@ -1405,9 +1405,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     let matched = users.find(u => 
-      u.email.toLowerCase() === clean || 
-      u.documentId.toLowerCase() === clean ||
-      u.id.toLowerCase() === clean
+      (u.email || '').toLowerCase() === clean || 
+      (u.documentId || '').toLowerCase() === clean ||
+      (u.id || '').toLowerCase() === clean
     );
 
     // Search in Firestore if not in memory
@@ -1841,9 +1841,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // 1. Search in local state
     let target = users.find(u => 
-      u.email.toLowerCase() === clean || 
-      u.documentId.toLowerCase() === clean ||
-      u.id.toLowerCase() === clean
+      (u.email || '').toLowerCase() === clean || 
+      (u.documentId || '').toLowerCase() === clean ||
+      (u.id || '').toLowerCase() === clean
     );
 
     // 2. Search in Firestore if not found in state
@@ -1866,7 +1866,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     // Check if user is a Google-only login without a traditional password
-    if (!target.password && (target.documentId.startsWith('G-') || target.email.includes('@gmail.com'))) {
+    if (!target.password && (target.documentId.startsWith('G-') || (target.email || '').includes('@gmail.com'))) {
       return {
         success: false,
         isGoogleUser: true,

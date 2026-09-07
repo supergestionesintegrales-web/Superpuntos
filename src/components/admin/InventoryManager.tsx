@@ -118,7 +118,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
       return;
     }
 
-    const specsArray = formData.specificationsText
+    const specsArray = (formData.specificationsText || '')
       .split('\n')
       .map(s => s.trim())
       .filter(Boolean);
