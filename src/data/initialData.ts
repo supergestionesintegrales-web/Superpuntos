@@ -22,7 +22,7 @@ export const INITIAL_USERS: User[] = [
     id: 'usr_admin_portal',
     name: 'Administrador Superpuntos',
     documentId: '900850320',
-    email: 'admin@superpuentos.online',
+    email: 'admin@superpuntos.supergestionesintegrales.online',
     phone: '3009876543',
     role: 'admin',
     password: 'Admin2026**',
@@ -33,7 +33,7 @@ export const INITIAL_USERS: User[] = [
     avatarUrl: 'https://ui-avatars.com/api/?name=Admin+Superpuntos&background=0f172a&color=fff&bold=true',
     status: 'active',
     createdAt: '2025-01-01T08:00:00Z',
-    businessName: 'Superpuntos Online - Dirección General'
+    businessName: 'Superpuntos - superpuntos.supergestionesintegrales.online'
   }
 ];
 

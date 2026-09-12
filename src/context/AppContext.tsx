@@ -36,7 +36,8 @@ import {
   firebaseSignUpWithEmail,
   subscribeToFirebaseUser,
   getCurrentFirebaseUser,
-  ensureFirebaseAuthUser
+  ensureFirebaseAuthUser,
+  SYSTEM_DOMAIN
 } from '../services/firebaseAuth';
 import type { User as FirebaseUser } from 'firebase/auth';
 import {
@@ -377,7 +378,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                                   cleanEmail === 'supergestionesinetgrales' ||
                                   cleanEmail.includes('supergestiones');
           const isSuperpuntosAdmin = cleanEmail === 'admin@superpuentos.online' ||
-                                    cleanEmail === 'admin@superpuntos.online';
+                                    cleanEmail === 'admin@superpuntos.online' ||
+                                    cleanEmail === `admin@${SYSTEM_DOMAIN}`;
           const isAdminEmail = isSuperGestiones || isSuperpuntosAdmin;
 
           let matched = users.find(u => (u.email || '').toLowerCase().trim() === cleanEmail);
@@ -462,7 +464,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                                   email === 'supergestionesinetgrales' ||
                                   email.includes('supergestiones');
           const isSuperpuntosAdmin = email === 'admin@superpuentos.online' ||
-                                    email === 'admin@superpuntos.online';
+                                    email === 'admin@superpuntos.online' ||
+                                    email === `admin@${SYSTEM_DOMAIN}`;
           const isAuthorizedAdmin = isSuperGestiones || isSuperpuntosAdmin;
 
           if (u.role === 'admin' && !isAuthorizedAdmin) {
@@ -490,7 +493,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             // Auto-sync any registered users in local memory to Firebase Firestore & Auth
             prev.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_') && !u.id.startsWith('usr_admin_')).forEach(u => {
               saveFirestoreUser(u).catch(() => {});
-              const fbEmail = u.email || `${u.documentId}@superpuntos.online`;
+              const fbEmail = u.email || `${u.documentId}@${SYSTEM_DOMAIN}`;
               ensureFirebaseAuthUser(fbEmail, u.password, u.name).catch(() => {});
             });
 
@@ -504,7 +507,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setUsers(current => {
             current.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_') && !u.id.startsWith('usr_admin_')).forEach(u => {
               saveFirestoreUser(u).catch(() => {});
-              const fbEmail = u.email || `${u.documentId}@superpuntos.online`;
+              const fbEmail = u.email || `${u.documentId}@${SYSTEM_DOMAIN}`;
               ensureFirebaseAuthUser(fbEmail, u.password, u.name).catch(() => {});
             });
             return current;
@@ -1157,6 +1160,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const isSuperpuntosAdmin = 
       clean === 'admin@superpuentos.online' || 
       clean === 'admin@superpuntos.online' || 
+      clean === `admin@${SYSTEM_DOMAIN}` ||
       clean === 'admin' ||
       clean === 'usr_admin_portal' ||
       clean === '900850320';
@@ -1165,7 +1169,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       logAccessEvent('login', `Intento de acceso administrativo denegado para: ${emailOrUser}`);
       return { 
         success: false, 
-        message: 'Acceso denegado. Solo los correos administrativos autorizados (supergestionesintegrales@gmail.com y admin@superpuentos.online) tienen acceso al panel de administración.' 
+        message: `Acceso denegado. Solo los correos administrativos autorizados (supergestionesintegrales@gmail.com y admin@${SYSTEM_DOMAIN}) tienen acceso al panel de administración.` 
       };
     }
 
@@ -1177,7 +1181,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       (isSuperpuntosAdmin && (
         u.id === 'usr_admin_portal' || 
         (u.email || '').toLowerCase() === 'admin@superpuentos.online' ||
-        (u.email || '').toLowerCase() === 'admin@superpuntos.online'
+        (u.email || '').toLowerCase() === 'admin@superpuntos.online' ||
+        (u.email || '').toLowerCase() === `admin@${SYSTEM_DOMAIN}`
       ))
     );
 
@@ -1278,7 +1283,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                               cleanEmail === 'supergestionesinetgrales' ||
                               cleanEmail.includes('supergestiones');
       const isSuperpuntosAdmin = cleanEmail === 'admin@superpuentos.online' || 
-                                cleanEmail === 'admin@superpuntos.online';
+                                cleanEmail === 'admin@superpuntos.online' ||
+                                cleanEmail === `admin@${SYSTEM_DOMAIN}`;
       const isAuthorizedAdmin = isSuperGestiones || isSuperpuntosAdmin;
       
       const defaultOwnerName = isSuperGestiones 
@@ -1376,20 +1382,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       if (isUnauthorizedDomain) {
-        console.warn(`[Firebase Auth] El dominio actual (${domain}) no está autorizado en Firebase Authentication. Requiere agregarse en Firebase Console > Authentication > Settings > Authorized domains.`);
+        console.warn(`[Firebase Auth] El dominio actual (${domain}) no está autorizado en Firebase Authentication.`);
         return { 
           success: false, 
-          message: `El dominio actual (${domain}) no está autorizado en Firebase Authentication. Debes agregarlo en Firebase Console > Authentication > Settings > Authorized domains.`, 
+          message: preferredRole === 'admin'
+            ? `El dominio actual (${domain}) no está autorizado en Firebase Authentication. Debes agregarlo en Firebase Console > Authentication > Settings > Authorized domains junto con ${SYSTEM_DOMAIN}.`
+            : 'El acceso rápido con Google no está disponible en este momento. Por favor ingresa con tu número de documento y contraseña.', 
           code: 'auth/unauthorized-domain',
           domain 
         };
       }
 
-      console.error('Error en loginWithGoogle:', err);
-      const message = err?.message || 'Error al iniciar sesión con Google';
+      console.warn('[Firebase Auth] Aviso en loginWithGoogle:', err?.code || err?.message);
+      const isInternalError = err?.code === 'auth/internal-error' || err?.message?.includes('internal-error');
+      
+      let finalMessage = 'Error al iniciar sesión con Google';
+      if (preferredRole === 'admin') {
+        if (isInternalError) {
+          finalMessage = `Firebase reportó restricción temporal (auth/internal-error). Revisa la configuración de dominios autorizados (${SYSTEM_DOMAIN}) y credenciales en Firebase Console.`;
+        } else {
+          finalMessage = err?.message || 'Error al iniciar sesión con Google en el entorno actual.';
+        }
+      } else {
+        // ALIADO / USUARIO NORMAL: NUNCA mostrar errores técnicos de Firebase como internal-error
+        finalMessage = 'No fue posible iniciar sesión con Google en este momento. Por favor ingresa con tu cédula y contraseña.';
+      }
+
       return { 
         success: false, 
-        message, 
+        message: finalMessage, 
         code: err?.code,
         domain 
       };
@@ -1489,7 +1510,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const emailToUse = (data.email && data.email.includes('@')) 
         ? data.email.trim().toLowerCase() 
-        : `${data.documentId.trim()}@superpuntos.online`;
+        : `${data.documentId.trim()}@${SYSTEM_DOMAIN}`;
 
       let fbUser: any = null;
       try {
@@ -1572,7 +1593,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                             cleanEmail === 'supergestionesinetgrales@gmail.com' ||
                             cleanEmail.includes('supergestiones');
     const isSuperpuntosAdmin = cleanEmail === 'admin@superpuentos.online' ||
-                              cleanEmail === 'admin@superpuntos.online';
+                              cleanEmail === 'admin@superpuntos.online' ||
+                              cleanEmail === `admin@${SYSTEM_DOMAIN}`;
     const isOwner = isSuperGestiones || isSuperpuntosAdmin;
 
     const newUser: User = {
@@ -1637,7 +1659,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     saveFirestoreUser(newUser).catch(err => {
       console.warn('Notice saving user to Firestore:', err);
     });
-    const fbEmail = newUser.email || `${newUser.documentId}@superpuntos.online`;
+    const fbEmail = newUser.email || `${newUser.documentId}@${SYSTEM_DOMAIN}`;
     ensureFirebaseAuthUser(fbEmail, newUser.password, newUser.name).catch(() => {});
 
     return newUser;

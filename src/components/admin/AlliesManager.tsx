@@ -67,6 +67,7 @@ export const AlliesManager: React.FC<AlliesManagerProps> = ({ onOpenManualPoints
       email.includes('supergestiones') ||
       email === 'admin@superpuentos.online' ||
       email === 'admin@superpuntos.online' ||
+      email === 'admin@superpuntos.supergestionesintegrales.online' ||
       u.id === 'usr_admin_owner' ||
       u.id === 'usr_admin_portal';
 

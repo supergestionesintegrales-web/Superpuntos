@@ -205,6 +205,9 @@ export const googleSignOut = async () => {
   cachedAccessToken = null;
 };
 
+// Official system domain
+export const SYSTEM_DOMAIN = 'superpuntos.supergestionesintegrales.online';
+
 // Ensure User exists in Firebase Authentication (Console -> Authentication -> Users)
 export const ensureFirebaseAuthUser = async (
   emailOrDoc: string,
@@ -213,7 +216,7 @@ export const ensureFirebaseAuthUser = async (
 ): Promise<FirebaseUser | null> => {
   const clean = (emailOrDoc || '').toLowerCase().trim();
   if (!clean) return null;
-  const targetEmail = clean.includes('@') ? clean : `${clean.replace(/\D/g, '') || clean}@superpuntos.online`;
+  const targetEmail = clean.includes('@') ? clean : `${clean.replace(/\D/g, '') || clean}@${SYSTEM_DOMAIN}`;
   const targetPassword = password && password.length >= 6 ? password : 'Superpuntos2026*';
 
   try {

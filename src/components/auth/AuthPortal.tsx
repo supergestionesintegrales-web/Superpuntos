@@ -24,6 +24,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import { CoinIcon } from '../common/CoinIcon';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
+import { SYSTEM_DOMAIN } from '../../services/firebaseAuth';
 
 interface AuthPortalProps {
   onOpenRegisterAlly?: () => void;
@@ -51,6 +52,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
   const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
   const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
   const [hasCopiedDomain, setHasCopiedDomain] = useState(false);
+  const [hasCopiedSystemDomain, setHasCopiedSystemDomain] = useState(false);
   const [directGoogleEmail, setDirectGoogleEmail] = useState('');
   const [isDirectGoogleLoading, setIsDirectGoogleLoading] = useState(false);
 
@@ -59,6 +61,14 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
       navigator.clipboard.writeText(domain);
       setHasCopiedDomain(true);
       setTimeout(() => setHasCopiedDomain(false), 3000);
+    }
+  };
+
+  const copySystemDomainToClipboard = () => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(SYSTEM_DOMAIN);
+      setHasCopiedSystemDomain(true);
+      setTimeout(() => setHasCopiedSystemDomain(false), 3000);
     }
   };
 
@@ -163,12 +173,16 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
           return;
         }
         if (res.code === 'auth/unauthorized-domain' || res.message?.includes('unauthorized-domain')) {
-          setUnauthorizedDomain(res.domain || (typeof window !== 'undefined' ? window.location.hostname : ''));
+          if (activeTab === 'admin_login') {
+            setUnauthorizedDomain(res.domain || (typeof window !== 'undefined' ? window.location.hostname : ''));
+          } else {
+            setAllyError({ message: 'El acceso rápido con Google no está disponible en este momento. Por favor ingresa con tu cédula y contraseña.' });
+          }
         } else {
           if (activeTab === 'admin_login') {
             setAdminError(res.message);
           } else {
-            setAllyError({ message: res.message });
+            setAllyError({ message: 'El acceso con Google no está disponible temporalmente. Puedes ingresar con tu cédula y contraseña.' });
           }
         }
       } else {
@@ -179,15 +193,17 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
         // Usuario cerró o canceló la ventana emergente
         return;
       }
-      if (err?.code === 'auth/unauthorized-domain' || err?.message?.includes('unauthorized-domain')) {
-        setUnauthorizedDomain(typeof window !== 'undefined' ? window.location.hostname : '');
-      } else {
-        const errorMsg = err instanceof Error ? err.message : 'Error al conectar con Google';
-        if (activeTab === 'admin_login') {
-          setAdminError(errorMsg);
+      if (activeTab === 'admin_login') {
+        if (err?.code === 'auth/unauthorized-domain' || err?.message?.includes('unauthorized-domain')) {
+          setUnauthorizedDomain(typeof window !== 'undefined' ? window.location.hostname : '');
         } else {
-          setAllyError({ message: errorMsg });
+          const isInternal = err?.code === 'auth/internal-error' || err?.message?.includes('internal-error');
+          setAdminError(isInternal 
+            ? `Firebase reportó restricción interna (auth/internal-error). Verifica los dominios autorizados (${SYSTEM_DOMAIN}) en Firebase Console.`
+            : (err instanceof Error ? err.message : 'Error al conectar con Google'));
         }
+      } else {
+        setAllyError({ message: 'El acceso con Google no está disponible temporalmente. Por favor ingresa con tu cédula y contraseña.' });
       }
     } finally {
       setIsGoogleSigningIn(false);
@@ -216,15 +232,14 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
         if (activeTab === 'admin_login') {
           setAdminError(res.message);
         } else {
-          setAllyError({ message: res.message });
+          setAllyError({ message: 'No fue posible iniciar sesión. Por favor ingresa con tu cédula y contraseña.' });
         }
       }
     } catch (err: any) {
-      const errorMsg = err instanceof Error ? err.message : 'Error al conectar con Google';
       if (activeTab === 'admin_login') {
-        setAdminError(errorMsg);
+        setAdminError(err instanceof Error ? err.message : 'Error al conectar con Google');
       } else {
-        setAllyError({ message: errorMsg });
+        setAllyError({ message: 'No fue posible iniciar sesión. Por favor ingresa con tu cédula y contraseña.' });
       }
     } finally {
       setIsDirectGoogleLoading(false);
@@ -447,16 +462,16 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
         {/* Card Container */}
         <div className="bg-slate-900/95 border border-slate-800/90 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl transition-all space-y-6">
           
-          {/* Banner de Solución para Dominio no Autorizado en Firebase */}
-          {unauthorizedDomain && (
+          {/* Banner de Solución para Dominio no Autorizado en Firebase - EXCLUSIVO PARA ADMINISTRADOR */}
+          {unauthorizedDomain && activeTab === 'admin_login' && (
             <div className="p-4 sm:p-5 rounded-2xl bg-blue-950/80 border border-blue-500/50 text-blue-200 text-xs space-y-3.5 animate-in fade-in shadow-xl">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
                   <ShieldAlert className="w-5 h-5 text-blue-300 shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="font-bold text-sm text-white">Dominio no autorizado en Firebase Auth</h4>
+                    <h4 className="font-bold text-sm text-white">Configuración de Dominios en Firebase Auth (Solo Administrador)</h4>
                     <p className="text-blue-300/90 text-xs mt-0.5">
-                      Firebase bloquea el acceso con Google hasta que autorices este dominio en la consola de Firebase.
+                      Para evitar errores como <code className="text-amber-300 font-mono">auth/internal-error</code> o <code className="text-amber-300 font-mono">auth/unauthorized-domain</code>, agrega los siguientes dominios en la consola de Firebase.
                     </p>
                   </div>
                 </div>
@@ -470,18 +485,18 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 </button>
               </div>
 
-              {/* Dominio a copiar */}
-              <div className="p-3 bg-slate-950/90 rounded-xl border border-slate-700/80 flex items-center justify-between gap-2">
+              {/* Dominio Oficial del Sistema */}
+              <div className="p-3 bg-slate-950/90 rounded-xl border border-blue-600/40 flex items-center justify-between gap-2">
                 <div className="overflow-hidden">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Dominio que debes agregar:</span>
-                  <code className="text-blue-300 font-mono text-xs select-all break-all">{unauthorizedDomain}</code>
+                  <span className="text-[10px] uppercase font-bold text-blue-400 block">1. Dominio Oficial del Sistema:</span>
+                  <code className="text-blue-200 font-mono text-xs select-all break-all">{SYSTEM_DOMAIN}</code>
                 </div>
                 <button
                   type="button"
-                  onClick={() => copyDomainToClipboard(unauthorizedDomain)}
+                  onClick={copySystemDomainToClipboard}
                   className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shrink-0 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
                 >
-                  {hasCopiedDomain ? (
+                  {hasCopiedSystemDomain ? (
                     <>
                       <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                       <span>¡Copiado!</span>
@@ -495,14 +510,41 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 </button>
               </div>
 
+              {/* Dominio Actual Detectado (si difiere) */}
+              {unauthorizedDomain && unauthorizedDomain !== SYSTEM_DOMAIN && (
+                <div className="p-3 bg-slate-950/90 rounded-xl border border-slate-700/80 flex items-center justify-between gap-2">
+                  <div className="overflow-hidden">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">2. Dominio actual de este entorno:</span>
+                    <code className="text-blue-300 font-mono text-xs select-all break-all">{unauthorizedDomain}</code>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyDomainToClipboard(unauthorizedDomain)}
+                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs shrink-0 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs border border-slate-600"
+                  >
+                    {hasCopiedDomain ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>¡Copiado!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copiar</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+
               {/* Instrucciones paso a paso */}
               <div className="space-y-1.5 text-slate-300 text-xs bg-slate-900/60 p-3 rounded-xl border border-slate-800">
-                <p className="font-bold text-white text-[11px] uppercase tracking-wider">Pasos para autorizarlo (toma 30 segundos):</p>
+                <p className="font-bold text-white text-[11px] uppercase tracking-wider">Pasos para autorizarlos en Firebase Console:</p>
                 <ol className="list-decimal list-inside space-y-1 text-slate-300 text-xs pl-1">
                   <li>Abre la consola del proyecto <strong className="text-white">superpuntos-on</strong>.</li>
-                  <li>Ve a <strong className="text-white">Authentication &gt; Settings</strong> (pestaña Configuración).</li>
-                  <li>Baja hasta <strong className="text-white">"Authorized domains"</strong> (Dominios autorizados).</li>
-                  <li>Haz clic en <strong className="text-blue-300">"Add domain"</strong>, pega el dominio copiado y guarda.</li>
+                  <li>Ve a <strong className="text-white">Authentication &gt; Settings</strong> (Configuración).</li>
+                  <li>Baja hasta la sección <strong className="text-white">"Authorized domains"</strong> (Dominios autorizados).</li>
+                  <li>Haz clic en <strong className="text-blue-300">"Add domain"</strong> y agrega <strong className="text-white">{SYSTEM_DOMAIN}</strong>.</li>
                 </ol>
               </div>
 
@@ -510,10 +552,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
               <div className="p-3.5 bg-blue-900/40 rounded-xl border border-blue-500/40 space-y-2.5">
                 <div className="flex items-center gap-2 text-white font-bold text-xs">
                   <Sparkles className="w-4 h-4 text-blue-300 shrink-0" />
-                  <span>Acceso directo con tu cuenta en este entorno</span>
+                  <span>Acceso directo administrativo en este entorno</span>
                 </div>
                 <p className="text-[11px] text-blue-200/90 leading-relaxed">
-                  Para no detenerte mientras autorizas el dominio en Firebase Console, puedes ingresar directamente con tu correo:
+                  Para ingresar inmediatamente como administrador mientras configuras la consola:
                 </p>
                 <div className="flex flex-col sm:flex-row items-center gap-2">
                   <div className="relative w-full flex-1">
@@ -522,7 +564,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                       type="email"
                       value={directGoogleEmail}
                       onChange={(e) => setDirectGoogleEmail(e.target.value)}
-                      placeholder="ej: supergestionesintegrales@gmail.com o aliado@correo.com"
+                      placeholder="supergestionesintegrales@gmail.com"
                       className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-400"
                     />
                   </div>
@@ -533,7 +575,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                     className="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shrink-0 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm disabled:opacity-50"
                   >
                     <LogIn className="w-3.5 h-3.5" />
-                    <span>{isDirectGoogleLoading ? 'Iniciando...' : `Ingresar como ${activeTab === 'admin_login' ? 'Administrador' : 'Aliado'}`}</span>
+                    <span>{isDirectGoogleLoading ? 'Iniciando...' : 'Ingresar como Administrador'}</span>
                   </button>
                 </div>
               </div>
