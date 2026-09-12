@@ -483,12 +483,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             prev.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_')).forEach(u => map.set(u.id, sanitizeUserRole(u)));
             firestoreUsers.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_')).forEach(u => map.set(u.id, sanitizeUserRole({ ...map.get(u.id), ...u })));
             
-            // Guarantee authorized admins always exist in memory and state
+            // Guarantee authorized admins always exist in memory, state and Firebase Auth
             INITIAL_USERS.forEach(adm => {
               if (!map.has(adm.id)) {
                 map.set(adm.id, adm);
               }
             });
+            ensureFirebaseAuthUser('supergestionesintegrales@gmail.com', 'Admin2026*', 'Super Gestiones Integrales').catch(() => {});
+            ensureFirebaseAuthUser('admin@superpuntos.online', 'Admin2026*', 'Administrador Superpuntos').catch(() => {});
 
             // Auto-sync any registered users in local memory to Firebase Firestore & Auth
             prev.filter(u => !deletedSet.has(u.id) && !u.id.startsWith('usr_ally_') && !u.id.startsWith('usr_admin_')).forEach(u => {
