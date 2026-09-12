@@ -10,10 +10,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
-  updateProfile,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  ConfirmationResult
+  updateProfile
 } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
@@ -208,32 +205,6 @@ export const googleSignOut = async () => {
   cachedAccessToken = null;
 };
 
-// ==========================================
-// FIREBASE PHONE AUTHENTICATION (SMS)
-// ==========================================
-
-export type { ConfirmationResult };
-
-/**
- * Normaliza un número telefónico a formato internacional E.164.
- * Para Colombia (+57), si ingresa 10 dígitos (ej. 3001234567) antepone +57.
- */
-export const normalizePhoneNumber = (rawPhone: string): string => {
-  const trimmed = (rawPhone || '').trim();
-  if (!trimmed) return '';
-  if (trimmed.startsWith('+')) {
-    return '+' + trimmed.replace(/\D/g, '');
-  }
-  const digitsOnly = trimmed.replace(/\D/g, '');
-  if (digitsOnly.length === 10) {
-    return `+57${digitsOnly}`;
-  }
-  if (digitsOnly.length === 12 && digitsOnly.startsWith('57')) {
-    return `+${digitsOnly}`;
-  }
-  return `+57${digitsOnly}`;
-};
-
 // Ensure User exists in Firebase Authentication (Console -> Authentication -> Users)
 export const ensureFirebaseAuthUser = async (
   emailOrDoc: string,
@@ -263,162 +234,6 @@ export const ensureFirebaseAuthUser = async (
     }
     console.warn('[Firebase Auth] Aviso en ensureFirebaseAuthUser:', err?.code || err?.message);
     return auth.currentUser;
-  }
-};
-
-let recaptchaVerifierInstance: RecaptchaVerifier | null = null;
-
-export const clearRecaptchaVerifier = () => {
-  if (recaptchaVerifierInstance) {
-    try {
-      recaptchaVerifierInstance.clear();
-    } catch {}
-    recaptchaVerifierInstance = null;
-  }
-};
-
-/**
- * Inicializa o reutiliza el RecaptchaVerifier de Firebase Auth.
- */
-export const setupRecaptchaVerifier = (
-  containerId: string = 'recaptcha-container',
-  invisible: boolean = true
-): RecaptchaVerifier => {
-  if (typeof window === 'undefined') {
-    throw new Error('Entorno de ventana no disponible');
-  }
-
-  // Asegurar que el elemento exista en el DOM
-  let container = document.getElementById(containerId);
-  if (!container) {
-    container = document.createElement('div');
-    container.id = containerId;
-    document.body.appendChild(container);
-  }
-
-  if (recaptchaVerifierInstance) {
-    try {
-      recaptchaVerifierInstance.clear();
-    } catch {}
-    recaptchaVerifierInstance = null;
-  }
-
-  recaptchaVerifierInstance = new RecaptchaVerifier(auth, containerId, {
-    size: invisible ? 'invisible' : 'normal',
-    callback: () => {
-      // reCAPTCHA resuelto automáticamente
-    },
-    'expired-callback': () => {
-      console.warn('[Firebase Phone Auth] reCAPTCHA expirado, requiere reintento');
-    }
-  });
-
-  return recaptchaVerifierInstance;
-};
-
-/**
- * Envía un código SMS de 6 dígitos al número de teléfono mediante Firebase Auth
- */
-export const firebaseSendPhoneCode = async (
-  rawPhoneNumber: string,
-  containerId: string = 'recaptcha-container'
-): Promise<ConfirmationResult & { isSimulated?: boolean; simulatedCode?: string }> => {
-  const formattedPhone = normalizePhoneNumber(rawPhoneNumber);
-  if (!formattedPhone || formattedPhone.length < 10) {
-    throw new Error('Por favor ingresa un número de teléfono celular válido (Ejemplo: 300 123 4567).');
-  }
-
-  try {
-    const verifier = setupRecaptchaVerifier(containerId, true);
-    const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, verifier);
-    console.log('[Firebase Phone Auth] SMS real despachado por Firebase a:', formattedPhone);
-    return confirmationResult;
-  } catch (error: any) {
-    clearRecaptchaVerifier();
-
-    console.warn(
-      '[Firebase Phone Auth] Aviso de verificación telefónica en este entorno:',
-      error?.code || error?.message || error
-    );
-
-    // Generar un código dinámico aleatorio de 6 dígitos único para cada intento (NO estático 123456)
-    const dynamicCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const simulatedConfirmation: ConfirmationResult & { isSimulated?: boolean; simulatedCode?: string } = {
-      verificationId: `sim_${Date.now()}_${formattedPhone.replace(/\D/g, '')}`,
-      isSimulated: true,
-      simulatedCode: dynamicCode,
-      confirm: async (code: string) => {
-        const cleanInput = code.trim().replace(/\D/g, '');
-        if (cleanInput !== dynamicCode) {
-          const err: any = new Error(`Código de verificación incorrecto. El código ingresado no coincide con el código enviado (${dynamicCode}).`);
-          err.code = 'auth/invalid-verification-code';
-          throw err;
-        }
-
-        // Registrar o enlazar en Firebase Authentication real
-        const cleanDigits = formattedPhone.replace(/\D/g, '');
-        const fbEmail = `${cleanDigits}@superpuntos.online`;
-        const fbUser = await ensureFirebaseAuthUser(fbEmail, 'Superpuntos2026*', `Aliado ${cleanDigits}`);
-
-        const verifiedUser: any = fbUser || {
-          uid: `phone_${cleanDigits}`,
-          phoneNumber: formattedPhone,
-          displayName: null,
-          email: fbEmail,
-          photoURL: null,
-          emailVerified: true,
-          isAnonymous: false,
-          metadata: {
-            creationTime: new Date().toISOString(),
-            lastSignInTime: new Date().toISOString()
-          },
-          providerData: [{
-            providerId: 'phone',
-            uid: formattedPhone,
-            displayName: null,
-            email: fbEmail,
-            phoneNumber: formattedPhone,
-            photoURL: null
-          }],
-          refreshToken: 'token',
-          tenantId: null,
-          delete: async () => {},
-          getIdToken: async () => 'id_token',
-          getIdTokenResult: async () => ({ token: 'id_token' } as any),
-          reload: async () => {},
-          toJSON: () => ({ uid: `phone_${cleanDigits}`, phoneNumber: formattedPhone })
-        };
-
-        return {
-          user: verifiedUser,
-          providerId: 'phone',
-          operationType: 'signIn'
-        } as any;
-      }
-    };
-
-    return simulatedConfirmation;
-  }
-};
-
-/**
- * Confirma el código SMS de 6 dígitos ingresado por el usuario
- */
-export const firebaseVerifyPhoneCode = async (
-  confirmationResult: ConfirmationResult,
-  code: string
-): Promise<FirebaseUser> => {
-  const cleanCode = code.trim().replace(/\D/g, '');
-  if (!cleanCode || cleanCode.length !== 6) {
-    throw new Error('El código de verificación SMS debe contener exactamente 6 dígitos.');
-  }
-
-  try {
-    const userCredential = await confirmationResult.confirm(cleanCode);
-    return userCredential.user;
-  } catch (error: any) {
-    console.warn('Aviso en confirmación de código SMS:', error?.code || error?.message || error);
-    throw error;
   }
 };
 

@@ -36,11 +36,6 @@ import {
   firebaseSignUpWithEmail,
   subscribeToFirebaseUser,
   getCurrentFirebaseUser,
-  firebaseSendPhoneCode,
-  firebaseVerifyPhoneCode,
-  normalizePhoneNumber,
-  clearRecaptchaVerifier,
-  ConfirmationResult,
   ensureFirebaseAuthUser
 } from '../services/firebaseAuth';
 import type { User as FirebaseUser } from 'firebase/auth';
@@ -108,18 +103,6 @@ interface AppContextType {
   loginWithGoogle: (fallbackEmail?: string, fallbackName?: string, preferredRole?: 'admin' | 'ally') => Promise<{ success: boolean; message: string; user?: User; code?: string; domain?: string }>;
   loginWithEmailPassword: (emailOrDoc: string, password: string) => Promise<{ success: boolean; message: string; user?: User }>;
   registerWithEmailPassword: (data: Omit<User, 'id' | 'role' | 'pointsBalance' | 'totalPointsEarned' | 'totalPointsRedeemed' | 'status' | 'createdAt'>) => Promise<{ success: boolean; message: string; user?: User }>;
-  sendPhoneCode: (rawPhoneNumber: string, containerId?: string) => Promise<{ success: boolean; message: string; confirmationResult?: ConfirmationResult; isSimulated?: boolean; simulatedCode?: string }>;
-  verifyPhoneAndLogin: (rawPhoneNumber: string, code: string, confirmationResult: ConfirmationResult) => Promise<{ success: boolean; message: string; isNewUser?: boolean; user?: User }>;
-  registerWithPhone: (data: {
-    name: string;
-    documentId: string;
-    businessName: string;
-    phone: string;
-    email?: string;
-    password?: string;
-    confirmationResult: ConfirmationResult;
-    code: string;
-  }) => Promise<{ success: boolean; message: string; user?: User }>;
   syncWithFirestore: () => Promise<{ success: boolean; message: string }>;
   isFirebaseConnected: boolean;
   firestoreStatus: 'connected' | 'connecting' | 'error';
@@ -1541,162 +1524,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const sendPhoneCode = async (
-    rawPhoneNumber: string,
-    containerId: string = 'recaptcha-container'
-  ): Promise<{ success: boolean; message: string; confirmationResult?: ConfirmationResult; isSimulated?: boolean; simulatedCode?: string }> => {
-    try {
-      const formatted = normalizePhoneNumber(rawPhoneNumber);
-      const confirmationResult = await firebaseSendPhoneCode(formatted, containerId);
-      const isSim = (confirmationResult as any)?.isSimulated;
-      const simCode = (confirmationResult as any)?.simulatedCode;
-
-      return {
-        success: true,
-        message: isSim 
-          ? `Código de verificación generado: ${simCode}. Ingrésalo a continuación para verificar tu celular.`
-          : `Código de verificación SMS enviado exitosamente por Firebase al número ${formatted}`,
-        confirmationResult,
-        isSimulated: isSim,
-        simulatedCode: simCode
-      };
-    } catch (error: any) {
-      let msg = error?.message || 'Error al enviar código SMS de verificación';
-      if (error?.code === 'auth/invalid-phone-number') {
-        msg = 'El número de celular ingresado no tiene un formato válido. Debe ser de 10 dígitos (Ej: 300 123 4567).';
-      } else if (error?.code === 'auth/too-many-requests') {
-        msg = 'Has solicitado demasiados códigos SMS recientemente. Por favor espera unos minutos antes de reintentar.';
-      } else if (error?.code === 'auth/quota-exceeded') {
-        msg = 'Cuota de SMS temporalmente alcanzada en el servidor de Firebase. Intenta más tarde.';
-      } else if (error?.code === 'auth/captcha-check-failed') {
-        msg = 'La verificación de seguridad reCAPTCHA no se pudo completar. Intenta nuevamente.';
-      } else if (error?.code === 'auth/internal-error' || error?.message?.includes('internal-error')) {
-        msg = 'El servidor de Firebase Authentication reportó una restricción temporal. Puedes ingresar usando tu cédula y contraseña.';
-      }
-      return { success: false, message: msg };
-    }
-  };
-
-  const verifyPhoneAndLogin = async (
-    rawPhoneNumber: string,
-    code: string,
-    confirmationResult: ConfirmationResult
-  ): Promise<{ success: boolean; message: string; isNewUser?: boolean; user?: User }> => {
-    try {
-      const firebaseUser = await firebaseVerifyPhoneCode(confirmationResult, code);
-      const cleanDigits = (rawPhoneNumber || firebaseUser.phoneNumber || '').replace(/\D/g, '');
-      
-      // Look for existing user in memory
-      let matched = users.find(u => {
-        const uDigits = (u.phone || '').replace(/\D/g, '');
-        return (cleanDigits.length >= 10 && uDigits.endsWith(cleanDigits.slice(-10))) ||
-               (firebaseUser.phoneNumber && u.phone === firebaseUser.phoneNumber);
-      });
-
-      // Search Firestore
-      if (!matched && firebaseUser.phoneNumber) {
-        try {
-          const fromFirestore = await getFirestoreUserByPhone(firebaseUser.phoneNumber);
-          if (fromFirestore) {
-            matched = fromFirestore;
-            setUsers(prev => [fromFirestore, ...prev.filter(u => u.id !== fromFirestore.id)]);
-          }
-        } catch {}
-      }
-
-      if (matched) {
-        setCurrentUserId(matched.id);
-        setIsAuthenticated(true);
-        triggerConfetti();
-        logAccessEvent('login', `Inicio de sesión con número celular SMS: ${matched.name} (${matched.phone})`, matched);
-        return {
-          success: true,
-          message: `¡Bienvenido de nuevo, ${matched.name}!`,
-          user: matched
-        };
-      }
-
-      // User phone verified but not yet registered with name/document/business
-      return {
-        success: true,
-        isNewUser: true,
-        message: 'Número de teléfono verificado con éxito. Por favor completa los datos de tu comercio aliado.'
-      };
-    } catch (error: any) {
-      let msg = error?.message || 'Error al validar el código de verificación';
-      if (error?.code === 'auth/invalid-verification-code') {
-        msg = 'El código de verificación ingresado es incorrecto. Por favor verifícalo e intenta nuevamente.';
-      } else if (error?.code === 'auth/code-expired') {
-        msg = 'El código de verificación ha expirado. Por favor solicita un nuevo código.';
-      } else if (error?.code === 'auth/internal-error' || error?.message?.includes('internal-error')) {
-        msg = 'El servidor de autenticación experimentó una restricción temporal. Puedes iniciar sesión con tu cédula y contraseña.';
-      }
-      return { success: false, message: msg };
-    }
-  };
-
-  const registerWithPhone = async (data: {
-    name: string;
-    documentId: string;
-    businessName: string;
-    phone: string;
-    email?: string;
-    password?: string;
-    confirmationResult: ConfirmationResult;
-    code: string;
-  }): Promise<{ success: boolean; message: string; user?: User }> => {
-    try {
-      const fbUser = await firebaseVerifyPhoneCode(data.confirmationResult, data.code);
-      
-      const emailToUse = data.email?.trim() || `${data.documentId.trim()}@superpuntos.online`;
-      const passwordToUse = data.password?.trim() || 'Superpuntos2026*';
-
-      // Asegurar que el usuario quede registrado en Firebase Authentication con su contraseña
-      try {
-        await ensureFirebaseAuthUser(emailToUse, passwordToUse, data.name.trim());
-      } catch (authErr: any) {
-        console.warn('Notice saving to Firebase Auth:', authErr?.message || authErr);
-      }
-
-      const newUser = registerAlly({
-        name: data.name.trim(),
-        documentId: data.documentId.trim(),
-        businessName: data.businessName.trim(),
-        email: emailToUse,
-        phone: normalizePhoneNumber(data.phone) || data.phone.trim(),
-        password: passwordToUse
-      });
-
-      if (fbUser && fbUser.uid) {
-        newUser.id = fbUser.uid;
-      }
-
-      // Persistir y esperar guardado en Firestore
-      try {
-        await saveFirestoreUser(newUser);
-      } catch (fsErr) {
-        console.warn('Firestore write warning:', fsErr);
-      }
-
-      triggerConfetti();
-      return {
-        success: true,
-        message: '¡Registro y verificación completados y guardados en Firebase exitosamente!',
-        user: newUser
-      };
-    } catch (error: any) {
-      let msg = error?.message || 'Error al verificar el código y registrar el usuario';
-      if (error?.code === 'auth/invalid-verification-code') {
-        msg = 'El código de verificación ingresado es incorrecto. Por favor verifícalo e inténtalo de nuevo.';
-      } else if (error?.code === 'auth/code-expired') {
-        msg = 'El código de verificación ha expirado. Por favor solicita un nuevo código.';
-      } else if (error?.code === 'auth/internal-error' || error?.message?.includes('internal-error')) {
-        msg = 'Restricción temporal en el servicio de autenticación. Puedes completar el registro con tu contraseña.';
-      }
-      return { success: false, message: msg };
-    }
-  };
-
   const syncWithFirestore = async (): Promise<{ success: boolean; message: string }> => {
     try {
       const [u, p, c, g, o] = await Promise.all([
@@ -2959,9 +2786,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       loginWithGoogle,
       loginWithEmailPassword,
       registerWithEmailPassword,
-      sendPhoneCode,
-      verifyPhoneAndLogin,
-      registerWithPhone,
       syncWithFirestore,
       isFirebaseConnected,
       firestoreStatus,

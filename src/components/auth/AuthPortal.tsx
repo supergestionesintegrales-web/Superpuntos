@@ -9,7 +9,6 @@ import {
   CheckCircle2, 
   AlertCircle, 
   UserPlus, 
-  Phone, 
   Mail, 
   Eye, 
   EyeOff, 
@@ -19,12 +18,12 @@ import {
   Copy,
   ExternalLink,
   ShieldAlert,
-  KeyRound
+  KeyRound,
+  CreditCard
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { CoinIcon } from '../common/CoinIcon';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
-import type { ConfirmationResult } from 'firebase/auth';
 
 interface AuthPortalProps {
   onOpenRegisterAlly?: () => void;
@@ -38,9 +37,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
     loginWithGoogle,
     registerAlly, 
     registerWithEmailPassword,
-    registerWithPhone,
-    sendPhoneCode,
-    verifyPhoneAndLogin,
     triggerConfetti,
     isGoogleConnected,
     isFirebaseConnected,
@@ -86,38 +82,17 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
   const [allyError, setAllyError] = useState<{ message: string; notRegistered?: boolean } | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // Ally Registration Form State (Clean)
+  // Ally Registration Form State (Clean - No phone required)
   const [regName, setRegName] = useState('');
   const [regDocument, setRegDocument] = useState('');
   const [regBusinessName, setRegBusinessName] = useState('');
   const [regEmail, setRegEmail] = useState('');
-  const [regPhone, setRegPhone] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [regError, setRegError] = useState<string | null>(null);
   const [regSuccess, setRegSuccess] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
-
-  // Ally Phone SMS Registration State
-  const [regSubMode, setRegSubMode] = useState<'phone' | 'standard'>('phone');
-  const [regPhoneSms, setRegPhoneSms] = useState('');
-  const [regSmsCode, setRegSmsCode] = useState('');
-  const [isRegSendingSms, setIsRegSendingSms] = useState(false);
-  const [regSmsSent, setRegSmsSent] = useState(false);
-  const [regSmsNotification, setRegSmsNotification] = useState<string | null>(null);
-  const [regConfirmationResult, setRegConfirmationResult] = useState<ConfirmationResult | null>(null);
-  const [isRegVerifyingSms, setIsRegVerifyingSms] = useState(false);
-
-  // Ally Login with Phone SMS State
-  const [loginMethod, setLoginMethod] = useState<'password' | 'sms'>('password');
-  const [loginPhoneSms, setLoginPhoneSms] = useState('');
-  const [loginSmsCode, setLoginSmsCode] = useState('');
-  const [isLoginSendingSms, setIsLoginSendingSms] = useState(false);
-  const [loginSmsSent, setLoginSmsSent] = useState(false);
-  const [loginSmsNotification, setLoginSmsNotification] = useState<string | null>(null);
-  const [loginConfirmationResult, setLoginConfirmationResult] = useState<ConfirmationResult | null>(null);
-  const [isLoginVerifyingSms, setIsLoginVerifyingSms] = useState(false);
 
   // Admin Login Form State (Clean - No pre-filled passwords or credentials)
   const [adminEmail, setAdminEmail] = useState('');
@@ -308,7 +283,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
         documentId: regDocument.trim(),
         businessName: regBusinessName.trim() || undefined,
         email: regEmail.trim(),
-        phone: regPhone.trim() || '300 000 0000',
+        phone: '',
         password: regPassword
       });
 
@@ -327,190 +302,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
     } catch {
       setRegError('Hubo un problema al registrar la cuenta en Firebase. Intenta de nuevo.');
       setIsRegistering(false);
-    }
-  };
-
-  // Handle Phone Registration: Send SMS Code
-  const handleRegSendSms = async () => {
-    setRegError(null);
-    setRegSmsNotification(null);
-    const cleanDigits = regPhoneSms.replace(/\D/g, '');
-    if (!cleanDigits || cleanDigits.length < 10) {
-      setRegError('Por favor ingresa un número de celular válido de 10 dígitos (Ej: 300 123 4567).');
-      return;
-    }
-
-    setIsRegSendingSms(true);
-    try {
-      const res = await sendPhoneCode(regPhoneSms, 'recaptcha-portal-reg');
-      if (res.success && res.confirmationResult) {
-        setRegConfirmationResult(res.confirmationResult);
-        setRegSmsSent(true);
-        setRegSmsCode(''); // Dejar en blanco para que el usuario escriba el código
-        if (res.isSimulated && res.simulatedCode) {
-          setRegSmsNotification(`Código de seguridad generado para tu celular: ${res.simulatedCode}. Ingrésalo a continuación para verificar.`);
-        } else {
-          setRegSmsNotification(`Código de 6 dígitos enviado por SMS por Firebase a tu número. Ingrésalo a continuación.`);
-        }
-      } else {
-        setRegError(formatAuthError(res.message));
-      }
-    } catch (err: any) {
-      setRegError(formatAuthError(err?.message));
-    } finally {
-      setIsRegSendingSms(false);
-    }
-  };
-
-  // Handle Phone Registration: Verify SMS & Register
-  const handleRegPhoneSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setRegError(null);
-
-    if (!regSmsSent || !regConfirmationResult) {
-      setRegError('Por favor solicita primero el código SMS de verificación.');
-      return;
-    }
-
-    const cleanCode = regSmsCode.replace(/\D/g, '');
-    if (!cleanCode || cleanCode.length !== 6) {
-      setRegError('El código SMS de verificación debe ser de 6 dígitos numéricos.');
-      return;
-    }
-
-    if (!regName.trim()) {
-      setRegError('Por favor ingresa tu Nombre Completo o Razón Social.');
-      return;
-    }
-
-    if (!regDocument.trim()) {
-      setRegError('Por favor ingresa tu Número de Cédula o NIT.');
-      return;
-    }
-
-    if (!regBusinessName.trim()) {
-      setRegError('Por favor indica a qué Empresa o Aliado Comercial perteneces.');
-      return;
-    }
-
-    if (!regPassword) {
-      setRegError('Por favor define tu contraseña de acceso para la cuenta.');
-      return;
-    }
-
-    if (regPassword.length < 6) {
-      setRegError('La contraseña debe tener al menos 6 caracteres.');
-      return;
-    }
-
-    if (regPassword !== regConfirmPassword) {
-      setRegError('Las contraseñas no coinciden. Por favor verifícalas.');
-      return;
-    }
-
-    const existing = users.find(u => u.documentId.trim().toLowerCase() === regDocument.trim().toLowerCase());
-    if (existing) {
-      setRegError('Ya existe un usuario registrado con este número de documento.');
-      return;
-    }
-
-    setIsRegVerifyingSms(true);
-    try {
-      const res = await registerWithPhone({
-        name: regName.trim(),
-        documentId: regDocument.trim(),
-        businessName: regBusinessName.trim(),
-        phone: regPhoneSms.trim(),
-        email: regEmail.trim() || undefined,
-        password: regPassword,
-        confirmationResult: regConfirmationResult,
-        code: cleanCode
-      });
-
-      if (res.success) {
-        triggerConfetti();
-        setRegSuccess(true);
-        setTimeout(async () => {
-          await loginAsAlly(regDocument.trim(), regPassword);
-        }, 1200);
-      } else {
-        setRegError(formatAuthError(res.message));
-      }
-    } catch (err: any) {
-      setRegError(formatAuthError(err?.message));
-    } finally {
-      setIsRegVerifyingSms(false);
-    }
-  };
-
-  // Handle Phone Login: Send SMS Code
-  const handleLoginSendSms = async () => {
-    setAllyError(null);
-    setLoginSmsNotification(null);
-    const cleanDigits = loginPhoneSms.replace(/\D/g, '');
-    if (!cleanDigits || cleanDigits.length < 10) {
-      setAllyError({ message: 'Por favor ingresa un número de celular válido de 10 dígitos (Ej: 300 123 4567).' });
-      return;
-    }
-
-    setIsLoginSendingSms(true);
-    try {
-      const res = await sendPhoneCode(loginPhoneSms, 'recaptcha-portal-login');
-      if (res.success && res.confirmationResult) {
-        setLoginConfirmationResult(res.confirmationResult);
-        setLoginSmsSent(true);
-        setLoginSmsCode(''); // Dejar en blanco para que el usuario escriba el código
-        if (res.isSimulated && res.simulatedCode) {
-          setLoginSmsNotification(`Código de seguridad generado para tu celular: ${res.simulatedCode}. Ingrésalo para iniciar sesión.`);
-        } else {
-          setLoginSmsNotification(`Código de 6 dígitos enviado por SMS por Firebase a tu celular. Ingrésalo para ingresar.`);
-        }
-      } else {
-        setAllyError({ message: formatAuthError(res.message) });
-      }
-    } catch (err: any) {
-      setAllyError({ message: formatAuthError(err?.message) });
-    } finally {
-      setIsLoginSendingSms(false);
-    }
-  };
-
-  // Handle Phone Login: Verify SMS & Login
-  const handleLoginSmsVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAllyError(null);
-
-    if (!loginConfirmationResult) {
-      setAllyError({ message: 'Por favor solicita primero el código SMS de verificación.' });
-      return;
-    }
-
-    const cleanCode = loginSmsCode.replace(/\D/g, '');
-    if (!cleanCode || cleanCode.length !== 6) {
-      setAllyError({ message: 'El código de verificación debe contener 6 dígitos numéricos.' });
-      return;
-    }
-
-    setIsLoginVerifyingSms(true);
-    try {
-      const res = await verifyPhoneAndLogin(loginPhoneSms, cleanCode, loginConfirmationResult);
-      if (res.success) {
-        if (res.isNewUser) {
-          setRegPhoneSms(loginPhoneSms);
-          setRegPhone(loginPhoneSms);
-          setRegSubMode('phone');
-          setActiveTab('ally_register');
-          setRegError('Número verificado. Completa los datos de tu negocio para finalizar tu registro.');
-        } else {
-          triggerConfetti();
-        }
-      } else {
-        setAllyError({ message: formatAuthError(res.message) });
-      }
-    } catch (err: any) {
-      setAllyError({ message: formatAuthError(err?.message) });
-    } finally {
-      setIsLoginVerifyingSms(false);
     }
   };
 
@@ -836,227 +627,78 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 </div>
               )}
 
-              {/* Invisible Recaptcha Container for Phone Login */}
-              <div id="recaptcha-portal-login"></div>
+              {/* Credentials Form */}
+              <form onSubmit={handleAllySubmit} className="space-y-4">
+                
+                {/* Document Input */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-200 mb-2">
+                    Cédula / Documento de Identidad <span className="text-blue-400 font-bold">*</span>
+                  </label>
+                  <input
+                    id="input-ally-document"
+                    type="text"
+                    required
+                    autoFocus
+                    value={allyDocument}
+                    onChange={(e) => {
+                      setAllyDocument(e.target.value);
+                      if (allyError) setAllyError(null);
+                    }}
+                    placeholder="Ingresa tu número de cédula o NIT"
+                    className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
+                  />
+                </div>
 
-              {/* Login Method Tabs */}
-              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900/90 border border-slate-800 rounded-2xl text-xs font-bold mb-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLoginMethod('password');
-                    setAllyError(null);
-                  }}
-                  className={`py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                    loginMethod === 'password'
-                      ? 'bg-blue-600 text-white shadow-md font-black'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <KeyRound className="w-3.5 h-3.5" />
-                  <span>Cédula / Contraseña</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLoginMethod('sms');
-                    setAllyError(null);
-                  }}
-                  className={`py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                    loginMethod === 'sms'
-                      ? 'bg-blue-600 text-white shadow-md font-black'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>Código SMS a Celular</span>
-                </button>
-              </div>
-
-              {loginMethod === 'sms' ? (
-                /* Phone SMS Login Flow */
-                <form onSubmit={handleLoginSmsVerify} className="space-y-4">
-                  {/* Phone input */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-200 mb-2">
-                      Número de Celular Registrado <span className="text-blue-400 font-bold">*</span>
-                    </label>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                          🇨🇴 +57
-                        </span>
-                        <input
-                          type="tel"
-                          required
-                          disabled={loginSmsSent || isLoginSendingSms}
-                          value={loginPhoneSms}
-                          onChange={(e) => {
-                            setLoginPhoneSms(e.target.value);
-                            if (allyError) setAllyError(null);
-                          }}
-                          placeholder="300 123 4567"
-                          className="w-full pl-18 pr-3 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white font-mono placeholder-slate-500 focus:outline-hidden focus:border-blue-500 disabled:opacity-60"
-                        />
-                      </div>
-                      {!loginSmsSent && (
-                        <button
-                          type="button"
-                          disabled={isLoginSendingSms || !loginPhoneSms.trim()}
-                          onClick={handleLoginSendSms}
-                          className="px-4 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shrink-0 flex items-center gap-1.5 transition-all cursor-pointer shadow-md disabled:opacity-50"
-                        >
-                          {isLoginSendingSms ? (
-                            <>
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                              <span>Enviando...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Phone className="w-3.5 h-3.5" />
-                              <span>Enviar SMS</span>
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {loginSmsSent && (
-                    <div className="space-y-4 pt-2 animate-in fade-in slide-in-from-top-2">
-                      <div className="p-3 bg-blue-950/60 border border-blue-500/30 rounded-xl text-xs text-blue-200 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />
-                          <span>Código SMS enviado a <strong>{loginPhoneSms}</strong></span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleLoginSendSms}
-                          disabled={isLoginSendingSms}
-                          className="text-[11px] text-blue-400 hover:underline font-bold cursor-pointer shrink-0 ml-2"
-                        >
-                          Reenviar
-                        </button>
-                      </div>
-
-                      {/* Dynamic Login SMS Notification */}
-                      {loginSmsNotification && (
-                        <div className="p-3 bg-blue-900/40 border border-blue-600/50 rounded-xl text-xs text-blue-200 font-medium">
-                          {loginSmsNotification}
-                        </div>
-                      )}
-
-                      {/* Code input */}
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-200 mb-2">
-                          Código de Verificación SMS (6 dígitos) <span className="text-blue-400 font-bold">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          maxLength={6}
-                          autoFocus
-                          value={loginSmsCode}
-                          onChange={(e) => setLoginSmsCode(e.target.value.replace(/\D/g, ''))}
-                          placeholder="000000"
-                          className="w-full px-4 py-3.5 rounded-xl border border-slate-600 bg-slate-950 text-xl text-center tracking-widest font-black text-white font-mono focus:outline-hidden focus:border-blue-500"
-                        />
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={isLoginVerifyingSms}
-                        className="w-full py-4 px-6 rounded-xl font-black text-base bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white shadow-lg shadow-blue-950/40 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer mt-3 disabled:opacity-50"
-                      >
-                        {isLoginVerifyingSms ? (
-                          <>
-                            <RefreshCw className="w-5 h-5 animate-spin" />
-                            <span>Verificando código...</span>
-                          </>
-                        ) : (
-                          <>
-                            <LogIn className="w-5 h-5 stroke-[2.5]" />
-                            <span>Verificar Código e Ingresar</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </form>
-              ) : (
-                /* Standard Credentials Form */
-                <form onSubmit={handleAllySubmit} className="space-y-4">
-                  
-                  {/* Document Input */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-200 mb-2">
-                      Cédula / Documento de Identidad <span className="text-blue-400 font-bold">*</span>
-                    </label>
+                {/* Password Input */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-200 mb-2">
+                    Contraseña <span className="text-blue-400 font-bold">*</span>
+                  </label>
+                  <div className="relative">
                     <input
-                      id="input-ally-document"
-                      type="text"
+                      id="input-ally-password"
+                      type={showAllyPassword ? 'text' : 'password'}
                       required
-                      autoFocus
-                      value={allyDocument}
+                      value={allyPassword}
                       onChange={(e) => {
-                        setAllyDocument(e.target.value);
+                        setAllyPassword(e.target.value);
                         if (allyError) setAllyError(null);
                       }}
-                      placeholder="Ingresa tu número de documento o celular"
-                      className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
+                      placeholder="Ingresa tu contraseña"
+                      className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowAllyPassword(!showAllyPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 cursor-pointer"
+                    >
+                      {showAllyPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
+                </div>
 
-                  {/* Password Input */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-200 mb-2">
-                      Contraseña <span className="text-blue-400 font-bold">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        id="input-ally-password"
-                        type={showAllyPassword ? 'text' : 'password'}
-                        required
-                        value={allyPassword}
-                        onChange={(e) => {
-                          setAllyPassword(e.target.value);
-                          if (allyError) setAllyError(null);
-                        }}
-                        placeholder="Ingresa tu contraseña"
-                        className="w-full px-4 py-3.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowAllyPassword(!showAllyPassword)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 cursor-pointer"
-                      >
-                        {showAllyPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
+                {/* Submit Button: Iniciar Sesión justo debajo de Cédula y Contraseña */}
+                <button
+                  id="btn-iniciar-sesion-aliado"
+                  type="submit"
+                  disabled={isVerifying}
+                  className="w-full py-4 px-6 rounded-xl font-black text-base bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white shadow-lg shadow-blue-950/40 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer mt-3"
+                >
+                  {isVerifying ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      <span>Validando en base de datos...</span>
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="w-5 h-5 stroke-[2.5]" />
+                      <span>Iniciar Sesión</span>
+                    </>
+                  )}
+                </button>
 
-                  {/* Submit Button: Iniciar Sesión justo debajo de Cédula y Contraseña */}
-                  <button
-                    id="btn-iniciar-sesion-aliado"
-                    type="submit"
-                    disabled={isVerifying}
-                    className="w-full py-4 px-6 rounded-xl font-black text-base bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white shadow-lg shadow-blue-950/40 flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer mt-3"
-                  >
-                    {isVerifying ? (
-                      <>
-                        <RefreshCw className="w-5 h-5 animate-spin" />
-                        <span>Validando en base de datos...</span>
-                      </>
-                    ) : (
-                      <>
-                        <LogIn className="w-5 h-5 stroke-[2.5]" />
-                        <span>Iniciar Sesión</span>
-                      </>
-                    )}
-                  </button>
-
-                </form>
-              )}
+              </form>
 
 
               {/* Forgot Password Link */}
@@ -1199,288 +841,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                 </div>
               </div>
 
-              {/* Invisible Recaptcha Container for Registration */}
-              <div id="recaptcha-portal-reg"></div>
-
-              {/* Registration Sub-mode Selector */}
-              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900/90 border border-slate-800 rounded-2xl text-xs font-bold mb-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRegSubMode('phone');
-                    setRegError(null);
-                  }}
-                  className={`py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                    regSubMode === 'phone'
-                      ? 'bg-blue-600 text-white shadow-md font-black'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>Con Celular (SMS)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRegSubMode('standard');
-                    setRegError(null);
-                  }}
-                  className={`py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                    regSubMode === 'standard'
-                      ? 'bg-blue-600 text-white shadow-md font-black'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <KeyRound className="w-3.5 h-3.5" />
-                  <span>Con Cédula y Contraseña</span>
-                </button>
-              </div>
-
-              {regSubMode === 'phone' ? (
-                /* Phone Registration Form */
-                <form onSubmit={handleRegPhoneSubmit} className="space-y-4">
-                  {/* Phone input */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-200 mb-1.5 flex items-center justify-between">
-                      <span>Número de Celular <span className="text-blue-400 font-bold">*</span></span>
-                      {regSmsSent && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setRegSmsSent(false);
-                            setRegSmsCode('');
-                            setRegConfirmationResult(null);
-                          }}
-                          className="text-[11px] text-blue-400 hover:underline cursor-pointer"
-                        >
-                          Cambiar número
-                        </button>
-                      )}
-                    </label>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                          🇨🇴 +57
-                        </span>
-                        <input
-                          type="tel"
-                          required
-                          disabled={regSmsSent || isRegSendingSms}
-                          value={regPhoneSms}
-                          onChange={(e) => {
-                            setRegPhoneSms(e.target.value);
-                            if (regError) setRegError(null);
-                          }}
-                          placeholder="300 123 4567"
-                          className="w-full pl-18 pr-3 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white font-mono placeholder-slate-500 focus:outline-hidden focus:border-blue-500 disabled:opacity-60"
-                        />
-                      </div>
-                      {!regSmsSent && (
-                        <button
-                          type="button"
-                          disabled={isRegSendingSms || !regPhoneSms.trim()}
-                          onClick={handleRegSendSms}
-                          className="px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shrink-0 flex items-center gap-1.5 transition-all cursor-pointer shadow-md disabled:opacity-50"
-                        >
-                          {isRegSendingSms ? (
-                            <>
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                              <span>Enviando...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Phone className="w-3.5 h-3.5" />
-                              <span>Enviar SMS</span>
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </div>
-                    <p className="text-[10px] text-slate-400 mt-1">
-                      Recibirás un código de 6 dígitos vía SMS para verificar tu identidad mediante Firebase Auth.
-                    </p>
-                  </div>
-
-                  {regSmsSent && (
-                    <div className="space-y-4 pt-2 border-t border-slate-800 animate-in fade-in slide-in-from-top-2">
-                      <div className="p-3 bg-blue-950/60 border border-blue-500/30 rounded-xl text-xs text-blue-200 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />
-                          <span>Código SMS enviado a <strong>{regPhoneSms}</strong></span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleRegSendSms}
-                          disabled={isRegSendingSms}
-                          className="text-[11px] text-blue-400 hover:underline font-bold cursor-pointer shrink-0 ml-2"
-                        >
-                          Reenviar
-                        </button>
-                      </div>
-
-                      {/* Dynamic Reg SMS Notification */}
-                      {regSmsNotification && (
-                        <div className="p-3 bg-blue-900/40 border border-blue-600/50 rounded-xl text-xs text-blue-200 font-medium">
-                          {regSmsNotification}
-                        </div>
-                      )}
-
-                      {/* SMS Code */}
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                          Código de Verificación SMS (6 dígitos) <span className="text-blue-400 font-bold">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          maxLength={6}
-                          autoFocus
-                          value={regSmsCode}
-                          onChange={(e) => setRegSmsCode(e.target.value.replace(/\D/g, ''))}
-                          placeholder="000000"
-                          className="w-full px-4 py-3 rounded-xl border border-slate-600 bg-slate-950 text-xl text-center tracking-widest font-black text-white font-mono focus:outline-hidden focus:border-blue-500"
-                        />
-                      </div>
-
-                      {/* Name */}
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                          Nombre Completo / Razón Social <span className="text-blue-400 font-bold">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={regName}
-                          onChange={(e) => setRegName(e.target.value)}
-                          placeholder="Ej: Carlos Gómez"
-                          className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500"
-                        />
-                      </div>
-
-                      {/* Grid 2 Cols: Document & Business */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                            Cédula / NIT <span className="text-blue-400 font-bold">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={regDocument}
-                            onChange={(e) => setRegDocument(e.target.value)}
-                            placeholder="Ej: 1098765432"
-                            className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 font-mono"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                            Empresa o Aliado Comercial <span className="text-blue-400 font-bold">*</span>
-                          </label>
-                          <div className="relative">
-                            <input
-                              type="text"
-                              required
-                              value={regBusinessName}
-                              onChange={(e) => setRegBusinessName(e.target.value)}
-                              placeholder="Ej: SuperGIROS La Estación..."
-                              className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500"
-                            />
-                            <Building2 className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Optional Email */}
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                          Correo Electrónico (Opcional)
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="email"
-                            value={regEmail}
-                            onChange={(e) => setRegEmail(e.target.value)}
-                            placeholder="aliado@correo.com"
-                            className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500"
-                          />
-                          <Mail className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
-                        </div>
-                      </div>
-
-                      {/* Password and Password Confirmation */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                            Contraseña de Acceso <span className="text-blue-400 font-bold">*</span>
-                          </label>
-                          <div className="relative">
-                            <input
-                              type={showRegPassword ? 'text' : 'password'}
-                              required
-                              minLength={6}
-                              value={regPassword}
-                              onChange={(e) => setRegPassword(e.target.value)}
-                              placeholder="Mínimo 6 caracteres"
-                              className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowRegPassword(!showRegPassword)}
-                              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 cursor-pointer"
-                            >
-                              {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            </button>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                            Confirmar Contraseña <span className="text-blue-400 font-bold">*</span>
-                          </label>
-                          <input
-                            type={showRegPassword ? 'text' : 'password'}
-                            required
-                            value={regConfirmPassword}
-                            onChange={(e) => setRegConfirmPassword(e.target.value)}
-                            placeholder="Repite tu contraseña"
-                            className={`w-full px-4 py-3 rounded-xl border bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden transition-all ${
-                              regConfirmPassword && regPassword !== regConfirmPassword
-                                ? 'border-red-500 focus:border-red-400'
-                                : regConfirmPassword && regPassword === regConfirmPassword
-                                ? 'border-emerald-500 focus:border-emerald-400'
-                                : 'border-slate-700 focus:border-blue-500'
-                            }`}
-                          />
-                        </div>
-                      </div>
-                      <p className="text-[10px] text-slate-400">
-                        Esta contraseña estará asociada a tu usuario y cédula para tus próximos inicios de sesión.
-                      </p>
-
-                      <button
-                        type="submit"
-                        disabled={isRegVerifyingSms}
-                        className="w-full py-4 px-6 rounded-xl font-black text-sm bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-950 hover:from-blue-800 hover:to-indigo-900 text-white shadow-lg shadow-blue-950/40 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer mt-2 disabled:opacity-50"
-                      >
-                        {isRegVerifyingSms ? (
-                          <>
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                            <span>Verificando SMS y creando cuenta...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="w-4 h-4 text-blue-300" />
-                            <span>Verificar Código y Crear Cuenta</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </form>
-              ) : (
-                /* Standard Form */
-                <form onSubmit={handleRegisterSubmit} className="space-y-4">
+              {/* Standard Registration Form */}
+              <form onSubmit={handleRegisterSubmit} className="space-y-4">
                   
                   {/* Name */}
                   <div>
@@ -1532,39 +894,21 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                     </div>
                   </div>
 
-                  {/* Grid 2 Cols: Email & Phone */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                        Correo Electrónico <span className="text-blue-400 font-bold">*</span>
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="email"
-                          required
-                          value={regEmail}
-                          onChange={(e) => setRegEmail(e.target.value)}
-                          placeholder="aliado@correo.com"
-                          className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                        />
-                        <Mail className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                        Teléfono / WhatsApp
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="tel"
-                          value={regPhone}
-                          onChange={(e) => setRegPhone(e.target.value)}
-                          placeholder="300 123 4567"
-                          className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                        />
-                        <Phone className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
-                      </div>
+                  {/* Email */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                      Correo Electrónico <span className="text-blue-400 font-bold">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        required
+                        value={regEmail}
+                        onChange={(e) => setRegEmail(e.target.value)}
+                        placeholder="aliado@correo.com"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                      />
+                      <Mail className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                     </div>
                   </div>
 
@@ -1628,7 +972,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = () => {
                   </button>
 
                 </form>
-              )}
 
 
               <div className="pt-4 border-t border-slate-800 text-center">
