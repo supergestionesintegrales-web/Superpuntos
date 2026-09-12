@@ -24,7 +24,7 @@ import {
   INITIAL_NOTIFICATIONS,
   INITIAL_ACCESS_LOGS
 } from '../data/initialData';
-import { generateVoucherCode, generatePinCode } from '../utils/helpers';
+import { generateVoucherCode, generatePinCode, generateAcronymicEmail } from '../utils/helpers';
 import { 
   initAuth, 
   googleSignIn, 
@@ -99,11 +99,12 @@ interface AppContextType {
   setCurrentUser: (user: User) => void;
   switchUserById: (userId: string) => void;
   checkUserExists: (documentOrEmail: string) => Promise<{ exists: boolean; user?: User }>;
-  loginAsAlly: (documentOrId: string, password?: string) => Promise<{ success: boolean; notRegistered?: boolean; message: string; user?: User }>;
+  loginAsAlly: (documentOrId: string, password?: string) => Promise<{ success: boolean; notRegistered?: boolean; pendingApproval?: boolean; message: string; user?: User }>;
   loginAsAdmin: (emailOrUser: string, password?: string) => { success: boolean; message: string; user?: User };
   loginWithGoogle: (fallbackEmail?: string, fallbackName?: string, preferredRole?: 'admin' | 'ally') => Promise<{ success: boolean; message: string; user?: User; code?: string }>;
   loginWithEmailPassword: (emailOrDoc: string, password: string) => Promise<{ success: boolean; message: string; user?: User }>;
   registerWithEmailPassword: (data: Omit<User, 'id' | 'role' | 'pointsBalance' | 'totalPointsEarned' | 'totalPointsRedeemed' | 'status' | 'createdAt'>) => Promise<{ success: boolean; message: string; user?: User }>;
+  approveAndAddToFirebase: (userId: string) => Promise<{ success: boolean; message: string }>;
   syncWithFirestore: () => Promise<{ success: boolean; message: string }>;
   isFirebaseConnected: boolean;
   firestoreStatus: 'connected' | 'connecting' | 'error';
@@ -996,30 +997,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { exists: false };
   };
 
-  const loginAsAlly = async (documentOrId: string, enteredPassword?: string): Promise<{ success: boolean; notRegistered?: boolean; message: string; user?: User }> => {
-    const cleanDoc = documentOrId.trim().toLowerCase();
-    if (!cleanDoc) {
-      return { success: false, notRegistered: false, message: 'Por favor ingresa tu número de cédula o documento de identidad.' };
+  const loginAsAlly = async (emailOrDoc: string, enteredPassword?: string): Promise<{ success: boolean; notRegistered?: boolean; pendingApproval?: boolean; message: string; user?: User }> => {
+    const clean = emailOrDoc.trim().toLowerCase();
+    if (!clean) {
+      return { success: false, notRegistered: false, message: 'Por favor ingresa tu correo electrónico o documento de identidad.' };
     }
 
-    // 1. Check in local state
-    const cleanDigits = cleanDoc.replace(/\D/g, '');
+    // 1. Check in local state by email, systemEmail, personalEmail, documentId, id, name or phone
+    const cleanDigits = clean.replace(/\D/g, '');
     let found = users.find(u => 
       u.role === 'ally' && (
-        (u.documentId || '').toLowerCase() === cleanDoc || 
-        (u.id || '').toLowerCase() === cleanDoc ||
-        (u.email || '').toLowerCase() === cleanDoc ||
-        (u.name || '').toLowerCase() === cleanDoc ||
+        (u.email || '').toLowerCase() === clean ||
+        (u.systemEmail || '').toLowerCase() === clean ||
+        (u.personalEmail || '').toLowerCase() === clean ||
+        (u.documentId || '').toLowerCase() === clean || 
+        (u.id || '').toLowerCase() === clean ||
+        (u.name || '').toLowerCase() === clean ||
         (cleanDigits.length >= 7 && (u.phone || '').replace(/\D/g, '').endsWith(cleanDigits.slice(-10)))
       )
     );
 
-    // 2. If not found locally, query Firestore
+    // 2. If not found locally, query Firestore by email or document
     if (!found) {
       try {
-        const fromFirestore = (await getFirestoreUserByDocument(cleanDoc)) || 
-                             (await getFirestoreUserByEmail(cleanDoc)) ||
-                             (cleanDigits.length >= 7 ? await getFirestoreUserByPhone(cleanDoc) : null);
+        const fromFirestore = (clean.includes('@') ? await getFirestoreUserByEmail(clean) : null) ||
+                             (await getFirestoreUserByDocument(clean)) || 
+                             (await getFirestoreUserByEmail(clean)) ||
+                             (cleanDigits.length >= 7 ? await getFirestoreUserByPhone(clean) : null);
         if (fromFirestore && fromFirestore.role === 'ally') {
           found = fromFirestore;
           setUsers(prev => [fromFirestore, ...prev.filter(u => u.id !== fromFirestore.id)]);
@@ -1037,9 +1041,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const sheetUsers = await fetchUsersFromGoogleSheets(token, spreadsheetId);
           const fromSheet = sheetUsers.find(u => 
             u.role === 'ally' && (
-              (u.documentId || '').toLowerCase() === cleanDoc || 
-              (u.id || '').toLowerCase() === cleanDoc ||
-              (u.email || '').toLowerCase() === cleanDoc
+              (u.email || '').toLowerCase() === clean ||
+              (u.systemEmail || '').toLowerCase() === clean ||
+              (u.personalEmail || '').toLowerCase() === clean ||
+              (u.documentId || '').toLowerCase() === clean || 
+              (u.id || '').toLowerCase() === clean
             )
           );
           if (fromSheet) {
@@ -1054,12 +1060,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     if (found) {
+      // Check if account is pending administrator activation
+      if (found.status === 'pending' || found.firebaseAuthAdded === false) {
+        return {
+          success: false,
+          notRegistered: false,
+          pendingApproval: true,
+          message: 'Tu solicitud de registro ha sido recibida con éxito y está en proceso de activación por parte del administrador en la base de datos. Muy pronto te enviaremos la confirmación para ingresar.'
+        };
+      }
+
+      if (found.status === 'inactive') {
+        return {
+          success: false,
+          notRegistered: false,
+          message: 'Tu cuenta de aliado se encuentra inactiva en el sistema. Comunícate con la administración de Superpuntos.'
+        };
+      }
+
       // If found user record has no password in local state, fetch security credentials from Firestore
       if (!found.password || found.password.trim() === '') {
         try {
-          const freshFromFirestore = (await getFirestoreUserByDocument(cleanDoc)) || 
-                                     (await getFirestoreUserByEmail(cleanDoc)) ||
-                                     (cleanDigits.length >= 7 ? await getFirestoreUserByPhone(cleanDoc) : null) ||
+          const freshFromFirestore = (clean.includes('@') ? await getFirestoreUserByEmail(clean) : null) ||
+                                     (await getFirestoreUserByDocument(clean)) || 
+                                     (await getFirestoreUserByEmail(clean)) ||
+                                     (cleanDigits.length >= 7 ? await getFirestoreUserByPhone(clean) : null) ||
                                      (await getFirestoreUser(found.id));
           if (freshFromFirestore && freshFromFirestore.password && freshFromFirestore.password.trim() !== '') {
             found = { ...found, ...freshFromFirestore };
@@ -1096,9 +1121,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }
 
+      // Also attempt direct Firebase Authentication with Email & Password
+      if (!isPasswordCorrect && enteredPassword) {
+        try {
+          const canonicalEmail = (found.email && found.email.includes('@')) 
+            ? found.email.trim().toLowerCase() 
+            : `${found.documentId.trim()}@${SYSTEM_DOMAIN}`;
+          await firebaseSignInWithEmail(canonicalEmail, enteredPassword);
+          isPasswordCorrect = true;
+        } catch {
+          // Keep false
+        }
+      }
+
       // STRICT VALIDATION: If password did not match, REJECT access!
       if (!isPasswordCorrect) {
-        logAccessEvent('login', `Intento de acceso denegado por contraseña incorrecta para: ${found.name} (${found.documentId})`, found);
+        logAccessEvent('login', `Intento de acceso denegado por contraseña incorrecta para: ${found.name} (${found.email || found.documentId})`, found);
         if (found.password && found.password.trim() !== '') {
           return { 
             success: false, 
@@ -1118,13 +1156,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsAuthenticated(true);
       sessionStorage.removeItem('superpuntos_explicit_logout');
       try {
-        localStorage.setItem('superpuntos_last_logged_doc', found.documentId);
+        localStorage.setItem('superpuntos_last_logged_doc', found.email || found.documentId);
         localStorage.setItem('superpuntos_last_logged_name', found.name);
       } catch {}
 
       if (isTempPasswordLogin || found.mustResetPassword) {
         setMustResetPasswordModalOpen(true);
       }
+
+      // Ensure user is also registered/synced in Firebase Authentication
+      const userEmail = (found.email && found.email.includes('@')) 
+        ? found.email.trim().toLowerCase() 
+        : `${found.documentId.trim()}@${SYSTEM_DOMAIN}`;
+      ensureFirebaseAuthUser(userEmail, enteredPassword, found.name).catch(() => {});
 
       logAccessEvent('login', `Inicio de sesión exitoso como Aliado: ${found.name}${isTempPasswordLogin ? ' (Con contraseña temporal de 5h)' : ''}`, found);
       return { 
@@ -1140,7 +1184,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { 
       success: false, 
       notRegistered: true, 
-      message: 'Usuario no registrado. La cédula o documento ingresado no se encuentra en la base de datos de usuarios de Superpuntos. Por favor regístrate como nuevo Aliado Comercial.' 
+      message: 'Usuario no registrado en la base de datos. El correo o documento ingresado no se encuentra en el sistema de Superpuntos. Por favor regístrate como nuevo Aliado Comercial.' 
     };
   };
 
@@ -1253,6 +1297,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (isTempPasswordLogin || adminUser.mustResetPassword) {
       setMustResetPasswordModalOpen(true);
     }
+
+    if (adminUser.email) {
+      ensureFirebaseAuthUser(adminUser.email, enteredPassword || 'Admin2026*', adminUser.name).catch(() => {});
+    }
+
     logAccessEvent('login', `Inicio de sesión administrativo autorizado en el portal: ${adminUser.name} (${adminUser.email})`, adminUser);
     return { success: true, message: `¡Sesión de Administrador iniciada correctamente! Bienvenido ${adminUser.name}.`, user: adminUser };
   };
@@ -1420,6 +1469,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     let matched = users.find(u => 
       (u.email || '').toLowerCase() === clean || 
+      (u.systemEmail || '').toLowerCase() === clean || 
+      (u.personalEmail || '').toLowerCase() === clean || 
       (u.documentId || '').toLowerCase() === clean ||
       (u.id || '').toLowerCase() === clean
     );
@@ -1439,6 +1490,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (!matched) {
       return { success: false, message: 'Usuario no encontrado en la base de datos de Superpuntos.' };
+    }
+
+    // Check if account is pending administrator activation
+    if (matched.status === 'pending' || matched.firebaseAuthAdded === false) {
+      return {
+        success: false,
+        message: 'Tu solicitud de registro ha sido recibida y se encuentra en proceso de activación por parte del administrador en la base de datos. Muy pronto te enviaremos la información para acceder.'
+      };
+    }
+
+    if (matched.status === 'inactive') {
+      return {
+        success: false,
+        message: 'Tu cuenta se encuentra inactiva. Comunícate con la administración de Superpuntos.'
+      };
     }
 
     let isPasswordCorrect = false;
@@ -1502,40 +1568,115 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const registerWithEmailPassword = async (data: Omit<User, 'id' | 'role' | 'pointsBalance' | 'totalPointsEarned' | 'totalPointsRedeemed' | 'status' | 'createdAt'>): Promise<{ success: boolean; message: string; user?: User }> => {
     try {
-      const emailToUse = (data.email && data.email.includes('@')) 
-        ? data.email.trim().toLowerCase() 
-        : `${data.documentId.trim()}@${SYSTEM_DOMAIN}`;
+      // 1. Generate acronymic institutional email with user's data + @superpuntos.online
+      const systemEmail = generateAcronymicEmail(data.name, data.documentId, data.businessName);
+      const personalEmail = (data.email && data.email.includes('@')) ? data.email.trim().toLowerCase() : '';
 
-      let fbUser: any = null;
-      try {
-        fbUser = await ensureFirebaseAuthUser(emailToUse, data.password, data.name);
-      } catch (authErr: any) {
-        console.warn('Firebase Auth user creation notice:', authErr?.code || authErr?.message);
-      }
-
-      const user = registerAlly({
+      // 2. Create pending user record for administrator approval
+      const newUser: User = {
         ...data,
-        email: emailToUse
-      });
+        id: `usr_${Date.now()}`,
+        role: 'ally',
+        status: 'pending', // Pending administrator activation in Firebase
+        firebaseAuthAdded: false,
+        pointsBalance: 0,
+        totalPointsEarned: 0,
+        totalPointsRedeemed: 0,
+        personalEmail: personalEmail,
+        systemEmail: systemEmail,
+        email: systemEmail, // Primary institutional email is the acronymic email
+        createdAt: new Date().toISOString(),
+        avatarUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.name)}`
+      };
 
-      if (fbUser && fbUser.uid) {
-        user.id = fbUser.uid;
-      }
+      // Add to users state immediately so administrator can see it in Red de Aliados
+      setUsers(prev => [newUser, ...prev.filter(u => u.documentId !== newUser.documentId)]);
 
-      // Explicitly persist and await Firestore write
+      // Explicitly persist in Firestore
       try {
-        await saveFirestoreUser(user);
+        await saveFirestoreUser(newUser);
       } catch (fsErr) {
         console.warn('Firestore write warning:', fsErr);
       }
 
+      // Administrative notification for Red de Aliados
+      const adminNotif: AppNotification = {
+        id: `notif_${Date.now()}`,
+        userId: 'usr_admin_portal',
+        title: `Nueva Solicitud de Aliado: ${newUser.name}`,
+        message: `Se registró ${newUser.name} (${newUser.businessName || 'Comercio'}). Correo generado: ${systemEmail}. Requiere activación en la base de datos en Red de Aliados.`,
+        type: 'system',
+        read: false,
+        createdAt: new Date().toISOString()
+      };
+      setNotifications(prev => [adminNotif, ...prev]);
+
+      logAccessEvent('register', `Solicitud de registro de Aliado: ${newUser.name} (${newUser.businessName || 'Punto de Venta'}). Correo generado: ${systemEmail}`, newUser);
+
       return { 
         success: true, 
-        message: '¡Registro completado y guardado en Firebase exitosamente!', 
-        user 
+        message: '¡Registro recibido con éxito! Tu solicitud ha sido enviada al administrador.', 
+        user: newUser 
       };
     } catch (err: any) {
-      return { success: false, message: err.message || 'Error al registrar aliado' };
+      return { success: false, message: err?.message || 'Error al registrar aliado' };
+    }
+  };
+
+  const approveAndAddToFirebase = async (userId: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const target = users.find(u => u.id === userId);
+      if (!target) {
+        return { success: false, message: 'Usuario no encontrado en la base de datos.' };
+      }
+
+      const emailToUse = target.systemEmail || target.email;
+      const passwordToUse = target.password || 'Aliado2026*';
+
+      // 1. Register in Firebase Authentication
+      try {
+        await ensureFirebaseAuthUser(emailToUse, passwordToUse, target.name);
+      } catch (fbAuthErr: any) {
+        console.warn('Notice registering user in Firebase Auth:', fbAuthErr?.message || fbAuthErr);
+      }
+
+      // 2. Update user status in Firestore and state to 'active' & firebaseAuthAdded: true
+      const updatedUser: User = {
+        ...target,
+        status: 'active',
+        firebaseAuthAdded: true,
+        firebaseAuthAddedAt: new Date().toISOString(),
+        email: emailToUse
+      };
+
+      setUsers(prev => prev.map(u => u.id === userId ? updatedUser : u));
+
+      try {
+        await saveFirestoreUser(updatedUser);
+      } catch (fsErr) {
+        console.warn('Notice saving updated user to Firestore:', fsErr);
+      }
+
+      // 3. User notification
+      const welcomeNotif: AppNotification = {
+        id: `notif_${Date.now()}`,
+        userId: updatedUser.id,
+        title: '¡Cuenta Activada en la Base de Datos! 🎉',
+        message: `Tu cuenta ha sido aprobada y registrada en la base de datos con el correo ${emailToUse}. ¡Bienvenido a Superpuntos!`,
+        type: 'system',
+        read: false,
+        createdAt: new Date().toISOString()
+      };
+      setNotifications(prev => [welcomeNotif, ...prev]);
+
+      logAccessEvent('admin_action', `Aliado ${updatedUser.name} activado en la base de datos con correo ${emailToUse}`, updatedUser);
+
+      return {
+        success: true,
+        message: `¡Aliado ${updatedUser.name} activado exitosamente en la base de datos con ${emailToUse}! Acceso habilitado.`
+      };
+    } catch (err: any) {
+      return { success: false, message: err?.message || 'Error al activar en la base de datos' };
     }
   };
 
@@ -1833,7 +1974,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     return { 
       success: true, 
-      message: '¡Tu nueva contraseña definitiva ha sido guardada con éxito en el sistema y Firebase!' 
+      message: '¡Tu nueva contraseña definitiva ha sido guardada con éxito en el sistema y la base de datos!' 
     };
   };
 
@@ -2802,6 +2943,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       loginWithGoogle,
       loginWithEmailPassword,
       registerWithEmailPassword,
+      approveAndAddToFirebase,
       syncWithFirestore,
       isFirebaseConnected,
       firestoreStatus,

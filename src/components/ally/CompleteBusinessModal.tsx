@@ -77,7 +77,7 @@ export const CompleteBusinessModal: React.FC<CompleteBusinessModalProps> = ({
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <p className="font-bold text-slate-800 text-sm">¡Empresa registrada exitosamente!</p>
-              <p className="text-xs text-slate-500">Tus datos ahora se sincronizan con la Red de Aliados en Firebase.</p>
+              <p className="text-xs text-slate-500">Tus datos ahora se sincronizan con la Red de Aliados en la base de datos.</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">

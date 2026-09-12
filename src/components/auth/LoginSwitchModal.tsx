@@ -182,12 +182,12 @@ export const LoginSwitchModal: React.FC<LoginSwitchModalProps> = ({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (window.confirm(`¿Seguro que deseas eliminar al usuario "${ally.name}" del sistema y de Firebase?`)) {
+                            if (window.confirm(`¿Seguro que deseas eliminar al usuario "${ally.name}" del sistema y de la base de datos?`)) {
                               deleteUser(ally.id);
                             }
                           }}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                          title="Eliminar usuario de Firebase"
+                          title="Eliminar usuario de la base de datos"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

@@ -1,6 +1,6 @@
 export type UserRole = 'admin' | 'ally';
 
-export type UserStatus = 'active' | 'inactive';
+export type UserStatus = 'active' | 'inactive' | 'pending';
 
 export interface User {
   id: string;
@@ -21,6 +21,10 @@ export interface User {
   status: UserStatus;
   createdAt: string;
   businessName?: string; // Nombre del Punto de Venta / Negocio
+  systemEmail?: string; // Correo acrónimo asignado: datos + @superpuntos.online
+  personalEmail?: string; // Correo proporcionado originalmente por el aliado
+  firebaseAuthAdded?: boolean; // Si ya fue registrado en Firebase Authentication por el administrador
+  firebaseAuthAddedAt?: string;
 }
 
 export type ProductCategory = 

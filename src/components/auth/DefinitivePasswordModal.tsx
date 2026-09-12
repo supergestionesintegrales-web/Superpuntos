@@ -174,7 +174,7 @@ export const DefinitivePasswordModal: React.FC<DefinitivePasswordModalProps> = (
                 {isLoading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
-                    <span>Guardando en Firebase...</span>
+                    <span>Guardando en la base de datos...</span>
                   </>
                 ) : (
                   <>
@@ -206,7 +206,7 @@ export const DefinitivePasswordModal: React.FC<DefinitivePasswordModalProps> = (
                   ¡Contraseña Definitiva Actualizada!
                 </h3>
                 <p className="text-xs text-slate-600 mt-1 max-w-xs mx-auto">
-                  Tu nueva contraseña ha sido guardada en Firebase Firestore. Ya puedes utilizarla en cualquier momento para ingresar.
+                  Tu nueva contraseña ha sido guardada en la base de datos. Ya puedes utilizarla en cualquier momento para ingresar.
                 </p>
               </div>
             </div>

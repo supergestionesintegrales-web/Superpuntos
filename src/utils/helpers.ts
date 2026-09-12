@@ -230,3 +230,45 @@ export const exportOrdersToCSV = (orders: any[]) => {
   exportToCSV(formattedData, 'Superpuntos_Reporte_Canjes_Auditoria');
 };
 
+/**
+ * Generates an institutional acronym email with user's data + @superpuntos.online
+ * Example: Carlos Pérez (Doc 1098765432) -> cperez.5432@superpuntos.online
+ */
+export const generateAcronymicEmail = (name: string, documentId?: string, businessName?: string): string => {
+  const normalize = (str: string) =>
+    str
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .trim();
+
+  const cleanName = normalize(name || '');
+  const cleanBiz = normalize(businessName || '');
+  const cleanDoc = (documentId || '').replace(/\D/g, '');
+  const docSuffix = cleanDoc.length >= 4 ? cleanDoc.slice(-4) : cleanDoc;
+
+  const parts = cleanName.split(/\s+/).filter(Boolean);
+  let base = '';
+
+  if (parts.length >= 2) {
+    // First initial of first name + first surname (e.g. Juan Perez -> jperez)
+    const firstInitial = parts[0][0];
+    const surname = parts[1];
+    base = `${firstInitial}${surname}`;
+  } else if (parts.length === 1 && parts[0].length > 0) {
+    base = parts[0];
+  } else if (cleanBiz) {
+    const bizParts = cleanBiz.split(/\s+/).filter(Boolean);
+    base = bizParts.map(p => p[0]).join('') || 'aliado';
+  } else {
+    base = 'aliado';
+  }
+
+  base = base.replace(/[^a-z0-9]/g, '');
+  if (!base) base = 'aliado';
+
+  const emailLocal = docSuffix ? `${base}.${docSuffix}` : base;
+  return `${emailLocal}@superpuntos.online`;
+};
+

@@ -130,11 +130,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               type="button"
               onClick={handleManualFirestoreSync}
               disabled={isSyncingFirestore}
-              title={firestoreStatus === 'connected' ? 'Firestore conectado y sincronizado' : firestoreStatus === 'connecting' ? 'Conectando con Firestore...' : 'Operando con almacenamiento local (Cloud Firestore pendiente de activación)'}
+              title={firestoreStatus === 'connected' ? 'Base de datos conectada y sincronizada' : firestoreStatus === 'connecting' ? 'Conectando con base de datos...' : 'Operando con almacenamiento local (Base de datos remota pendiente de sincronización)'}
               className="px-3.5 py-2.5 rounded-lg font-bold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${isSyncingFirestore ? 'animate-spin' : ''}`} />
-              <span>{isSyncingFirestore ? 'Sincronizando...' : 'Sincronizar Firestore'}</span>
+              <span>{isSyncingFirestore ? 'Sincronizando...' : 'Sincronizar Base de Datos'}</span>
               <span className={`w-2 h-2 rounded-full ${
                 firestoreStatus === 'connected' 
                   ? 'bg-emerald-400' 
