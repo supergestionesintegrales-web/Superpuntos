@@ -58,7 +58,7 @@ export const LoginSwitchModal: React.FC<LoginSwitchModalProps> = ({
             </div>
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full">
-                Acceso Rápido
+                Cuentas del Sistema
               </span>
               <h2 className="text-xl font-black text-white tracking-tight mt-0.5">
                 Cambiar de Cuenta
